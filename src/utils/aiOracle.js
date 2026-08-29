@@ -280,10 +280,10 @@ export const aiOracleService = {
     return fallback;
   },
 
-  // Realistic, Direct & Honest Local Fallback for Spreads
+  // Realistic, Direct & Honest Local Fallback for Spreads (Grammatically Flawless & Natural)
   generateOfflineFallback({ spreadConfig, chosenCards, userQuestion }) {
     const validCards = chosenCards.filter(Boolean);
-    const first = validCards[0];
+    const first = validCards[0] || {};
     const middle = validCards[Math.floor(validCards.length / 2)] || first;
     const last = validCards[validCards.length - 1] || first;
     const q = (userQuestion || '').trim();
@@ -296,7 +296,7 @@ export const aiOracleService = {
         diagnosis: 'O Lumina Tarot é um oráculo sagrado dedicado à preservação da vida, ao autoconhecimento e à esperança. Não realizamos leituras sobre autodestruição, morte ou ideação suicida. Reconhecemos que o momento pode estar gerando uma dor imensa, mas você não precisa carregar esse sofrimento sozinho.',
         dynamics: 'Momentos de profunda escuridão e desamparo exigem acolhimento humano real, escuta atenta e apoio profissional especializado. Há caminhos de reconstrução e alívio quando permitimos que pessoas qualificadas nos estendam a mão.',
         advice: 'Por favor, busque ajuda humana imediata: no Brasil, ligue gratuitamente para o Centro de Valorização da Vida (CVV) pelo telefone 188 (atendimento sigiloso 24 horas) ou procure um serviço de emergência de saúde mental.',
-        text: '### 🌌 O Diagnóstico da Intenção\nO Lumina Tarot é um oráculo sagrado dedicado à preservação da vida, ao autoconhecimento e à esperança. Não realizamos leituras sobre autodestruição, morte ou ideação suicida. Reconhecemos que o momento pode estar gerando uma dor imensa, mas você não precisa carregar esse sofrimento sozinho.\n\n### 🔮 A Dinâmica das Forças Ocultas\nMomentos de profunda escuridão e desamparo exigem acolhimento humano real, escuta atenta e apoio profissional especializado. Há caminhos de reconstrução e alívio quando permitimos que pessoas qualificadas nos estendam a mão.\n\n### 🗝️ O Conselho Sagrado do Oráculo\nPor favor, busque ajuda humana imediata: no Brasil, ligue gratuitamente para o Centro de Valorização da Vida (CVV) pelo telefone 188 (atendimento sigiloso 24 horas) ou procure um serviço de emergência de saúde mental.'
+        text: '### 🌌 O que as cartas mostram\nO Lumina Tarot é um oráculo sagrado dedicado à preservação da vida, ao autoconhecimento e à esperança. Não realizamos leituras sobre autodestruição, morte ou ideação suicida. Reconhecemos que o momento pode estar gerando uma dor imensa, mas você não precisa carregar esse sofrimento sozinho.\n\n### 💡 A Dinâmica das Forças Ocultas\nMomentos de profunda escuridão e desamparo exigem acolhimento humano real, escuta atenta e apoio profissional especializado. Há caminhos de reconstrução e alívio quando permitimos que pessoas qualificadas nos estendam a mão.\n\n### 🧭 O que fazer na prática\nPor favor, busque ajuda humana imediata: no Brasil, ligue gratuitamente para o Centro de Valorização da Vida (CVV) pelo telefone 188 (atendimento sigiloso 24 horas) ou procure um serviço de emergência de saúde mental.'
       };
     }
 
@@ -308,11 +308,16 @@ export const aiOracleService = {
         diagnosis: 'O Tarot atua como um espelho de reflexão e discernimento para a consciência dos seres vivos no plano terreno. Não operamos como canal mediúnico, psicografia ou necromancia para estabelecer comunicação direta com espíritos ou entes já falecidos.',
         dynamics: 'O vínculo com quem partiu permanece vivo na memória afetiva, no respeito ao legado e no amor compartilhado. O simbolismo das cartas convida você a acolher as etapas do luto e cuidar das suas próprias emoções no presente.',
         advice: 'Direcione sua energia para a sua própria cura e paz de espírito. Honre a memória de quem partiu vivendo com dignidade e amor no aqui e agora.',
-        text: '### 🌌 O Diagnóstico da Intenção\nO Tarot atua como um espelho de reflexão e discernimento para a consciência dos seres vivos no plano terreno. Não operamos como canal mediúnico, psicografia ou necromancia para estabelecer comunicação direta com espíritos ou entes já falecidos.\n\n### 🔮 A Dinâmica das Forças Ocultas\nO vínculo com quem partiu permanece vivo na memória afetiva, no respeito ao legado e no amor compartilhado. O simbolismo das cartas convida você a acolher as etapas do luto e cuidar das suas próprias emoções no presente.\n\n### 🗝️ O Conselho Sagrado do Oráculo\nDirecione sua energia para a sua própria cura e paz de espírito. Honre a memória de quem partiu vivendo com dignidade e amor no aqui e agora.'
+        text: '### 🌌 O que as cartas mostram\nO Tarot atua como um espelho de reflexão e discernimento para a consciência dos seres vivos no plano terreno. Não operamos como canal mediúnico, psicografia ou necromancia para estabelecer comunicação direta com espíritos ou entes já falecidos.\n\n### 💡 A Dinâmica das Forças Ocultas\nO vínculo com quem partiu permanece vivo na memória afetiva, no respeito ao legado e no amor compartilhado. O simbolismo das cartas convida você a acolher as etapas do luto e cuidar das suas próprias emoções no presente.\n\n### 🧭 O que fazer na prática\nDirecione sua energia para a sua própria cura e paz de espírito. Honre a memória de quem partiu vivendo com dignidade e amor no aqui e agora.'
       };
     }
 
-    const isAboutOtherPerson = /\b(ele|ela|ex|namorad|marid|espos|ficante|s[oó]ci|chefe|amig|trai[çc]|gosta|sente|voltar|pensa)\b/i.test(q);
+    // Clean text helper to prevent double punctuation
+    const cleanAttr = (str) => (str || '').replace(/[.!?]+$/, '').trim();
+    const firstLight = cleanAttr(first.light || first.keywords?.slice(0, 2).join(', ') || 'recomeço e clareza');
+    const firstShadow = cleanAttr(first.shadow || 'dúvidas e bloqueios');
+    const middleLight = cleanAttr(middle.light || middle.keywords?.slice(0, 2).join(', ') || 'estabilidade e ação');
+    const middleShadow = cleanAttr(middle.shadow || 'desgaste e indefinição');
 
     // Identify shadow or warning cards
     const shadowCard = validCards.find(c => 
@@ -322,38 +327,37 @@ export const aiOracleService = {
 
     let diagnosis = '';
     if (q) {
-      if (isAboutOtherPerson) {
-        if (shadowCard && (shadowCard.id === first.id || shadowCard.id === middle.id)) {
-          diagnosis = `Sobre a sua pergunta ("${q}"): as cartas mostram uma postura desfavorável ou complicada da outra parte. A presença de ${shadowCard.name} ${shadowCard.isReversed ? '(Invertida)' : ''} indica ${shadowCard.shadow ? shadowCard.shadow.toLowerCase() : 'atitudes duvidosas, distanciamento ou falta de transparência'}. Não há sinais de estabilidade ou clareza vindos de lá no momento.`;
-        } else {
-          diagnosis = `Sobre a sua pergunta ("${q}"): a carta ${first.name} indica que o envolvimento e as atitudes da outra pessoa estão ligadas a ${first.light.toLowerCase()}. Há movimentação concreta acontecendo nesse cenário.`;
-        }
+      if (first.isReversed) {
+        diagnosis = `Para a sua consulta ("${q}"): o arcano ${first.name} (Invertido) indica que há entraves e falta de transparência no momento. A energia da carta alerta para ${firstShadow.toLowerCase()}.`;
       } else {
-        if (first.isReversed || (shadowCard && shadowCard.id === first.id)) {
-          diagnosis = `Respondendo diretamente sobre "${q}": a carta ${first.name} ${first.isReversed ? '(Invertida)' : ''} aponta um sinal de alerta claro. Na prática, você está lidando com ${first.shadow ? first.shadow.toLowerCase() : 'bloqueios e descontentamento'}, o que indica que insistir no mesmo caminho sem mudar de atitude só vai trazer mais desgaste.`;
-        } else {
-          diagnosis = `Respondendo diretamente sobre "${q}": a carta ${first.name} indica que o cenário atual depende de ${first.light.toLowerCase()}. As coisas estão caminhando de acordo com essa energia.`;
-        }
+        diagnosis = `Para a sua consulta ("${q}"): o arcano ${first.name} traz a energia de ${firstLight.toLowerCase()}. As cartas indicam que os acontecimentos estão diretamente ligados a esse movimento.`;
       }
     } else {
-      diagnosis = `A carta ${first.name} ${first.isReversed ? '(Invertida)' : ''} mostra que o seu momento atual está marcado por ${first.isReversed ? first.shadow?.toLowerCase() : first.light?.toLowerCase()}. É preciso encarar a situação de frente, sem fingir que está tudo bem quando não está.`;
+      if (first.isReversed) {
+        diagnosis = `O arcano ${first.name} (Invertido) aponta um momento de atenção no seu caminho. A energia atual reflete ${firstShadow.toLowerCase()}.`;
+      } else {
+        diagnosis = `O arcano ${first.name} destaca que o seu momento atual é movido por ${firstLight.toLowerCase()}.`;
+      }
     }
 
     let dynamics = '';
     if (shadowCard && shadowCard.id !== first.id) {
-      dynamics = `O ponto crítico desta tiragem é a presença de ${shadowCard.name} ${shadowCard.isReversed ? '(Invertida)' : ''}. No dia a dia, isso aponta para problemas como ${shadowCard.shadow?.toLowerCase() || 'apego, ilusão ou desgaste'}. Em conjunto com ${middle.name}, isso mostra que há atitudes ou fatores externos pesando negativamente.`;
+      const sName = shadowCard.name;
+      const sMeaning = cleanAttr(shadowCard.isReversed ? shadowCard.shadow : shadowCard.light || 'desafios operacionais');
+      dynamics = `Por trás desse cenário, a presença de ${sName} ${shadowCard.isReversed ? '(Invertida)' : ''} revela o ponto de maior atenção: ${sMeaning.toLowerCase()}. Em conjunto com ${middle.name}, isso mostra a necessidade de analisar os detalhes antes de agir.`;
     } else {
-      dynamics = `A relação entre ${first.name} e ${middle.name} mostra o que está pesando no momento: de um lado a necessidade de ação prática, e do outro ${middle.isReversed ? middle.shadow?.toLowerCase() : middle.light?.toLowerCase()}.`;
+      dynamics = `Na dinâmica das cartas, ${first.name} e ${middle.name} atuam juntas. Enquanto a primeira carta define o tom da situação, ${middle.name} reforça a importância de focar em ${middleLight.toLowerCase()}.`;
     }
 
-    let advice = `O conselho direto da carta ${last.name} é: "${last.advice}". Tenha clareza, tome sua decisão com base nos fatos reais e não aceite menos do que o justo.`;
+    const cleanAdvice = cleanAttr(last.advice || 'Aja com firmeza, clareza e pés no chão.');
+    let advice = `Orientação prática do arcano ${last.name}: ${cleanAdvice}. Analise a situação com discernimento e tome sua decisão com base nos fatos concretos.`;
 
     return {
       source: 'local_fallback',
       diagnosis,
       dynamics,
       advice,
-      text: `### 🔍 O que as cartas mostram\n${diagnosis}\n\n### 💡 O que está acontecendo por trás\n${dynamics}\n\n### 🧭 O que fazer na prática\n${advice}`
+      text: `### 🌌 O que as cartas mostram\n${diagnosis}\n\n### 💡 A Dinâmica das Forças Ocultas\n${dynamics}\n\n### 🧭 O que fazer na prática\n${advice}`
     };
   }
 };
