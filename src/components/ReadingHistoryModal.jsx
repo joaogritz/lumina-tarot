@@ -1,3 +1,4 @@
+import { useModalAccessibility } from '../utils/useModalAccessibility';
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -14,6 +15,7 @@ export const ReadingHistoryModal = ({
   onClose, 
   onOpenCardDetail 
 }) => {
+  const modalRef = useModalAccessibility(isOpen, onClose);
   const [readings, setReadings] = useState(() => historyService.getReadings());
   const [activeTab, setActiveTab] = useState('journal'); // 'journal' | 'stats'
   const [searchQuery, setSearchQuery] = useState('');
@@ -82,11 +84,13 @@ export const ReadingHistoryModal = ({
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         className="absolute inset-0 bg-slate-950/90 backdrop-blur-md" 
-        onClick={handleClose} 
+        aria-label="Fechar" onClick={handleClose}
       />
 
       {/* Modal Dialog Card */}
       <motion.div 
+        ref={modalRef}
+        aria-label="Diário de leituras"
         role="dialog"
         aria-modal="true"
         initial={{ opacity: 0, scale: 0.92, y: 20 }}
@@ -106,10 +110,10 @@ export const ReadingHistoryModal = ({
 
           <button
             type="button"
-            onClick={handleClose}
+            aria-label="Fechar" onClick={handleClose}
             className="p-2 rounded-full bg-slate-900/80 border border-slate-700 text-slate-400 hover:text-amber-300 hover:border-amber-400/50 transition-all cursor-pointer"
           >
-            <X className="w-5 h-5" />
+            <X aria-hidden="true" className="w-5 h-5" />
           </button>
         </div>
 
@@ -198,7 +202,7 @@ export const ReadingHistoryModal = ({
                       <div className="flex items-center justify-between gap-2 mb-2">
                         <div className="flex items-center gap-2">
                           <span className="px-2.5 py-0.5 rounded-full bg-amber-500/20 border border-amber-500/40 text-[10px] font-cinzel font-bold text-amber-300">
-                            {reading.spreadName}
+                            {reading.deckName || 'Tarot'} · {reading.spreadName}
                           </span>
                           <span className="text-[11px] text-slate-400 flex items-center gap-1 font-sans">
                             <Calendar className="w-3 h-3 text-slate-500" />
@@ -363,6 +367,7 @@ export const ReadingHistoryModal = ({
               </div>
             </div>
 
+            <p className="text-xs text-emerald-200">Baralho Cigano: {stats.elementalCounts.lenormand || 0} cartas no histórico. As demais categorias representam o Tarot.</p>
             {/* Top 5 Most Frequent Cards */}
             <div className="p-5 rounded-2xl bg-slate-950/70 border border-amber-500/25">
               <h4 className="font-cinzel text-sm font-bold text-amber-200 flex items-center gap-2 mb-4">
@@ -383,7 +388,7 @@ export const ReadingHistoryModal = ({
                         <div className="flex items-center justify-between text-xs font-cinzel">
                           <span className="text-slate-200 flex items-center gap-1.5">
                             <span className="text-amber-400 font-bold">{i + 1}.</span>
-                            <span>{c.name}</span>
+                            <span>{c.name} · {c.arcana === 'Lenormand' ? 'Cigano' : 'Tarot'}</span>
                           </span>
                           <span className="text-amber-300 font-semibold">
                             {c.count}x ({pct}%)

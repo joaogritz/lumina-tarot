@@ -1,128 +1,31 @@
-# 🏛️ Arquitetura do Sistema — Lumina Tarot
+# Arquitetura do Lumina
 
-Documentação técnica e detalhada dos padrões de arquitetura, fluxo de dados, motor acústico e integração de inteligência artificial do **Lumina Tarot**.
+## Estado e dados
 
----
+`App.jsx` exibe a entrada e monta a mesa somente depois da interação inicial. `TarotTable.jsx` coordena baralho, tiragem, cartas escolhidas, pergunta, temas e janelas. O catálogo `src/data/decks.js` referencia os 78 registros de Tarot e os 36 de `lenormandDeck.js`.
 
-## 📐 1. Visão Geral da Arquitetura
+As cartas do cigano têm IDs próprios (`lenormand_1` a `lenormand_36`). O estado de escolha é uma cópia dos dados, sem mutação dos catálogos. Trocar o baralho limpa as cartas atuais, desativa inversões e volta à tiragem de três posições. A pergunta é preservada. Os componentes de grimório, carta diária e sim/não recebem o catálogo ativo por propriedade e são remontados na troca.
 
-O Lumina Tarot opera sob o modelo **Jamstack Serverless Decoupled**:
-- **Front-End SPA**: Construído em React 19 + Vite + Tailwind CSS + Framer Motion, hospedado em servidores estáticos de borda (GitHub Pages / Cloudflare Pages).
-- **Backend Proxy Serverless**: Cloudflare Worker isolado responsável pela injeção da chave de API e roteamento de modelos do Google Gemini.
-- **Armazenamento de Estado do Cliente**: `localStorage` com eventos reativos customizados para histórico, notas e preferências.
+`CardArt` mantém a identidade visual do Tarot e delega os símbolos de Lenormand a `LenormandSymbol`. Não são baixadas imagens externas para as novas cartas.
 
-```mermaid
-graph TB
-    subgraph Client["Cliente / Navegador (React 19 SPA)"]
-        App["App.jsx (Raiz + ErrorBoundary)"]
-        Table["TarotTable.jsx (Estado da Mesa & Arcanos)"]
-        Audio["audio.js & bgMusic.js (Web Audio Engine)"]
-        History["history.js (Diário Oracular & LocalStorage)"]
-        Export["cardImageExport.js (Canvas 2D / PNG)"]
+## Interpretação
 
-        Modals["Modais Lazy-Loaded (Code-Splitting)"]
-        Table --> Modals
-        Modals --> Interpretation["InterpretationModal.jsx"]
-        Modals --> HistoryModal["ReadingHistoryModal.jsx"]
-        Modals --> Grimoire["GrimoireModal.jsx"]
-        Modals --> Daily["DailyCardModal.jsx (Streak Tracker)"]
-        Modals --> YesNo["YesNoOracleModal.jsx"]
-    end
+`aiOracle.js` monta uma interpretação local ou, com endpoint configurado e consentimento salvo, solicita IA. Lenormand tem composição local própria para pares vizinhos, sem aplicar correspondências de arcanos do Tarot. As respostas não são inseridas como HTML.
 
-    subgraph Serverless["Borda Serverless (Cloudflare Worker)"]
-        Worker["lumina-oracle Worker (CORS Restrito)"]
-        SecretVault["Secret Vault (GEMINI_API_KEY)"]
-        Worker --> SecretVault
-    end
+`cloudflare_worker_code.js` é independente da aplicação. Valida origem, método, tipo, tamanho e estrutura do corpo; exige rate limiter, mantém o segredo no servidor e separa instruções de sistema dos dados. Faz uma única chamada ao modelo, com timeout e erro genérico. Não aceita `customPrompt`, não expõe listagem de modelos e não registra perguntas.
 
-    subgraph ExternalAI["Google Generative Language API"]
-        Gemini["Google Gemini (gemini-flash-latest)"]
-    end
+## Persistência
 
-    Interpretation -->|POST / {question, cards, spread}| Worker
-    Worker -->|Prompt Hermético + Auth Token| Gemini
-    Gemini -->|Diagnóstico + Forças + Conselho| Worker
-    Worker -->|JSON Seguro| Interpretation
-    Interpretation -->|Grava com IA| History
-    Interpretation -->|Gera Cartão PNG| Export
-```
+`history.js` mantém até 100 leituras no localStorage. Entradas novas incluem `deckId` e `deckName`; entradas antigas continuam identificadas como Tarot. As estatísticas distinguem cartas pelo ID e incluem a contagem Lenormand. Temas e baralho têm fallback quando o armazenamento não está disponível.
 
----
+## Interface e acessibilidade
 
-## 🎴 2. Ciclo de Vida do Baralho & Algoritmo de Embaralhamento
+O seletor usa botões com estado `aria-pressed`; a confirmação usa `dialog.showModal()`. `useModalAccessibility` gerencia foco, Tab, Escape e restauração de foco nas outras nove janelas, inclusive sobreposição de detalhes. Atalhos globais não atuam sobre campos, botões ou janelas abertas. MotionConfig e CSS respeitam movimento reduzido; animações próprias de canvas ainda precisam de avaliação específica para conformidade integral.
 
-O baralho de 78 cartas é gerenciado no estado do componente `TarotTable`:
-1. **Inicialização**: 78 arcanos são carregados de [`tarotDeck.js`](file:///c:/Users/joaopogo/Documents/Lumina/src/data/tarotDeck.js).
-2. **Embaralhamento Fisher-Yates**:
-   ```javascript
-   const shuffleArray = (array) => {
-     const shuffled = [...array];
-     for (let i = shuffled.length - 1; i > 0; i--) {
-       const j = Math.floor(Math.random() * (i + 1));
-       [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-     }
-     return shuffled;
-   };
-   ```
-3. **Animação em 4 Etapas (`DeckShuffleAnimation.jsx`)**:
-   - *Fase 1: Corte (Split)* — Divisão do monte em duas metades.
-   - *Fase 2: Riffle Weave* — Intercalação elástica com cliques sonoros procedurais.
-   - *Fase 3: Leque Cósmico (Cosmic Arc Fan)* — Abertura em arco de 180°.
-   - *Fase 4: Consagração & Coleta* — Reagrupamento e redistribuição para a mesa.
+## Build e offline
 
----
+Vite divide o código em chunks. O service worker usa navegação network-first e cache de assets de mesma origem. A limpeza remove apenas caches com prefixo do Lumina. O fallback offline depende de os recursos terem sido carregados anteriormente; não se garante primeira visita offline nem disponibilidade de todos os chunks ainda não visitados.
 
-## 🎶 3. Motor Acústico Dual-Engine
+## Verificação
 
-O áudio do Lumina Tarot opera com latência zero e independência de plugins pesados:
-
-```mermaid
-flowchart LR
-    User["Interação do Usuário"] --> AudioBridge["Ponte de Áudio"]
-
-    subgraph Procedural["Sons Procedurais (audio.js)"]
-        Synth["Web Audio API Oscillators"]
-        Filter["BiquadFilter (Passa-Baixa / Passa-Banda)"]
-        Gain["GainNode (Envelope ADSR)"]
-        Synth --> Filter --> Gain --> Out1["Saída de Áudio"]
-    end
-
-    subgraph Music["Música de Fundo (bgMusic.js)"]
-        HTML5["Engine 1: HTML5 Audio"]
-        DecodedBuffer["Engine 2: AudioContext.decodeAudioData()"]
-        HTML5 -.->|Fallback GitHub Pages| DecodedBuffer --> Out2["Saída de Áudio"]
-    end
-
-    AudioBridge --> Procedural
-    AudioBridge --> Music
-```
-
----
-
-## 🤖 4. Arquitetura do Oráculo de IA & Fallback Resiliente
-
-O serviço [`aiOracle.js`](file:///c:/Users/joaopogo/Documents/Lumina/src/utils/aiOracle.js) implementa uma estratégia de resiliência em três camadas:
-
-1. **Camada 1: Cloudflare Worker com Google Gemini**:
-   - Transmite a pergunta, posições e arcanos em prompt hermético.
-   - Retorna as 3 seções arquetípicas estruturadas (*Diagnóstico da Intenção*, *Dinâmica das Forças Ocultas* e *Conselho Sagrado*).
-2. **Camada 2: Parser Anti-Truncamento**:
-   - Trata expressões regulares com tolerância a variações de quebra de linha.
-   - Preenche lacunas automaticamente caso ocorra corte de rede.
-3. **Camada 3: Motor Arquetípico Local (Offline)**:
-   - Cruza a luz, sombra e conselho das cartas reveladas em algoritmo semântico puro executado no próprio navegador.
-   - Zero dependência de conexão para consultas emergenciais.
-
----
-
-## 🔒 5. Modelo de Segurança & Privacidade
-
-- **Princípio do Menor Privilégio**: O front-end não possui permissão de escrita em nenhum banco de dados externo.
-- **Zero Rastreamento / Telemetria Invasiva**: Nenhuma informação pessoal ou pergunta do consulente é enviada a servidores de analytics.
-- **Isolamento de Chaves de API**: A chave do Google Gemini nunca toca o navegador do visitante.
-
----
-
-<div align="center">
-  <sub>Lumina Tarot • Arquitetura de Software & Design System</sub>
-</div>
+`npm test` executa testes Node de dados, regras de interpretação, histórico e contrato de segurança do Worker com provedor simulado. O workflow executa testes e build. A revisão da interface é complementar: não substitui auditoria de acessibilidade assistiva, pentest ou validação do serviço implantado.

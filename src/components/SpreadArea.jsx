@@ -376,7 +376,7 @@ export const SpreadArea = ({
   };
 
   return (
-    <section aria-label="Mesa Altar do Tarot" className="w-full max-w-6xl mx-auto mb-10">
+    <section aria-label="Mesa de leitura" className="w-full max-w-6xl mx-auto mb-10">
       {/* Altar Velvet Mat Container */}
       <div className="relative rounded-3xl glass-panel p-4 sm:p-6 md:p-8 overflow-hidden shadow-2xl border border-amber-500/30">
         
@@ -467,7 +467,7 @@ export const SpreadArea = ({
 
                   <BookOpen className="w-5 h-5 text-amber-300 shrink-0" />
                   <span className="font-almendra text-2xl font-bold tracking-wider shimmer-gold-text">
-                    Revelar Interpretação dos Arcanos
+                    Revelar interpretação
                   </span>
                   <Compass className="w-5 h-5 text-amber-400/90 group-hover:rotate-90 transition-transform duration-700 shrink-0" />
                 </motion.button>

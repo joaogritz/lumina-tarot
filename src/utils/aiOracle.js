@@ -1,10 +1,12 @@
 // Real AI Oracle Integration via Serverless Cloudflare Worker Proxy (100% Free, Zero Login, Zero User Keys)
 // With Full Archetypal Fallback Engine, Bulletproof Section Parser & Direct Yes/No AI Engine
 
-import { getYesNoEvaluation, generateOfflineYesNoReading } from './yesNoOracle';
+import { getYesNoEvaluation, generateOfflineYesNoReading } from './yesNoOracle.js';
 
 // Cloudflare Worker Endpoint
-const DEFAULT_WORKER_URL = import.meta.env.VITE_ORACLE_API_URL || 'https://lumina-oracle.jpedrooliveiragritz.workers.dev';
+const DEFAULT_WORKER_URL = (typeof window === 'undefined')
+  ? (typeof process !== 'undefined' ? process.env?.VITE_ORACLE_API_URL || '' : '')
+  : (import.meta.env?.VITE_ORACLE_API_URL || 'https://lumina-oracle.jpedrooliveiragritz.workers.dev');
 
 const cleanHeader = (str) => {
   if (!str) return '';
@@ -65,7 +67,7 @@ const parseAiSections = (text, fallbackData) => {
 };
 
 // Parse structured Yes/No AI responses with bulletproof format recovery
-const parseYesNoAiResponse = (text, fallbackData) => {
+export const parseYesNoAiResponse = (text, fallbackData) => {
   if (!text) return fallbackData;
 
   let verdict = '';
@@ -114,24 +116,18 @@ const parseYesNoAiResponse = (text, fallbackData) => {
   }
   if (!tip) tip = fallbackData?.tip || 'Mantenha a firmeza nas suas decisões e observe os detalhes práticos.';
 
-  // Ensure tip starts with practical nuance if missing
-  if (fallbackData?.tip && (!tip.toLowerCase().includes('depende') && !tip.toLowerCase().includes('mas') && !tip.toLowerCase().includes('a não ser') && !tip.toLowerCase().includes('sim') && !tip.toLowerCase().includes('não'))) {
-    tip = `${fallbackData.tip} (${tip})`;
-  }
-
-  // Reconcile and guarantee zero divergence between verdict and answer:
+  // Preserve a complete AI answer as a unit; do not append a conflicting local tip.
+  // This catches only explicit opening contradictions, not semantic equivalence.
   const lowerAnswer = answer.toLowerCase().trim();
   let vUpper = verdict.toUpperCase();
 
   // If answer explicitly starts with a negative but verdict is positive, align verdict
   if ((lowerAnswer.startsWith('não') || lowerAnswer.startsWith('nao')) && (vUpper.includes('SIM') && !vUpper.includes('NÃO'))) {
-    verdict = fallbackData?.verdict || 'NÃO / CAUTELA';
-    vUpper = verdict.toUpperCase();
+    if (fallbackData) return fallbackData;
   }
   // If answer explicitly starts with affirmative but verdict is strictly negative, align verdict
   else if ((lowerAnswer.startsWith('sim') || lowerAnswer.startsWith('com certeza')) && (vUpper.includes('NÃO') || vUpper.includes('NAO'))) {
-    verdict = fallbackData?.verdict || 'SIM, COM CONDIÇÃO';
-    vUpper = verdict.toUpperCase();
+    if (fallbackData) return fallbackData;
   }
 
   // Determine styling based on final verified verdict text
@@ -139,7 +135,11 @@ const parseYesNoAiResponse = (text, fallbackData) => {
   let color = 'text-emerald-400';
   let badgeBg = 'bg-emerald-500/20 border-emerald-400/60';
 
-  if (vUpper.includes('NÃO') || vUpper.includes('NAO') || vUpper.includes('BLOQUEIO') || vUpper.includes('CAUTELA')) {
+  if (vUpper.startsWith('BUSQUE ') || vUpper === 'FOCO NO AUTOCONHECIMENTO') {
+    type = 'maybe';
+    color = 'text-amber-400';
+    badgeBg = 'bg-amber-500/20 border-amber-400/60';
+  } else if (vUpper.includes('NÃO') || vUpper.includes('NAO') || vUpper.includes('BLOQUEIO') || vUpper.includes('CAUTELA')) {
     type = 'no';
     color = 'text-rose-400';
     badgeBg = 'bg-rose-500/20 border-rose-400/60';
@@ -173,12 +173,14 @@ export const aiOracleService = {
     if (validCards.length === 0) return null;
 
     const fallback = this.generateOfflineFallback({ spreadConfig, chosenCards, userQuestion });
-    const workerUrl = DEFAULT_WORKER_URL || localStorage.getItem('lumina_worker_url') || '';
+    const workerUrl = DEFAULT_WORKER_URL;
 
+    if (fallback.source === 'ethical_safeguard') return fallback;
     if (workerUrl) {
       try {
         const response = await fetch(workerUrl, {
           method: 'POST',
+          signal: AbortSignal.timeout(20000),
           headers: {
             'Content-Type': 'application/json'
           },
@@ -206,7 +208,7 @@ export const aiOracleService = {
         if (response.ok) {
           const data = await response.json();
           const generatedText = data.text || data.reading || data.content || '';
-          if (generatedText && generatedText.length > 25) {
+          if (typeof generatedText === 'string' && generatedText.length > 25) {
             const parsed = parseAiSections(generatedText, fallback);
             return {
               source: 'cloudflare_gemini_ai',
@@ -229,12 +231,14 @@ export const aiOracleService = {
 
     const evalData = getYesNoEvaluation(card, card.isReversed);
     const fallback = generateOfflineYesNoReading({ card, userQuestion, evaluation: evalData });
-    const workerUrl = DEFAULT_WORKER_URL || localStorage.getItem('lumina_worker_url') || '';
+    const workerUrl = DEFAULT_WORKER_URL;
 
+    if (fallback.source === 'ethical_safeguard') return fallback;
     if (workerUrl) {
       try {
         const response = await fetch(workerUrl, {
           method: 'POST',
+          signal: AbortSignal.timeout(20000),
           headers: {
             'Content-Type': 'application/json'
           },
@@ -264,7 +268,7 @@ export const aiOracleService = {
         if (response.ok) {
           const data = await response.json();
           const generatedText = data.text || data.reading || data.content || '';
-          if (generatedText && generatedText.length > 10) {
+          if (typeof generatedText === 'string' && generatedText.length > 10) {
             const parsed = parseYesNoAiResponse(generatedText, fallback);
             return {
               source: 'cloudflare_gemini_ai',
@@ -289,7 +293,7 @@ export const aiOracleService = {
     const q = (userQuestion || '').trim();
 
     // Ethical Safeguard: Suicide and Self-Harm Prevention
-    const isSelfHarm = /\b(suic[ií]d|me\s+matar|morrer|automutila|tirar\s+a\s+(minha\s+)?vida|cortar\s+os\s+pulsos|acabar\s+com\s+a\s+(minha\s+)?vida|acabar\s+com\s+tudo|me\s+enforcar|quero\s+morrer)\b/i.test(q);
+    const isSelfHarm = /\b(suic[ií]d\w*|me\s+matar|morrer|automutila\w*|tirar\s+a\s+(minha\s+)?vida|cortar\s+os\s+pulsos|acabar\s+com\s+a\s+(minha\s+)?vida|acabar\s+com\s+tudo|me\s+enforcar|quero\s+morrer)\b/i.test(q);
     if (isSelfHarm) {
       return {
         source: 'ethical_safeguard',
@@ -312,6 +316,12 @@ export const aiOracleService = {
       };
     }
 
+    if (first.deckId === 'lenormand') {
+      const diagnosis = 'Leitura simbólica de Petit Lenormand: ' + validCards.map(c => c.name + ' — ' + c.light).join(' ');
+      const dynamics = validCards.length > 1 ? validCards.slice(0, -1).map((c, i) => c.name + ' + ' + validCards[i + 1].name + ': observe como ' + c.keywords[0].toLowerCase() + ' se relaciona com ' + validCards[i + 1].keywords[0].toLowerCase() + '.').join(' ') : 'Uma carta oferece um foco de reflexão; combinações ampliam o contexto.';
+      const advice = last.advice + ' Use esta leitura como reflexão, sem tratá-la como previsão garantida.';
+      return { source: 'local_fallback', diagnosis, dynamics, advice, text: diagnosis + '\n\n' + dynamics + '\n\n' + advice };
+    }
     // Clean text helper to prevent double punctuation
     const cleanAttr = (str) => (str || '').replace(/[.!?]+$/, '').trim();
     const firstLight = cleanAttr(first.light || first.keywords?.slice(0, 2).join(', ') || 'recomeço e clareza');

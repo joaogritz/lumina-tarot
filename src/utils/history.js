@@ -13,7 +13,8 @@ export const historyService = {
     if (typeof window === 'undefined') return [];
     try {
       const data = localStorage.getItem(STORAGE_KEY);
-      return data ? JSON.parse(data) : [];
+      const parsed = data ? JSON.parse(data) : [];
+      return Array.isArray(parsed) ? parsed.filter(r => r && typeof r.id === 'string' && Array.isArray(r.cards) && r.cards.every(c => c && typeof c.name === 'string' && typeof c.suit === 'string')).slice(0, 100) : [];
     } catch (e) {
       console.error('Failed to load tarot history', e);
       return [];
@@ -35,6 +36,8 @@ export const historyService = {
           hour: '2-digit',
           minute: '2-digit'
         }),
+        deckId: reading.chosenCards[0]?.deckId || 'tarot',
+        deckName: reading.chosenCards[0]?.deckId === 'lenormand' ? 'Baralho Cigano' : 'Tarot',
         spreadId: reading.spreadConfig.id,
         spreadName: reading.spreadConfig.name,
         spreadShortName: reading.spreadConfig.shortName,
@@ -96,21 +99,21 @@ export const historyService = {
         totalReadings: 0,
         totalCardsDrawn: 0,
         topCards: [],
-        elementalCounts: { major: 0, wands: 0, cups: 0, swords: 0, pentacles: 0 },
-        elementalPercentages: { major: 0, wands: 0, cups: 0, swords: 0, pentacles: 0 }
+        elementalCounts: { major: 0, wands: 0, cups: 0, swords: 0, pentacles: 0, lenormand: 0 },
+        elementalPercentages: { major: 0, wands: 0, cups: 0, swords: 0, pentacles: 0, lenormand: 0 }
       };
     }
 
-    const cardCounts = {};
-    const elementalCounts = { major: 0, wands: 0, cups: 0, swords: 0, pentacles: 0 };
+    const cardCounts = Object.create(null);
+    const elementalCounts = { major: 0, wands: 0, cups: 0, swords: 0, pentacles: 0, lenormand: 0 };
     let totalCardsDrawn = 0;
 
     readings.forEach(reading => {
       (reading.cards || []).forEach(card => {
         totalCardsDrawn++;
         // Count card occurrences
-        if (!cardCounts[card.name]) {
-          cardCounts[card.name] = {
+        if (!cardCounts[card.id || card.name]) {
+          cardCounts[card.id || card.name] = {
             name: card.name,
             arcana: card.arcana,
             suit: card.suit,
@@ -118,10 +121,11 @@ export const historyService = {
             count: 0
           };
         }
-        cardCounts[card.name].count++;
+        cardCounts[card.id || card.name].count++;
 
         // Element counts
-        if (card.arcana === 'Major') elementalCounts.major++;
+        if (card.deckId === 'lenormand') elementalCounts.lenormand++;
+        else if (card.arcana === 'Major') elementalCounts.major++;
         else if (card.suit === 'wands') elementalCounts.wands++;
         else if (card.suit === 'cups') elementalCounts.cups++;
         else if (card.suit === 'swords') elementalCounts.swords++;
@@ -141,6 +145,7 @@ export const historyService = {
       topCards,
       elementalCounts,
       elementalPercentages: {
+        lenormand: calcPct(elementalCounts.lenormand),
         major: calcPct(elementalCounts.major),
         wands: calcPct(elementalCounts.wands),
         cups: calcPct(elementalCounts.cups),

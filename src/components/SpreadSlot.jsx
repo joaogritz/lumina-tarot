@@ -82,6 +82,8 @@ export const SpreadSlot = React.memo(({
                 transition: { type: "spring", stiffness: 400, damping: 20 } 
               }}
               whileTap={{ scale: 0.96 }}
+              role="button" tabIndex={0} aria-label={`Ver detalhes de ${card.name}`}
+              onKeyDown={e => { if (e.target === e.currentTarget && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); onCardClick?.(card, positionInfo); } }}
               onClick={() => onCardClick && onCardClick(card, positionInfo)}
               className="w-full h-full cursor-pointer relative transform-gpu"
             >

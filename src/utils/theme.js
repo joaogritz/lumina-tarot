@@ -63,7 +63,7 @@ const THEME_STORAGE_KEY = 'lumina_tarot_theme_v1';
 export const themeService = {
   getCurrentThemeId() {
     if (typeof window === 'undefined') return 'cosmic';
-    return localStorage.getItem(THEME_STORAGE_KEY) || 'cosmic';
+    try { return localStorage.getItem(THEME_STORAGE_KEY) || 'cosmic'; } catch { return 'cosmic'; }
   },
 
   getCurrentTheme() {
@@ -73,6 +73,6 @@ export const themeService = {
 
   setThemeId(id) {
     if (typeof window === 'undefined') return;
-    localStorage.setItem(THEME_STORAGE_KEY, id);
+    try { localStorage.setItem(THEME_STORAGE_KEY, id); } catch {}
   }
 };

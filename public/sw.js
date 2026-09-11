@@ -1,5 +1,5 @@
 // Lumina Tarot Service Worker (Resilient Offline Cache & Network-First HTML Shell)
-const CACHE_NAME = 'lumina-tarot-v2.5';
+const CACHE_NAME = 'lumina-tarot-v3.0';
 
 const OFFLINE_ASSETS = [
   './',
@@ -25,7 +25,7 @@ self.addEventListener('activate', (event) => {
     caches.keys().then((keys) => {
       return Promise.all(
         keys.map((key) => {
-          if (key !== CACHE_NAME) {
+          if (key.startsWith('lumina-tarot-') && key !== CACHE_NAME) {
             return caches.delete(key);
           }
         })
@@ -38,6 +38,7 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
   const url = event.request.url;
+  if (new URL(url).origin !== self.location.origin) return;
 
   // Skip external APIs
   if (url.includes('workers.dev') || url.includes('googleapis.com') || url.includes('gstatic.com')) {

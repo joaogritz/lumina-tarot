@@ -113,7 +113,7 @@ export const CardDetailModal = ({
           <div className="md:col-span-7 flex flex-col gap-3 text-left">
             <div>
               <span className="text-[11px] font-cinzel tracking-widest uppercase text-amber-400 font-bold">
-                {card.arcana === 'Major' ? `Arcano Maior ${card.roman}` : suitConfig.name}
+                {card.deckId === 'lenormand' ? `Baralho Cigano · Carta ${card.number}` : (card.arcana === 'Major' ? `Arcano Maior ${card.roman}` : suitConfig.name)}
               </span>
               <h2 className="font-cinzel text-2xl font-black text-slate-100 mt-0.5">
                 {card.name} {card.isReversed && <span className="text-sm text-red-400 font-normal">(Invertida)</span>}

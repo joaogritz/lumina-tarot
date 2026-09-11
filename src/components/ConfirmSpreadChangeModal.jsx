@@ -1,3 +1,4 @@
+import { useModalAccessibility } from '../utils/useModalAccessibility';
 import React, { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, AlertTriangle, RotateCcw, X, Layers, ArrowRight } from 'lucide-react';
@@ -10,6 +11,7 @@ export const ConfirmSpreadChangeModal = ({
   onConfirm, 
   onCancel 
 }) => {
+  const modalRef = useModalAccessibility(isOpen, onCancel);
   useEffect(() => {
     if (isOpen) {
       audio.playHover();
@@ -46,6 +48,8 @@ export const ConfirmSpreadChangeModal = ({
 
       {/* Modal Dialog Box with Spring Physics */}
       <motion.div 
+        ref={modalRef}
+        aria-label="Trocar tiragem"
         role="dialog" 
         aria-modal="true"
         initial={{ opacity: 0, scale: 0.9, y: 15 }}
@@ -60,7 +64,7 @@ export const ConfirmSpreadChangeModal = ({
           onClick={handleCancel}
           className="absolute top-4 right-4 p-2 rounded-full bg-slate-900/80 border border-slate-700 text-slate-400 hover:text-amber-300 hover:border-amber-400/50 transition-all cursor-pointer"
         >
-          <X className="w-4 h-4" />
+          <X aria-hidden="true" className="w-4 h-4" />
         </button>
 
         {/* Mystic Icon */}

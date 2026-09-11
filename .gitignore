@@ -35,3 +35,4 @@ Thumbs.db
 # Build outputs & caches
 .eslintcache
 .cache
+.pnpm-store/

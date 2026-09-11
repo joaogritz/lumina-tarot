@@ -38,7 +38,7 @@ export const CardBack = React.memo(({ card, onClick, isSelected = false, index }
       onMouseEnter={handleMouseEnter}
       role="button"
       tabIndex={0}
-      aria-label={`Carta de Tarot ${index + 1}`}
+      aria-label={`Carta do baralho ${index + 1}`}
       className="group relative aspect-[2/3] w-full rounded-xl cursor-pointer select-none transform-gpu"
     >
       {/* Outer Glow Aura on Hover with Spring Fluidity */}

@@ -1,3 +1,4 @@
+import { useModalAccessibility } from '../utils/useModalAccessibility';
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Palette, Check, Sparkles, Moon, Sun, Flame } from 'lucide-react';
@@ -17,6 +18,7 @@ export const ThemeSelectorModal = ({
   onSelectTheme, 
   onClose 
 }) => {
+  const modalRef = useModalAccessibility(isOpen, onClose);
   if (!isOpen) return null;
 
   const handleClose = () => {
@@ -37,11 +39,13 @@ export const ThemeSelectorModal = ({
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         className="absolute inset-0 bg-slate-950/85 backdrop-blur-md" 
-        onClick={handleClose} 
+        aria-label="Fechar" onClick={handleClose}
       />
 
       {/* Modal Dialog Card */}
       <motion.div 
+        ref={modalRef}
+        aria-label="Temas"
         role="dialog"
         aria-modal="true"
         initial={{ opacity: 0, scale: 0.92, y: 20 }}
@@ -61,10 +65,10 @@ export const ThemeSelectorModal = ({
 
           <button
             type="button"
-            onClick={handleClose}
+            aria-label="Fechar" onClick={handleClose}
             className="p-1.5 rounded-full bg-slate-900/80 border border-slate-700 text-slate-400 hover:text-amber-300 hover:border-amber-400/50 transition-all cursor-pointer"
           >
-            <X className="w-5 h-5" />
+            <X aria-hidden="true" className="w-5 h-5" />
           </button>
         </div>
 
@@ -127,7 +131,7 @@ export const ThemeSelectorModal = ({
         <div className="mt-5 pt-3 border-t border-purple-900/30 flex justify-end">
           <button
             type="button"
-            onClick={handleClose}
+            aria-label="Fechar" onClick={handleClose}
             className="px-5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-cinzel font-bold text-xs cursor-pointer transition-all shadow-md active:scale-95"
           >
             Aplicar Santuário

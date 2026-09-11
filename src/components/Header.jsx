@@ -9,6 +9,7 @@ import { audio } from '../utils/audio';
 import { bgMusicService } from '../utils/bgMusic';
 
 export const Header = ({ 
+  reversalsSupported = true,
   userQuestion, 
   setUserQuestion, 
   allowReversed,
@@ -119,7 +120,7 @@ export const Header = ({
               audio.playHover();
               if (onOpenGrimoire) onOpenGrimoire();
             }}
-            title="Grimório - Enciclopédia dos 78 Arcanos (Atalho: G)"
+            title="Grimório - Enciclopédia das Cartas (Atalho: G)"
             className="hidden md:inline-flex px-2.5 py-1.5 rounded-xl glass-panel-subtle hover:border-purple-400/60 text-purple-200 text-xs font-cinzel font-semibold items-center gap-1.5 transition-all cursor-pointer shadow-sm active:scale-95"
           >
             <BookOpen className="w-3.5 h-3.5 text-purple-400" />
@@ -221,6 +222,9 @@ export const Header = ({
           {/* Reversed Cards Toggle (Visible on Mobile & Desktop) */}
           <button
             type="button"
+            disabled={!reversalsSupported}
+            aria-pressed={allowReversed}
+            aria-label={reversalsSupported ? "Cartas invertidas" : "Baralho cigano usa cartas diretas"}
             onClick={toggleReversed}
             title={allowReversed ? 'Cartas Invertidas: ATIVADAS' : 'Cartas Invertidas: DESATIVADAS'}
             className={`px-2.5 py-1.5 rounded-xl border text-xs font-cinzel font-semibold flex items-center gap-1.5 transition-all cursor-pointer shadow-sm active:scale-95
@@ -286,7 +290,7 @@ export const Header = ({
 
       {/* Subtitle */}
       <p className="font-cinzel text-xs sm:text-sm md:text-base text-purple-200/90 tracking-widest uppercase mb-4 max-w-xl">
-        Sua Jornada Cósmica Começa • Escolha das 78 Cartas Arcanas
+        Sua jornada começa com uma pergunta e uma escolha
       </p>
 
       {/* Mentalize Question Input Box */}
@@ -299,6 +303,7 @@ export const Header = ({
           <div className="flex items-center px-4 py-2.5">
             <Feather className="w-4 h-4 text-amber-400/80 mr-3 shrink-0" />
             <input
+                  maxLength={1000}
               type="text"
               value={userQuestion}
               onChange={(e) => setUserQuestion(e.target.value)}

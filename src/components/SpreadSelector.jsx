@@ -19,6 +19,7 @@ const ICONS_MAP = {
 };
 
 export const SpreadSelector = ({ 
+  spreads = SPREAD_TYPES,
   currentSpread, 
   onSelectSpread 
 }) => {
@@ -37,7 +38,7 @@ export const SpreadSelector = ({
     checkScroll();
     window.addEventListener('resize', checkScroll);
     return () => window.removeEventListener('resize', checkScroll);
-  }, []);
+  }, [spreads]);
 
   const handleScroll = (direction) => {
     if (!scrollRef.current) return;
@@ -88,7 +89,7 @@ export const SpreadSelector = ({
             msOverflowStyle: 'none'
           }}
         >
-          {SPREAD_TYPES.map((spread) => {
+          {spreads.map((spread) => {
             const Icon = ICONS_MAP[spread.icon] || Sparkles;
             const isSelected = spread.id === currentSpread.id;
 

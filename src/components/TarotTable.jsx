@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { TAROT_DECK } from '../data/tarotDeck';
+import { DECKS, readDeckId } from '../data/decks';
 import { SPREAD_TYPES } from '../data/spreads';
 import { Header } from './Header';
 import { SpreadSelector } from './SpreadSelector';
@@ -15,20 +15,19 @@ import { audio } from '../utils/audio';
 // Resilient Lazy Loader that automatically recovers from stale chunk hashes on new deployments
 const lazyWithRetry = (componentImport) =>
   React.lazy(async () => {
-    const pageHasBeenRefreshed = typeof window !== 'undefined' 
-      ? JSON.parse(window.sessionStorage.getItem('lumina_chunk_recovered') || 'false')
-      : false;
+    let pageHasBeenRefreshed = false;
+    try { pageHasBeenRefreshed = sessionStorage.getItem('lumina_chunk_recovered') === 'true'; } catch {}
 
     try {
       const component = await componentImport();
       if (typeof window !== 'undefined') {
-        window.sessionStorage.setItem('lumina_chunk_recovered', 'false');
+        try { sessionStorage.setItem('lumina_chunk_recovered', 'false'); } catch {}
       }
       return component;
     } catch (error) {
       if (!pageHasBeenRefreshed && typeof window !== 'undefined') {
         // Chunk hash mismatch on new GitHub Pages deployment -> Auto-refresh to load new assets
-        window.sessionStorage.setItem('lumina_chunk_recovered', 'true');
+        try { sessionStorage.setItem('lumina_chunk_recovered', 'true'); } catch { throw error; }
         window.location.reload();
         return new Promise(() => {}); // Wait for page refresh
       }
@@ -59,14 +58,26 @@ const shuffleArray = (array) => {
 };
 
 export const TarotTable = () => {
+  const [deckId, setDeckId] = useState(readDeckId);
+  const [pendingDeckId, setPendingDeckId] = useState(null);
+  const activeDeck = DECKS[deckId];
   const altarRef = useRef(null);
+  const deckDialogRef = useRef(null);
+
+  useEffect(() => {
+    if (pendingDeckId) {
+      deckDialogRef.current?.showModal();
+    } else {
+      deckDialogRef.current?.close();
+    }
+  }, [pendingDeckId]);
 
   // 1. Theme state (Noite Cósmica, Luar Místico, Alquimia Solar, Veludo Carmesim)
   const [currentTheme, setCurrentTheme] = useState(() => themeService.getCurrentTheme());
 
   // 2. Deck state (78 cards with estaEscolhida boolean)
   const [deck, setDeck] = useState(() => {
-    const initialDeck = TAROT_DECK.map(card => ({
+    const initialDeck = activeDeck.cards.map(card => ({
       ...card,
       estaEscolhida: false,
       isReversed: false,
@@ -111,6 +122,17 @@ export const TarotTable = () => {
     setCurrentTheme(theme);
   }, []);
 
+  const changeDeck = (id) => {
+    setDeckId(id);
+    try { localStorage.setItem('lumina_deck', id); } catch {}
+    setDeck(shuffleArray(DECKS[id].cards.map(card => ({ ...card, estaEscolhida: false, isReversed: false }))));
+    setChosenCards(new Array(SPREAD_TYPES[0].positions.length).fill(null));
+    setActiveSpread(SPREAD_TYPES[0]);
+    setAllowReversed(false);
+    setDestinySummonData(null);
+    setPendingDeckId(null);
+  };
+
   // Remaining cards to pick for current spread
   const filledCount = chosenCards.filter(Boolean).length;
   const totalSlots = activeSpread.positions.length;
@@ -121,7 +143,7 @@ export const TarotTable = () => {
   const handleShuffleDeck = useCallback(() => {
     setDeck(prevDeck => {
       // Re-shuffle while maintaining unchosen state
-      const refreshed = TAROT_DECK.map(card => {
+      const refreshed = activeDeck.cards.map(card => {
         const alreadyChosen = chosenCards.some(c => c && c.id === card.id);
         return {
           ...card,
@@ -131,7 +153,7 @@ export const TarotTable = () => {
       });
       return shuffleArray(refreshed);
     });
-  }, [chosenCards]);
+  }, [chosenCards, activeDeck]);
 
   // Reset entire spread, restore deck, and clear question
   const handleResetSpread = useCallback(() => {
@@ -264,7 +286,9 @@ export const TarotTable = () => {
   useEffect(() => {
     const handleKeyDown = (e) => {
       // Ignore if user is currently typing in an input
-      if (['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName)) return;
+      if (e.defaultPrevented || e.ctrlKey || e.metaKey || e.altKey || document.activeElement?.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT', 'BUTTON'].includes(document.activeElement?.tagName)) return;
+      if (document.querySelector('[aria-modal="true"], dialog[open]') || pendingDeckId || destinySummonData) return;
+      if (e.key !== 'Escape' && (inspectingCardData || isInterpretationOpen || isGuideOpen || isGrimoireOpen || isHistoryOpen || isDailyOpen || isThemesOpen || isYesNoOpen || pendingSpreadChange)) return;
 
       if (e.code === 'Space') {
         e.preventDefault();
@@ -292,9 +316,7 @@ export const TarotTable = () => {
         e.preventDefault();
         bgMusicService.toggle();
       } else if (e.key === 'Escape') {
-        if (isInterpretationOpen) {
-          handleResetSpread();
-        }
+
         setInspectingCardData(null);
         setIsInterpretationOpen(false);
         setIsGuideOpen(false);
@@ -309,7 +331,7 @@ export const TarotTable = () => {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handleFullDestinyDraw, handleShuffleDeck]);
+  }, [handleFullDestinyDraw, handleShuffleDeck, inspectingCardData, isInterpretationOpen, isGuideOpen, isGrimoireOpen, isHistoryOpen, isDailyOpen, isThemesOpen, isYesNoOpen, pendingSpreadChange, pendingDeckId, destinySummonData]);
 
   return (
     <div 
@@ -324,6 +346,7 @@ export const TarotTable = () => {
         
         {/* Header with Title, Features & Controls */}
         <Header
+          reversalsSupported={activeDeck.reversals}
           userQuestion={userQuestion}
           setUserQuestion={setUserQuestion}
           allowReversed={allowReversed}
@@ -346,6 +369,7 @@ export const TarotTable = () => {
         {/* Spread Selector Navigation (Visible when not in Zen Mode) */}
         {!isZenMode && (
           <SpreadSelector
+            spreads={deckId === 'lenormand' ? SPREAD_TYPES.slice(0, 2) : SPREAD_TYPES}
             currentSpread={activeSpread}
             onSelectSpread={handleSelectSpreadRequest}
           />
@@ -366,10 +390,20 @@ export const TarotTable = () => {
           />
         </div>
 
-        {/* The 78-Card Deck Selection Grid (Visible when not in Zen Mode) */}
+        {/* The Card Deck Selection Grid (Visible when not in Zen Mode) */}
         {!isZenMode && (
           <DeckSelectionGrid
+            key={deckId}
             deck={deck}
+            activeDeckId={deckId}
+            onSwitchDeck={() => {
+              const targetDeck = deckId === 'tarot' ? 'lenormand' : 'tarot';
+              if (filledCount > 0) {
+                setPendingDeckId(targetDeck);
+              } else {
+                changeDeck(targetDeck);
+              }
+            }}
             onSelectCard={handleSelectCard}
             onRandomPick={handleFullDestinyDraw}
             onShuffleDeck={handleShuffleDeck}
@@ -423,7 +457,6 @@ export const TarotTable = () => {
             chosenCards={chosenCards.filter(Boolean)}
             userQuestion={userQuestion}
             onClose={() => {
-              handleResetSpread();
               refreshHistoryCount();
               setIsInterpretationOpen(false);
             }}
@@ -438,7 +471,7 @@ export const TarotTable = () => {
         />
 
         {/* Grimoire Codex Modal (78 cards encyclopedia) */}
-        <GrimoireModal
+        <GrimoireModal key={`grimoire-${deckId}`} cards={activeDeck.cards}
           isOpen={isGrimoireOpen}
           onClose={() => setIsGrimoireOpen(false)}
           onOpenCardDetail={(card) => setInspectingCardData({ card, positionInfo: null })}
@@ -455,7 +488,7 @@ export const TarotTable = () => {
         />
 
         {/* Daily Card Modal */}
-        <DailyCardModal
+        <DailyCardModal key={`daily-${deckId}`} cards={activeDeck.cards}
           isOpen={isDailyOpen}
           onClose={() => setIsDailyOpen(false)}
           onOpenCardDetail={(card) => setInspectingCardData({ card, positionInfo: null })}
@@ -470,7 +503,7 @@ export const TarotTable = () => {
         />
 
         {/* Yes / No Oracle Direct Modal */}
-        <YesNoOracleModal
+        <YesNoOracleModal key={`yesno-${deckId}`} cards={activeDeck.cards}
           isOpen={isYesNoOpen}
           allowReversed={allowReversed}
           onClose={() => setIsYesNoOpen(false)}
@@ -494,6 +527,42 @@ export const TarotTable = () => {
           onConfirm={handleConfirmSpreadChange}
           onCancel={() => setPendingSpreadChange(null)}
         />
+
+        {/* Deck Switch Confirmation Modal */}
+        <dialog 
+          ref={deckDialogRef} 
+          className="deck-dialog" 
+          aria-labelledby="deck-dialog-title" 
+          onCancel={() => setPendingDeckId(null)}
+        >
+          <h2 id="deck-dialog-title" className="font-cinzel text-lg font-bold text-amber-200 mb-2">
+            Trocar para {DECKS[pendingDeckId]?.name}?
+          </h2>
+          <p className="text-slate-300 text-sm">
+            As cartas na mesa serão recolhidas. Leituras salvas no diário serão preservadas.
+          </p>
+          <div className="flex justify-end gap-3 mt-5">
+            <button 
+              type="button" 
+              autoFocus 
+              onClick={() => setPendingDeckId(null)} 
+              className="deck-dialog-cancel"
+            >
+              Continuar leitura
+            </button>
+            <button 
+              type="button" 
+              onClick={() => {
+                const target = pendingDeckId;
+                setPendingDeckId(null);
+                changeDeck(target);
+              }} 
+              className="deck-dialog-confirm"
+            >
+              Trocar baralho
+            </button>
+          </div>
+        </dialog>
       </React.Suspense>
     </div>
   );

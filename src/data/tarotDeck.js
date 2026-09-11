@@ -2,6 +2,7 @@
 // Detailed Portuguese meanings, archetypes, elements, and position nuances.
 
 export const SUITS = {
+  LENORMAND: { id: 'lenormand', name: 'Baralho Cigano', element: 'Petit Lenormand', alchemySymbol: '✿', color: '#6ee7b7', bgGradient: 'from-emerald-950 via-teal-950 to-slate-950', borderGlow: 'border-emerald-400/50 shadow-emerald-500/20' },
   MAJOR: {
     id: 'major',
     name: 'Arcanos Maiores',

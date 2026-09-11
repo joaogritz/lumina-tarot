@@ -1,3 +1,4 @@
+import { useModalAccessibility } from '../utils/useModalAccessibility';
 import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -9,14 +10,16 @@ import { TAROT_DECK, SUITS } from '../data/tarotDeck';
 import { audio } from '../utils/audio';
 
 export const GrimoireModal = ({ 
+  cards = TAROT_DECK,
   isOpen, 
   onClose,
   onOpenCardDetail 
 }) => {
+  const modalRef = useModalAccessibility(isOpen, onClose);
   const [activeFilter, setActiveFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
 
-  const filterTabs = [
+  const filterTabs = cards[0]?.deckId === 'lenormand' ? [{ id: 'all', label: 'Todas as 36', count: 36, icon: Layers }] : [
     { id: 'all', label: 'Todas as 78', count: 78, icon: Layers },
     { id: 'major', label: '22 Maiores', count: 22, icon: Sparkles, color: 'text-amber-400' },
     { id: 'wands', label: 'Paus (Fogo)', count: 14, icon: Flame, color: 'text-orange-400' },
@@ -26,7 +29,7 @@ export const GrimoireModal = ({
   ];
 
   const filteredCards = useMemo(() => {
-    return TAROT_DECK.filter((card) => {
+    return cards.filter((card) => {
       if (activeFilter === 'major' && card.arcana !== 'Major') return false;
       if (activeFilter !== 'all' && activeFilter !== 'major' && card.suit !== activeFilter) return false;
 
@@ -41,7 +44,7 @@ export const GrimoireModal = ({
 
       return true;
     });
-  }, [activeFilter, searchQuery]);
+  }, [activeFilter, searchQuery, cards]);
 
   if (!isOpen) return null;
 
@@ -58,11 +61,13 @@ export const GrimoireModal = ({
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         className="absolute inset-0 bg-slate-950/90 backdrop-blur-md" 
-        onClick={handleClose} 
+        aria-label="Fechar" onClick={handleClose}
       />
 
       {/* Modal Dialog Card with Solid High-Contrast Background */}
       <motion.div 
+        ref={modalRef}
+        aria-label="Grimório"
         role="dialog"
         aria-modal="true"
         initial={{ opacity: 0, scale: 0.95, y: 15 }}
@@ -79,7 +84,7 @@ export const GrimoireModal = ({
             </div>
             <div>
               <h3 className="font-cinzel text-base sm:text-xl md:text-2xl font-bold text-slate-100 gold-gradient-text">
-                Grimório dos 78 Arcanos
+                Grimório · {cards.length} cartas
               </h3>
               <p className="text-[11px] text-slate-400 hidden sm:block">
                 Enciclopédia de sabedoria ancestral, correspondências astrológicas e simbologia sagrada
@@ -89,10 +94,10 @@ export const GrimoireModal = ({
 
           <button
             type="button"
-            onClick={handleClose}
+            aria-label="Fechar" onClick={handleClose}
             className="p-2 rounded-full bg-slate-900/80 border border-slate-700 text-slate-400 hover:text-amber-300 hover:border-amber-400/50 transition-all cursor-pointer"
           >
-            <X className="w-5 h-5" />
+            <X aria-hidden="true" className="w-5 h-5" />
           </button>
         </div>
 

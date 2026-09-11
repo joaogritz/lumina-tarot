@@ -50,7 +50,7 @@ export const LoadingScreen = ({ onLoaded }) => {
   // Dynamic mystical loading messages based on progress
   const getStatusText = () => {
     if (progress < 30) return 'Sintonizando o Oráculo Sagrado...';
-    if (progress < 65) return 'Consagrando os 78 Arcanos do Destino...';
+    if (progress < 65) return 'Preparando os baralhos...';
     if (progress < 95) return 'Alinhando as Constelações & Energias...';
     return 'O Santuário dos Arcanos Está Aberto';
   };
@@ -208,7 +208,7 @@ export const LoadingScreen = ({ onLoaded }) => {
 
       {/* Subtle Bottom Watermark */}
       <div className="absolute bottom-6 text-[11px] font-cinzel text-slate-600 tracking-widest uppercase">
-        78 Arcanos • Sabedoria Ancestral
+        Tarot & Baralho Cigano • Sabedoria Ancestral
       </div>
 
     </motion.div>

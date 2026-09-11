@@ -1,3 +1,4 @@
+import { useModalAccessibility } from '../utils/useModalAccessibility';
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import confetti from 'canvas-confetti';
@@ -20,7 +21,9 @@ export const InterpretationModal = ({
   onClose, 
   onResetReading 
 }) => {
+  const modalRef = useModalAccessibility(true, onClose);
   const [copied, setCopied] = useState(false);
+  const [saveError, setSaveError] = useState(false);
   const [saved, setSaved] = useState(false);
   const [aiReading, setAiReading] = useState(null);
   const [isLoadingAi, setIsLoadingAi] = useState(true);
@@ -112,7 +115,6 @@ export const InterpretationModal = ({
 
   const handleClose = () => {
     audio.playCloseModal();
-    if (onResetReading) onResetReading();
     onClose();
   };
 
@@ -141,11 +143,13 @@ export const InterpretationModal = ({
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         className="fixed inset-0 bg-slate-950/90 backdrop-blur-xl" 
-        onClick={handleClose} 
+        aria-label="Fechar" onClick={handleClose}
       />
 
       {/* Modal Dialog Card */}
       <motion.div 
+        ref={modalRef}
+        aria-label="Interpretação da leitura"
         role="dialog"
         aria-modal="true"
         initial={{ opacity: 0, scale: 0.94, y: 30 }}
@@ -159,16 +163,16 @@ export const InterpretationModal = ({
           <div className="flex items-center gap-2 text-amber-300">
             <Sparkles className="w-5 h-5 text-amber-400 animate-pulse" />
             <span className="font-cinzel text-xs uppercase tracking-widest font-semibold text-amber-300/80">
-              Oráculo dos 78 Arcanos
+              {chosenCards[0]?.deckId === 'lenormand' ? 'Oráculo Cigano · Petit Lenormand' : 'Oráculo dos 78 Arcanos'}
             </span>
           </div>
 
           <button
             type="button"
-            onClick={handleClose}
+            aria-label="Fechar" onClick={handleClose}
             className="p-1.5 rounded-full bg-slate-900/80 border border-slate-700 text-slate-400 hover:text-amber-300 hover:border-amber-400/50 transition-all cursor-pointer"
           >
-            <X className="w-5 h-5" />
+            <X aria-hidden="true" className="w-5 h-5" />
           </button>
         </div>
 
@@ -301,7 +305,7 @@ export const InterpretationModal = ({
                       </div>
                       <span className="text-[10px] text-amber-400/70 group-hover:text-amber-300 flex items-center gap-1 font-cinzel transition-colors">
                         <ZoomIn className="w-3.5 h-3.5" />
-                        <span className="hidden sm:inline">Ver Arcano</span>
+                        <span className="hidden sm:inline">Ver carta</span>
                       </span>
                     </div>
 
@@ -325,7 +329,7 @@ export const InterpretationModal = ({
                         )}
                       </h4>
                       <span className="text-[11px] text-amber-300/80 font-cinzel block mb-2">
-                        {card.arcana === 'Major' ? `Arcano Maior ${card.roman}` : suitConf.name}
+                        {card.deckId === 'lenormand' ? `Baralho Cigano · Carta ${card.number}` : (card.arcana === 'Major' ? `Arcano Maior ${card.roman}` : suitConf.name)}
                       </span>
 
                       <p className="text-xs text-slate-300 leading-relaxed mb-3">
@@ -334,7 +338,7 @@ export const InterpretationModal = ({
 
                       <div className="p-2.5 rounded-xl bg-slate-900/80 border border-purple-500/20 text-[11px] text-purple-200 italic group-hover:border-amber-500/40 transition-colors">
                         <span className="font-bold text-amber-300 not-italic block mb-0.5 font-cinzel">
-                          Conselho do Arcano:
+                          Conselho da carta:
                         </span>
                         "{card.advice}"
                       </div>
@@ -346,7 +350,7 @@ export const InterpretationModal = ({
           </div>
 
           {/* Elemental & Arcana Distribution Bar */}
-          <div className="p-4 rounded-2xl glass-panel-subtle border border-purple-500/30">
+          {chosenCards[0]?.deckId !== 'lenormand' && <div className="p-4 rounded-2xl glass-panel-subtle border border-purple-500/30">
             <h4 className="font-cinzel text-xs font-bold text-amber-300 uppercase tracking-widest mb-3">
               Balanço Elemental da Tiragem
             </h4>
@@ -382,7 +386,7 @@ export const InterpretationModal = ({
                 </div>
               )}
             </div>
-          </div>
+          </div>}
 
         </div>
 
@@ -410,15 +414,17 @@ export const InterpretationModal = ({
 
             <button
               type="button"
+              disabled={isLoadingAi || saved}
               onClick={() => {
                 audio.playSelect();
-                historyService.saveReading({ 
+                const result = historyService.saveReading({
                   spreadConfig, 
                   chosenCards, 
                   userQuestion,
                   aiReading 
                 });
-                setSaved(true);
+                setSaved(!!result);
+                setSaveError(!result);
                 setTimeout(() => setSaved(false), 3000);
               }}
               className={`flex-1 sm:flex-initial px-3.5 py-2.5 rounded-xl border text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-md active:scale-95
@@ -429,7 +435,7 @@ export const InterpretationModal = ({
               `}
             >
               {saved ? <Check className="w-4 h-4 text-emerald-400" /> : <Bookmark className="w-4 h-4 text-amber-400" />}
-              <span>{saved ? 'Salvo!' : 'Salvar no Diário'}</span>
+              <span>{saveError ? 'Falha ao salvar. Tente novamente.' : saved ? 'Salvo!' : 'Salvar no Diário'}</span>
             </button>
           </div>
 

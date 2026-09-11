@@ -9,6 +9,8 @@ import { audio } from '../utils/audio';
 
 export const DeckSelectionGrid = ({ 
   deck, 
+  activeDeckId = 'tarot',
+  onSwitchDeck,
   onSelectCard, 
   onRandomPick, 
   onShuffleDeck,
@@ -19,8 +21,8 @@ export const DeckSelectionGrid = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [isShuffling, setIsShuffling] = useState(false);
 
-  const filterTabs = [
-    { id: 'all', label: 'Todas', count: 78, icon: Layers },
+  const filterTabs = deck[0]?.deckId === 'lenormand' ? [{ id: 'all', label: 'Todas', count: deck.length, icon: Layers }] : [
+    { id: 'all', label: 'Todas', count: deck.length, icon: Layers },
     { id: 'major', label: 'Maiores', count: 22, icon: Sparkles, color: 'text-amber-400' },
     { id: 'wands', label: 'Paus', count: 14, icon: Flame, color: 'text-orange-400' },
     { id: 'cups', label: 'Copas', count: 14, icon: Droplets, color: 'text-cyan-400' },
@@ -71,21 +73,32 @@ export const DeckSelectionGrid = ({
   };
 
   return (
-    <section aria-label="Seleção do Baralho de Tarot" className="w-full max-w-7xl mx-auto px-2 sm:px-4">
+    <section aria-label="Seleção de cartas" className="w-full max-w-7xl mx-auto px-2 sm:px-4">
       {/* Grid Controls & Header */}
       <div className="relative z-10 glass-panel rounded-2xl p-4 sm:p-5 md:p-6 mb-6 border border-amber-500/20 shadow-xl">
         <div className="flex flex-col lg:flex-row items-center justify-between gap-4">
           
           {/* Title & Guidance */}
           <div className="text-center lg:text-left">
-            <div className="flex items-center justify-center lg:justify-start gap-2">
+            <div className="flex flex-wrap items-center justify-center lg:justify-start gap-2.5">
               <h3 className="font-cinzel text-base sm:text-lg md:text-xl font-bold text-amber-200">
-                O Baralho Arcano ({availableCount} de 78 cartas)
+                Seu baralho ({availableCount} de {deck.length} cartas)
               </h3>
+              {onSwitchDeck && (
+                <button
+                  type="button"
+                  onClick={onSwitchDeck}
+                  title={activeDeckId === 'tarot' ? 'Trocar para o Baralho Cigano (Petit Lenormand)' : 'Trocar para o Tarot Tradicional (78 Cartas)'}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-purple-950/90 via-slate-900 to-emerald-950/90 hover:from-purple-900 hover:to-emerald-900 border border-amber-400/50 hover:border-amber-300 text-amber-200 hover:text-white text-xs font-cinzel font-semibold transition-all shadow-md active:scale-95 cursor-pointer"
+                >
+                  <span className="text-sm text-amber-400">{activeDeckId === 'tarot' ? '✿' : '✦'}</span>
+                  <span>{activeDeckId === 'tarot' ? 'Trocar para Baralho Cigano' : 'Trocar para Tarot'}</span>
+                </button>
+              )}
             </div>
             <p className="text-xs sm:text-sm text-slate-400 mt-0.5">
               {isShuffling 
-                ? 'Embaralhando as energias e os 78 arcanos...'
+                ? 'Embaralhando as cartas...'
                 : canSelectMore 
                   ? `Passe o mouse ou toque para escolher mais ${remainingToPick} carta(s).`
                   : 'Todos os slots foram preenchidos! Veja a interpretação acima.'

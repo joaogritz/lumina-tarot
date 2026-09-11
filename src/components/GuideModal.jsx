@@ -1,3 +1,4 @@
+import { useModalAccessibility } from '../utils/useModalAccessibility';
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -7,6 +8,7 @@ import {
 import { audio } from '../utils/audio';
 
 export const GuideModal = ({ isOpen, onClose }) => {
+  const modalRef = useModalAccessibility(isOpen, onClose);
   if (!isOpen) return null;
 
   const handleClose = () => {
@@ -21,10 +23,12 @@ export const GuideModal = ({ isOpen, onClose }) => {
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         className="absolute inset-0 bg-slate-950/85 backdrop-blur-md" 
-        onClick={handleClose} 
+        aria-label="Fechar" onClick={handleClose}
       />
 
       <motion.div 
+        ref={modalRef}
+        aria-label="Guia de leitura"
         role="dialog"
         aria-modal="true"
         initial={{ opacity: 0, scale: 0.92, y: 20 }}
@@ -35,10 +39,10 @@ export const GuideModal = ({ isOpen, onClose }) => {
       >
         <button
           type="button"
-          onClick={handleClose}
+          aria-label="Fechar" onClick={handleClose}
           className="absolute top-4 right-4 p-2 rounded-full bg-slate-900/80 border border-slate-700 text-slate-400 hover:text-amber-300 hover:border-amber-400/50 transition-all cursor-pointer z-20"
         >
-          <X className="w-5 h-5" />
+          <X aria-hidden="true" className="w-5 h-5" />
         </button>
 
         <div className="flex items-center gap-2 mb-2 text-amber-400">
@@ -53,6 +57,10 @@ export const GuideModal = ({ isOpen, onClose }) => {
         </p>
 
         <div className="space-y-4 text-xs text-slate-300">
+          <div className="p-3.5 rounded-xl bg-emerald-950/40 border border-emerald-500/30">
+            <h4 className="font-bold text-emerald-200 mb-2">Baralho Cigano · Petit Lenormand</h4>
+            <p>Selecione o baralho antes da tiragem. Suas 36 cartas usam símbolos cotidianos e são lidas sem inversões. Na linha de três cartas, leia também os pares vizinhos como uma sequência; na carta única, use o símbolo como foco de reflexão. A Torre representa estruturas e autonomia; a Lua, emoção e reconhecimento. Seus significados diferem do Tarot. Aqui, Sim ou Não é uma adaptação simbólica, não uma probabilidade.</p>
+          </div>
           
           <div className="p-3.5 rounded-xl bg-purple-950/40 border border-purple-500/30">
             <h4 className="font-cinzel font-bold text-amber-300 mb-1 flex items-center gap-1.5">

@@ -1,3 +1,4 @@
+import { useModalAccessibility } from '../utils/useModalAccessibility';
 import React, { useMemo, useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { 
@@ -9,10 +10,12 @@ import { TAROT_DECK, SUITS } from '../data/tarotDeck';
 import { audio } from '../utils/audio';
 
 export const DailyCardModal = ({ 
+  cards = TAROT_DECK,
   isOpen, 
   onClose, 
   onOpenCardDetail 
 }) => {
+  const modalRef = useModalAccessibility(isOpen, onClose);
   const [notificationEnabled, setNotificationEnabled] = useState(() => {
     if (typeof window !== 'undefined' && 'Notification' in window) {
       return Notification.permission === 'granted';
@@ -33,8 +36,8 @@ export const DailyCardModal = ({
       hash |= 0;
     }
     
-    const index = Math.abs(hash) % TAROT_DECK.length;
-    const card = TAROT_DECK[index];
+    const index = Math.abs(hash) % cards.length;
+    const card = cards[index];
 
     // Compute Streak
     let currentStreak = 1;
@@ -54,13 +57,13 @@ export const DailyCardModal = ({
         } else {
           currentStreak = 1;
         }
-        localStorage.setItem('lumina_last_daily_date', dateStr);
-        localStorage.setItem('lumina_daily_streak', String(currentStreak));
+        if (isOpen) localStorage.setItem('lumina_last_daily_date', dateStr);
+        if (isOpen) localStorage.setItem('lumina_daily_streak', String(currentStreak));
       }
     } catch (e) {}
 
     return { dailyCard: card, streak: currentStreak };
-  }, []);
+  }, [cards, isOpen]);
 
   if (!isOpen) return null;
 
@@ -113,11 +116,13 @@ export const DailyCardModal = ({
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         className="absolute inset-0 bg-slate-950/90 backdrop-blur-md" 
-        onClick={handleClose} 
+        aria-label="Fechar" onClick={handleClose}
       />
 
       {/* Modal Dialog Card */}
       <motion.div 
+        ref={modalRef}
+        aria-label="Carta do dia"
         role="dialog"
         aria-modal="true"
         initial={{ opacity: 0, scale: 0.92, y: 20 }}
@@ -129,10 +134,10 @@ export const DailyCardModal = ({
         {/* Close Button */}
         <button
           type="button"
-          onClick={handleClose}
+          aria-label="Fechar" onClick={handleClose}
           className="absolute top-4 right-4 p-2 rounded-full bg-slate-900/80 border border-slate-700 text-slate-400 hover:text-amber-300 hover:border-amber-400/50 transition-all cursor-pointer z-20"
         >
-          <X className="w-5 h-5" />
+          <X aria-hidden="true" className="w-5 h-5" />
         </button>
 
         {/* Date, Streak & Title */}
@@ -178,7 +183,7 @@ export const DailyCardModal = ({
           <div className="md:col-span-7 flex flex-col gap-3">
             <div>
               <span className="text-[10px] font-cinzel tracking-widest uppercase text-amber-400 font-bold">
-                {dailyCard.arcana === 'Major' ? `Arcano Maior ${dailyCard.roman}` : suitConfig.name}
+                {dailyCard.deckId === 'lenormand' ? `Baralho Cigano · Carta ${dailyCard.number}` : (dailyCard.arcana === 'Major' ? `Arcano Maior ${dailyCard.roman}` : suitConfig.name)}
               </span>
               <h4 className="font-cinzel text-2xl font-bold text-slate-100 mt-0.5">
                 {dailyCard.name}
@@ -243,7 +248,7 @@ export const DailyCardModal = ({
 
           <button
             type="button"
-            onClick={handleClose}
+            aria-label="Fechar" onClick={handleClose}
             className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-slate-950 font-cinzel font-bold text-xs cursor-pointer transition-all shadow-md active:scale-95 text-center"
           >
             Acolher Mensagem

@@ -14,6 +14,11 @@ export const getYesNoEvaluation = (card, isReversed = false) => {
     };
   }
 
+  if (card.deckId === 'lenormand') {
+    const positive = [1,2,9,16,17,18,24,25,30,31,33,34,35].includes(card.number);
+    const negative = [6,7,8,10,11,21,23,36].includes(card.number);
+    return { verdict: positive ? 'SIM, COM CONDIÇÃO' : negative ? 'NÃO / ALERTA' : 'DEPENDE DE VOCÊ', type: positive ? 'conditional_yes' : negative ? 'no' : 'maybe', percentage: 50, color: 'text-emerald-300', badgeBg: 'bg-emerald-500/20 border-emerald-400/60', summary: 'Como reflexão simbólica: ' + card.light, tip: card.advice };
+  }
   // --- REVERSED CARDS ---
   if (isReversed) {
     // Highly positive majors when reversed (delays rather than absolute "No")
@@ -302,7 +307,7 @@ export const getYesNoEvaluation = (card, isReversed = false) => {
   };
 };
 
-const SELF_HARM_REGEX = /\b(suic[ií]d|me\s+matar|morrer|automutila|tirar\s+a\s+(minha\s+)?vida|cortar\s+os\s+pulsos|acabar\s+com\s+a\s+(minha\s+)?vida|acabar\s+com\s+tudo|me\s+enforcar|quero\s+morrer)\b/i;
+const SELF_HARM_REGEX = /\b(suic[ií]d\w*|me\s+matar|morrer|automutila\w*|tirar\s+a\s+(minha\s+)?vida|cortar\s+os\s+pulsos|acabar\s+com\s+a\s+(minha\s+)?vida|acabar\s+com\s+tudo|me\s+enforcar|quero\s+morrer)\b/i;
 const NECROMANCY_REGEX = /\b(parente\s+morto|parente\s+falecid|falar\s+com\s+(o\s+|a\s+)?(morto|falecid|morta|falecida|espirito|espírito)|psicograf|alma\s+do\s+meu|alma\s+da\s+minha|falar\s+com\s+quem\s+morreu|esp[ií]rito\s+do\s+meu|m[eé]dium|incorporar)\b/i;
 
 // Generate an ultra-direct, concise local fallback response matching the AI format
@@ -312,6 +317,7 @@ export const generateOfflineYesNoReading = ({ card, userQuestion, evaluation }) 
   // Ethical Safeguard: Suicide and Self-Harm Prevention
   if (SELF_HARM_REGEX.test(q)) {
     return {
+      source: 'ethical_safeguard',
       isAi: false,
       verdict: 'BUSQUE APOIO PROFISSIONAL',
       answer: 'O Tarot não realiza leituras sobre morte ou autodestruição. Sua vida tem valor sagrado e inestimável, e você não precisa enfrentar essa dor sozinho.',
@@ -327,6 +333,7 @@ export const generateOfflineYesNoReading = ({ card, userQuestion, evaluation }) 
   // Ethical Safeguard: Necromancy and Contact with Deceased
   if (NECROMANCY_REGEX.test(q)) {
     return {
+      source: 'ethical_safeguard',
       isAi: false,
       verdict: 'FOCO NO AUTOCONHECIMENTO',
       answer: 'O Tarot é um espelho de orientação e autoconhecimento para os vivos no plano terreno, não uma ferramenta mediúnica de contato com os mortos.',
@@ -348,7 +355,10 @@ export const generateOfflineYesNoReading = ({ card, userQuestion, evaluation }) 
     directAnswer = `O arcano ${card?.name || 'revelado'} ${card?.isReversed ? '(Invertido)' : ''} mostra que ${evalData.summary.toLowerCase()}`;
   }
 
+  if (card?.deckId === 'lenormand') directAnswer = `${card.name}: ${card.light}`;
+
   return {
+    source: 'local_fallback',
     isAi: false,
     verdict: evalData.verdict,
     answer: directAnswer,

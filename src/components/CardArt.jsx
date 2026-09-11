@@ -1,3 +1,4 @@
+import { LenormandSymbol } from './LenormandSymbol';
 import React from 'react';
 import { 
   Sparkles, Flame, Droplets, Wind, Mountain, 
@@ -33,6 +34,7 @@ export const CardArt = React.memo(({ card, isMini = false, showKeywords = true }
 
   // Custom rich symbolic vector graphic generator for each Arcana
   const renderCardSymbolism = () => {
+    if (card.deckId === 'lenormand') return <LenormandSymbol card={card} />;
     // 1. Major Arcana specific sacred illustrations (All 22 Major Arcana)
     if (card.arcana === 'Major') {
       switch (card.number) {
@@ -653,7 +655,7 @@ export const CardArt = React.memo(({ card, isMini = false, showKeywords = true }
         
         {!isMini && (
           <p className="text-[10px] text-amber-300/80 font-cinzel truncate mt-0.5">
-            {card.nameEn}
+            {card.deckId === 'lenormand' ? `Carta ${card.number} · Petit Lenormand` : card.nameEn}
           </p>
         )}
 

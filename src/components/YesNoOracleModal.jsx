@@ -1,3 +1,4 @@
+import { useModalAccessibility } from '../utils/useModalAccessibility';
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -20,10 +21,12 @@ const QUICK_QUESTIONS = [
 ];
 
 export const YesNoOracleModal = ({ 
+  cards = TAROT_DECK,
   isOpen, 
   onClose,
   allowReversed = false 
 }) => {
+  const modalRef = useModalAccessibility(isOpen, onClose);
   const [question, setQuestion] = useState('');
   const [drawnCard, setDrawnCard] = useState(null);
   const [isDrawing, setIsDrawing] = useState(false);
@@ -46,10 +49,10 @@ export const YesNoOracleModal = ({
     setAiReading(null);
 
     // Pick random card
-    const randomIndex = Math.floor(Math.random() * TAROT_DECK.length);
+    const randomIndex = Math.floor(Math.random() * cards.length);
     const isCardReversed = allowReversed ? Math.random() < 0.35 : false;
     const card = {
-      ...TAROT_DECK[randomIndex],
+      ...cards[randomIndex],
       isReversed: isCardReversed
     };
 
@@ -100,11 +103,13 @@ export const YesNoOracleModal = ({
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         className="absolute inset-0 bg-slate-950/90 backdrop-blur-md" 
-        onClick={handleClose} 
+        aria-label="Fechar" onClick={handleClose}
       />
 
       {/* Modal Dialog Card */}
       <motion.div 
+        ref={modalRef}
+        aria-label="Oráculo sim ou não"
         role="dialog"
         aria-modal="true"
         initial={{ opacity: 0, scale: 0.92, y: 20 }}
@@ -116,24 +121,23 @@ export const YesNoOracleModal = ({
         {/* Close Button */}
         <button
           type="button"
-          onClick={handleClose}
+          aria-label="Fechar" onClick={handleClose}
           className="absolute top-4 right-4 p-2 rounded-full bg-slate-900/80 border border-slate-700 text-slate-400 hover:text-amber-300 hover:border-amber-400/50 transition-all cursor-pointer z-20"
-          aria-label="Fechar"
         >
-          <X className="w-5 h-5" />
+          <X aria-hidden="true" className="w-5 h-5" />
         </button>
 
         {/* Header Title */}
         <div className="mb-4">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-950/80 border border-purple-500/30 text-amber-300 text-xs font-cinzel font-semibold mb-2">
             <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-            <span>Oráculo Inteligente de Resposta Direta</span>
+            <span>Reflexão simbólica com as cartas</span>
           </div>
           <h3 className="font-cinzel text-xl sm:text-2xl md:text-3xl font-black text-slate-100 gold-gradient-text tracking-wide">
             Oráculo do Sim ou Não
           </h3>
           <p className="text-xs text-slate-400 mt-1 max-w-md mx-auto">
-            Faça sua pergunta e receba um veredito objetivo da IA com conselhos e condições práticas.
+            Faça sua pergunta e explore uma orientação simbólica com conselhos práticos. O resultado não é uma certeza sobre os fatos.
           </p>
         </div>
 
@@ -144,6 +148,7 @@ export const YesNoOracleModal = ({
               <div className="flex items-center gap-2">
                 <Feather className="w-4 h-4 text-amber-400 shrink-0" />
                 <input
+                  maxLength={1000}
                   type="text"
                   value={question}
                   onChange={(e) => setQuestion(e.target.value)}
@@ -160,7 +165,7 @@ export const YesNoOracleModal = ({
                     onClick={() => setQuestion('')}
                     className="text-slate-500 hover:text-slate-300 text-xs p-1"
                   >
-                    <X className="w-3.5 h-3.5" />
+                    <X aria-hidden="true" className="w-3.5 h-3.5" />
                   </button>
                 )}
               </div>
@@ -322,7 +327,7 @@ export const YesNoOracleModal = ({
 
               <button
                 type="button"
-                onClick={handleClose}
+                aria-label="Fechar" onClick={handleClose}
                 className="py-2.5 px-5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-950 font-cinzel font-bold text-xs cursor-pointer transition-all shadow-md active:scale-95"
               >
                 Concluir

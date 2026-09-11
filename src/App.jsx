@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { AnimatePresence } from 'framer-motion';
+import { MotionConfig, AnimatePresence } from 'framer-motion';
 import { TarotTable } from './components/TarotTable';
 import { LoadingScreen } from './components/LoadingScreen';
 
@@ -7,14 +7,14 @@ export function App() {
   const [isLoading, setIsLoading] = useState(true);
 
   return (
-    <>
+    <MotionConfig reducedMotion="user">
       <AnimatePresence mode="wait">
         {isLoading && (
           <LoadingScreen onLoaded={() => setIsLoading(false)} />
         )}
       </AnimatePresence>
-      <TarotTable />
-    </>
+      {!isLoading && <TarotTable />}
+    </MotionConfig>
   );
 }
 

@@ -62,7 +62,7 @@ export const DeckShuffleAnimation = ({ onComplete }) => {
         <span className="font-cinzel text-xs md:text-sm font-bold text-amber-200 tracking-wider">
           {phase === 'cut' && 'Cortando o Baralho Arcano...'}
           {phase === 'riffle' && 'Embaralhando as Forças do Destino...'}
-          {phase === 'fan' && 'Alinhando os 78 Arcanos...'}
+          {phase === 'fan' && 'Alinhando as cartas...'}
           {phase === 'gather' && 'Consagração Concluída!'}
         </span>
         <Sparkles className="w-4 h-4 text-amber-400 animate-spin" style={{ animationDuration: '3s' }} />
