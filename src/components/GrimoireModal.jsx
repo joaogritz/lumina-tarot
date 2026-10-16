@@ -1,10 +1,7 @@
 import { useModalAccessibility } from '../utils/useModalAccessibility';
 import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  X, Sparkles, BookOpen, Search, Layers, 
-  Flame, Droplets, Wind, Mountain, Compass, Star 
-} from 'lucide-react';
+import { X, Sparkles, BookOpen, Search, Layers, Flame, Droplets, Wind, Mountain } from './icons/ArcaneIcons';
 import { CardArt } from './CardArt';
 import { TAROT_DECK, SUITS } from '../data/tarotDeck';
 import { audio } from '../utils/audio';
@@ -60,8 +57,7 @@ export const GrimoireModal = ({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="absolute inset-0 bg-slate-950/90 backdrop-blur-md" 
-        aria-label="Fechar" onClick={handleClose}
+        className="absolute inset-0 bg-slate-950/90 backdrop-blur-md" onClick={handleClose}
       />
 
       {/* Modal Dialog Card with Solid High-Contrast Background */}
@@ -73,8 +69,8 @@ export const GrimoireModal = ({
         initial={{ opacity: 0, scale: 0.95, y: 15 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 10 }}
-        transition={{ type: "spring", stiffness: 420, damping: 28 }}
-        className="relative z-10 w-full max-w-5xl h-[88vh] flex flex-col rounded-3xl bg-[#090D24] border border-amber-500/40 shadow-2xl overflow-hidden p-4 sm:p-6"
+        transition={{ duration: .7, ease: [.16, 1, .3, 1] }}
+        className="relative z-10 w-full max-w-5xl h-[88vh] flex flex-col rounded-sm bg-[var(--color-obsidian)] border border-amber-500/40 shadow-2xl overflow-hidden p-4 sm:p-6"
       >
         {/* Header */}
         <div className="flex items-center justify-between pb-3 border-b border-amber-500/20 shrink-0">
@@ -115,10 +111,10 @@ export const GrimoireModal = ({
                     audio.playTabSwitch();
                     setActiveFilter(tab.id);
                   }}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-medium flex items-center gap-1.5 shrink-0 transition-all cursor-pointer
+                  className={`px-3 py-1.5 rounded-sm text-xs font-medium flex items-center gap-1.5 shrink-0 transition-all cursor-pointer
                     ${isActive
                       ? 'bg-amber-400/20 text-amber-300 border border-amber-400/60 shadow-[0_0_12px_rgba(251,191,36,0.2)]'
-                      : 'bg-slate-900/60 text-slate-400 hover:text-slate-200 border border-slate-800 hover:border-purple-500/30'
+                      : 'bg-slate-900/60 text-slate-400 hover:text-slate-200 border border-slate-800 hover:border-amber-500/30'
                     }
                   `}
                 >
@@ -137,7 +133,7 @@ export const GrimoireModal = ({
               placeholder="Buscar por nome, arquétipo ou palavra-chave..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-4 py-1.5 rounded-xl bg-slate-950/70 border border-purple-500/30 focus:border-amber-400/70 text-xs text-slate-200 placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-amber-400/30 transition-all"
+              className="w-full pl-9 pr-4 py-1.5 rounded-sm bg-slate-950/70 border border-amber-500/30 focus:border-amber-400/70 text-xs text-slate-200 placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-amber-400/30 transition-all"
             />
           </div>
         </div>
@@ -151,29 +147,29 @@ export const GrimoireModal = ({
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4 p-1">
               {filteredCards.map((card) => (
-                <div
+                <button type="button" aria-label={`Ver detalhes de ${card.name}`}
                   key={card.id}
                   onClick={() => {
                     audio.playInspectZoom();
                     if (onOpenCardDetail) onOpenCardDetail(card, null);
                   }}
-                  className="relative w-full h-44 sm:h-52 md:h-60 cursor-pointer rounded-xl shadow-lg transform-gpu transition-all duration-200 hover:-translate-y-1.5 hover:scale-105 group"
+                  className="grimoire-card relative w-full aspect-[7/12] cursor-pointer rounded-sm shadow-lg transform-gpu transition-all duration-200 hover:-translate-y-1.5 hover:scale-105 group"
                 >
                   <CardArt card={card} isMini={true} showKeywords={false} />
                   
                   {/* Subtle Hover Lens Badge */}
-                  <div className="absolute inset-0 bg-slate-950/75 backdrop-blur-[1px] opacity-0 group-hover:opacity-100 transition-opacity rounded-xl flex flex-col items-center justify-center gap-1 pointer-events-none p-2 text-center z-20">
+                  <div className="absolute inset-0 bg-slate-950/75 backdrop-blur-[1px] opacity-0 group-hover:opacity-100 transition-opacity rounded-sm flex flex-col items-center justify-center gap-1 pointer-events-none p-2 text-center z-20">
                     <span className="text-[11px] font-cinzel text-amber-200 font-bold uppercase tracking-wider">
                       {card.name}
                     </span>
-                    <span className="text-[9px] text-purple-200 italic line-clamp-2">
+                    <span className="text-[9px] text-amber-200 italic line-clamp-2">
                       {card.archetype}
                     </span>
                     <span className="text-[8.5px] text-amber-400/90 mt-1 font-sans">
                       Clique para inspecionar
                     </span>
                   </div>
-                </div>
+                </button>
               ))}
             </div>
           )}

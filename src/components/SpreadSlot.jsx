@@ -1,7 +1,8 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CardArt } from './CardArt';
-import { Sparkles, Eye, X, ZoomIn, Compass } from 'lucide-react';
+import { TarotCard } from './cards/TarotCard.jsx';
+import { Sparkles, X, ZoomIn } from './icons/ArcaneIcons';
 import { audio } from '../utils/audio';
 
 export const SpreadSlot = React.memo(({ 
@@ -25,7 +26,7 @@ export const SpreadSlot = React.memo(({
   const isLarge = size === 'lg';
 
   return (
-    <div className="flex flex-col items-center group/slot">
+    <div data-size={size} className="spread-slot flex flex-col items-center group/slot">
       {/* Position Header Label */}
       {showLabel && (
         <motion.div 
@@ -40,7 +41,7 @@ export const SpreadSlot = React.memo(({
           }`}
         >
           {/* Main Position Badge */}
-          <div className={`inline-flex items-center justify-center gap-1.5 rounded-full bg-purple-950/85 border border-amber-500/40 text-amber-300 font-cinzel font-semibold shadow-md
+          <div className={`inline-flex items-center justify-center gap-1.5 rounded-full bg-stone-950/85 border border-amber-500/40 text-amber-300 font-cinzel font-semibold shadow-md
             ${isLarge 
               ? 'px-4 py-1 text-xs md:text-sm font-bold tracking-wide' 
               : size === 'md' 
@@ -66,7 +67,7 @@ export const SpreadSlot = React.memo(({
       )}
 
       {/* Main Slot Frame */}
-      <div className={`relative ${sizeClasses} aspect-[2/3] perspective-1000 ${isCrossing ? 'rotate-[-6deg]' : ''}`}>
+      <div className={`spread-card-frame relative ${sizeClasses} aspect-[7/12] perspective-1000 ${isCrossing ? 'rotate-[-6deg]' : ''}`}>
         <AnimatePresence mode="wait">
           {card ? (
             /* Filled State: Revealed Card with Realistic 3D Flip */
@@ -75,23 +76,22 @@ export const SpreadSlot = React.memo(({
               initial={{ rotateY: 180, scale: 0.8, opacity: 0 }}
               animate={{ rotateY: 0, scale: 1, opacity: 1 }}
               exit={{ scale: 0.7, opacity: 0, transition: { duration: 0.25 } }}
-              transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
+              transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
               whileHover={{ 
                 y: -6, 
                 scale: 1.03, 
-                transition: { type: "spring", stiffness: 400, damping: 20 } 
+                transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] }
               }}
               whileTap={{ scale: 0.96 }}
-              role="button" tabIndex={0} aria-label={`Ver detalhes de ${card.name}`}
-              onKeyDown={e => { if (e.target === e.currentTarget && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); onCardClick?.(card, positionInfo); } }}
-              onClick={() => onCardClick && onCardClick(card, positionInfo)}
-              className="w-full h-full cursor-pointer relative transform-gpu"
+              className="w-full h-full cursor-pointer relative transform-gpu transform-style-3d"
             >
               {/* Ambient Aura */}
-              <div className="absolute -inset-2 rounded-2xl bg-amber-500/20 blur-xl opacity-0 group-hover/slot:opacity-100 transition-opacity duration-300 pointer-events-none" />
+              <div className="absolute -inset-2 rounded-sm bg-amber-500/20 blur-xl opacity-0 group-hover/slot:opacity-100 transition-opacity duration-300 pointer-events-none" />
               
+              {/* Inspect and remove remain separate keyboard controls. */}
+              <button type="button" className="card-inspect-action" aria-label={`Ver detalhes de ${card.name}`} onClick={() => onCardClick?.(card, positionInfo)}>
               {/* Card Content */}
-              <CardArt card={card} isMini={isMiniArt} showKeywords={!isMiniArt} />
+              <CardArt card={card} isMini={isMiniArt} size={isLarge ? 'lg' : isMiniArt ? 'sm' : 'md'} priority showKeywords={!isMiniArt} />
 
               {/* Crossing Tag if applicable */}
               {isCrossing && (
@@ -101,7 +101,7 @@ export const SpreadSlot = React.memo(({
               )}
 
               {/* Quick Inspect Hover Overlay Button */}
-              <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-[2px] opacity-0 group-hover/slot:opacity-100 transition-opacity duration-200 rounded-xl flex flex-col items-center justify-center gap-1.5 p-2 pointer-events-none z-10">
+              <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-[2px] opacity-0 group-hover/slot:opacity-100 transition-opacity duration-200 rounded-sm flex flex-col items-center justify-center gap-1.5 p-2 pointer-events-none z-10">
                 <div className="w-8 h-8 rounded-full bg-amber-500/90 text-slate-950 flex items-center justify-center shadow-lg transform scale-90 group-hover/slot:scale-100 transition-transform">
                   <ZoomIn className="w-4 h-4" />
                 </div>
@@ -109,6 +109,8 @@ export const SpreadSlot = React.memo(({
                   Ver Detalhes
                 </span>
               </div>
+
+              </button>
 
               {/* Remove Card Button - Enlarged & Hover-Expanded */}
               {onRemoveCard && (
@@ -133,27 +135,23 @@ export const SpreadSlot = React.memo(({
               initial={{ opacity: 0.6 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className={`w-full h-full rounded-xl border-2 border-dashed flex flex-col items-center justify-center p-2 sm:p-3 text-center transition-all duration-300 relative overflow-hidden
+              className={`w-full h-full rounded-sm border-2 border-dashed flex flex-col items-center justify-center p-2 sm:p-3 text-center transition-all duration-300 relative overflow-hidden
                 ${isActive 
                   ? 'border-amber-400 bg-amber-500/10 shadow-[0_0_25px_rgba(251,191,36,0.35)] animate-gold-pulse' 
-                  : 'border-purple-500/30 bg-purple-950/20 hover:border-amber-400/50'
+                  : 'border-amber-500/30 bg-stone-950/20 hover:border-amber-400/50'
                 }
               `}
             >
               {/* Sacred Constellation Background Watermark */}
               <div className="absolute inset-0 opacity-10 flex items-center justify-center pointer-events-none">
-                <svg viewBox="0 0 100 100" className="w-full h-full text-amber-300 p-2">
-                  <circle cx="50" cy="50" r="40" fill="none" stroke="currentColor" strokeWidth="1" strokeDasharray="3 3" />
-                  <polygon points="50,15 80,75 20,75" fill="none" stroke="currentColor" strokeWidth="0.8" />
-                  <polygon points="50,85 80,25 20,25" fill="none" stroke="currentColor" strokeWidth="0.8" />
-                </svg>
+                <TarotCard face="back" size="sm" />
               </div>
 
               {/* Pulsing Aura Indicator */}
               <div className={`w-7 h-7 sm:w-9 sm:h-9 rounded-full flex items-center justify-center mb-1.5 transition-all
                 ${isActive 
                   ? 'bg-amber-400/20 text-amber-300 scale-110 shadow-[0_0_15px_rgba(251,191,36,0.5)]' 
-                  : 'bg-purple-900/40 text-purple-400'
+                  : 'bg-stone-900/40 text-amber-400'
                 }
               `}>
                 <Sparkles className={`w-4 h-4 ${isActive ? 'animate-spin' : ''}`} style={{ animationDuration: '6s' }} />

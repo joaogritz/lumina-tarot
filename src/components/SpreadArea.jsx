@@ -2,10 +2,7 @@ import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SpreadSlot } from './SpreadSlot';
 import { CardArt } from './CardArt';
-import { 
-  Sparkles, BookOpen, RotateCcw, CheckCircle2, 
-  ArrowRight, Shield, Crown, Target, Star, Compass, X, ZoomIn 
-} from 'lucide-react';
+import { Sparkles, BookOpen, RotateCcw, CheckCircle2, ArrowRight, Crown, Star, Compass, X } from './icons/ArcaneIcons';
 import { audio } from '../utils/audio';
 
 export const SpreadArea = ({ 
@@ -63,7 +60,7 @@ export const SpreadArea = ({
       <div className="relative flex flex-col items-center justify-center p-1">
         {/* Double Label Header */}
         <div className="mb-2 flex items-center justify-center gap-1.5 z-30">
-          <div className="px-2 py-0.5 rounded-full bg-purple-950/90 border border-amber-500/40 text-[10px] font-cinzel font-semibold text-amber-300 shadow">
+          <div className="px-2 py-0.5 rounded-full bg-stone-950/90 border border-amber-500/40 text-[10px] font-cinzel font-semibold text-amber-300 shadow">
             1. Cerne
           </div>
           <div className="px-2 py-0.5 rounded-full bg-red-950/90 border border-red-500/50 text-[10px] font-cinzel font-semibold text-red-300 shadow">
@@ -72,7 +69,7 @@ export const SpreadArea = ({
         </div>
 
         {/* Center Canvas with Card 1 under, Card 2 across on top */}
-        <div className="relative w-24 sm:w-28 md:w-32 lg:w-36 aspect-[2/3] flex items-center justify-center">
+        <div className="relative w-24 sm:w-28 md:w-32 lg:w-36 aspect-[7/12] flex items-center justify-center">
           
           {/* Card 1 (Vertical Layer Base) */}
           <div className="absolute inset-0 z-10 transition-all duration-300">
@@ -93,20 +90,22 @@ export const SpreadArea = ({
             <motion.div 
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 0.92, opacity: 1 }}
-              whileHover={{ scale: 1, transition: { type: "spring", stiffness: 400, damping: 20 } }}
-              className="pointer-events-auto transform rotate-90 shadow-[0_10px_35px_rgba(0,0,0,0.9)] rounded-xl"
+              whileHover={{ scale: 1, transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] } }}
+              className="pointer-events-auto transform rotate-90 shadow-[0_10px_35px_rgba(0,0,0,0.9)] rounded-sm"
             >
               {card2 ? (
                 <div 
-                  onClick={() => onCardClick && onCardClick(card2, pos2)}
-                  className="w-24 sm:w-28 md:w-32 lg:w-36 aspect-[2/3] cursor-pointer relative transform-gpu animate-card-reveal group/cross"
+                  className="w-24 sm:w-28 md:w-32 lg:w-36 aspect-[7/12] cursor-pointer relative transform-gpu animate-card-reveal group/cross"
                 >
+                  <button type="button" className="card-inspect-action" aria-label={`Ver detalhes de ${card2.name}`} onClick={() => onCardClick?.(card2, pos2)}>
                   <CardArt card={card2} isMini={true} showKeywords={false} />
                   
                   {/* Crossing Marker Badge */}
                   <div className="absolute -top-2 left-1/2 -translate-x-1/2 px-1.5 py-0.2 rounded bg-red-950/95 border border-red-400 text-[8px] font-cinzel text-red-200 font-bold uppercase tracking-wider shadow-md">
                     Cruzada
                   </div>
+
+                  </button>
 
                   {/* Remove Card Button - Enlarged & Hover-Expanded */}
                   {onRemoveCard && (
@@ -126,13 +125,13 @@ export const SpreadArea = ({
                 </div>
               ) : isSlot2Active ? (
                 /* Slot 2 Waiting for pick - Horizontal Pulsing Receptor */
-                <div className="w-24 sm:w-28 md:w-32 lg:w-36 aspect-[2/3] rounded-xl border-2 border-dashed border-amber-400 bg-amber-500/20 shadow-[0_0_25px_rgba(251,191,36,0.6)] animate-gold-pulse flex flex-col items-center justify-center p-1 text-center">
+                <div className="w-24 sm:w-28 md:w-32 lg:w-36 aspect-[7/12] rounded-sm border-2 border-dashed border-amber-400 bg-amber-500/20 shadow-[0_0_25px_rgba(251,191,36,0.6)] animate-gold-pulse flex flex-col items-center justify-center p-1 text-center">
                   <Sparkles className="w-4 h-4 text-amber-300 animate-spin mb-1" style={{ animationDuration: '4s' }} />
                   <span className="font-cinzel text-[9px] text-amber-200 font-bold">2. Cruzar</span>
                 </div>
               ) : (
                 /* Slot 2 Inactive Ghost receptor outline */
-                <div className="w-24 sm:w-28 md:w-32 lg:w-36 aspect-[2/3] rounded-xl border border-dashed border-red-400/25 bg-red-950/10 pointer-events-none opacity-40" />
+                <div className="w-24 sm:w-28 md:w-32 lg:w-36 aspect-[7/12] rounded-sm border border-dashed border-red-400/25 bg-red-950/10 pointer-events-none opacity-40" />
               )}
             </motion.div>
           </div>
@@ -155,7 +154,7 @@ export const SpreadArea = ({
             </span>
           </div>
 
-          <div className="grid grid-cols-3 gap-3 sm:gap-6 md:gap-8 items-center justify-items-center max-w-xl">
+          <div className="celtic-cross-grid grid grid-cols-3 gap-3 sm:gap-6 md:gap-8 items-center justify-items-center max-w-xl">
             
             {/* Row 1: Top (Position 5: A Coroa / Objetivo) */}
             <div className="col-start-2 flex justify-center">
@@ -247,7 +246,7 @@ export const SpreadArea = ({
   // 4. Timeline Layout (Passado, Presente, Futuro)
   const renderTimelineLayout = () => {
     return (
-      <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 lg:gap-8 py-4">
+      <div className="spread-timeline flex items-start justify-center gap-3 sm:gap-6 lg:gap-8 py-4">
         {spreadConfig.positions.map((_, index) => (
           <React.Fragment key={index}>
             {renderSlot(index, 'md', false, true)}
@@ -267,7 +266,7 @@ export const SpreadArea = ({
     return (
       <div className="flex flex-col items-center justify-center py-6">
         <div className="relative">
-          <div className="absolute -inset-6 rounded-full bg-gradient-to-r from-amber-500/20 via-purple-600/30 to-amber-500/20 blur-2xl pointer-events-none" />
+          <div className="absolute -inset-6 rounded-full bg-gradient-to-r from-amber-500/20 via-amber-600/30 to-amber-500/20 blur-2xl pointer-events-none" />
           {renderSlot(0, 'lg', false, true)}
         </div>
       </div>
@@ -376,18 +375,18 @@ export const SpreadArea = ({
   };
 
   return (
-    <section aria-label="Mesa de leitura" className="w-full max-w-6xl mx-auto mb-10">
+    <section aria-label="Mesa de leitura" className="reading-area w-full max-w-6xl mx-auto mb-10">
       {/* Altar Velvet Mat Container */}
-      <div className="relative rounded-3xl glass-panel p-4 sm:p-6 md:p-8 overflow-hidden shadow-2xl border border-amber-500/30">
+      <div className="altar-surface relative p-4 sm:p-6 md:p-8 overflow-hidden shadow-2xl border border-amber-500/30">
         
         {/* Sacred Altar Background Glow */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-4/5 h-48 bg-gradient-to-b from-purple-600/20 via-amber-500/10 to-transparent blur-3xl pointer-events-none" />
+        <div className="hidden absolute top-0 left-1/2 -translate-x-1/2 w-4/5 h-48 bg-gradient-to-b from-amber-600/20 via-amber-500/10 to-transparent blur-3xl pointer-events-none" />
 
         {/* Altar Header */}
         <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-4 pb-4 mb-4 border-b border-amber-500/20">
           <div>
             <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />
+              <span className="w-2 h-2 rounded-full bg-amber-400" />
               <h2 className="font-cinzel text-lg md:text-2xl font-bold text-amber-200 tracking-wide">
                 {spreadConfig.name}
               </h2>
@@ -402,7 +401,7 @@ export const SpreadArea = ({
             <div className={`px-3.5 py-1.5 rounded-full border text-xs font-semibold flex items-center gap-1.5 transition-colors
               ${isComplete 
                 ? 'bg-emerald-950/80 border-emerald-400 text-emerald-300 shadow-[0_0_15px_rgba(52,211,153,0.3)]' 
-                : 'bg-purple-950/60 border-purple-500/40 text-purple-200'
+                : 'bg-stone-950/60 border-amber-500/40 text-amber-200'
               }
             `}>
               {isComplete ? <CheckCircle2 className="w-4 h-4 text-emerald-400" /> : <Sparkles className="w-4 h-4 text-amber-400" />}
@@ -449,24 +448,24 @@ export const SpreadArea = ({
               initial={{ opacity: 0, scale: 0.9, y: 15 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 10 }}
-              transition={{ type: "spring", stiffness: 350, damping: 24 }}
+              transition={{ duration: .7, ease: [.16, 1, .3, 1] }}
               className="relative z-10 mt-8 pt-6 border-t border-amber-500/20 flex flex-col items-center justify-center"
             >
               <div className="relative group">
-                <div className="absolute -inset-1.5 rounded-2xl bg-gradient-to-r from-amber-500/40 via-purple-600/40 to-amber-500/40 blur-lg opacity-75 group-hover:opacity-100 transition duration-500" />
+                <div className="hidden" />
                 
                 <motion.button
                   whileHover={{ scale: 1.03 }}
                   whileTap={{ scale: 0.97 }}
                   type="button"
                   onClick={handleOpenInterpretation}
-                  className="relative px-9 py-4 rounded-2xl bg-gradient-to-b from-[#2B1758] via-[#160B30] to-[#0A0419] hover:from-[#371F70] hover:to-[#1B0D3B] text-amber-100 hover:text-white shadow-[0_12px_40px_rgba(0,0,0,0.85),inset_0_1px_1px_rgba(251,191,36,0.4)] flex items-center gap-3.5 border-2 border-amber-400/80 hover:border-amber-300 transition-all duration-300 cursor-pointer overflow-hidden"
+                  className="ritual-button"
                 >
                   {/* Sweep Light Reflection */}
                   <div className="absolute inset-0 bg-gradient-to-r from-transparent via-amber-300/15 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 pointer-events-none" />
 
                   <BookOpen className="w-5 h-5 text-amber-300 shrink-0" />
-                  <span className="font-almendra text-2xl font-bold tracking-wider shimmer-gold-text">
+                  <span className="font-outfit text-xs uppercase tracking-widest">
                     Revelar interpretação
                   </span>
                   <Compass className="w-5 h-5 text-amber-400/90 group-hover:rotate-90 transition-transform duration-700 shrink-0" />

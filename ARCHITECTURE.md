@@ -6,7 +6,7 @@
 
 As cartas do cigano têm IDs próprios (`lenormand_1` a `lenormand_36`). O estado de escolha é uma cópia dos dados, sem mutação dos catálogos. Trocar o baralho limpa as cartas atuais, desativa inversões e volta à tiragem de três posições. A pergunta é preservada. Os componentes de grimório, carta diária e sim/não recebem o catálogo ativo por propriedade e são remontados na troca.
 
-`CardArt` mantém a identidade visual do Tarot e delega os símbolos de Lenormand a `LenormandSymbol`. Não são baixadas imagens externas para as novas cartas.
+`CardArt` é um adaptador para `cards/TarotCard`, a implementação visual compartilhada de frentes, versos, molduras e tilt. `data/cardArtwork.js` separa o catálogo de imagens dos significados; ambos os baralhos recebem uma referência `artwork`, e leituras antigas são resolvidas pelo ID. As artes históricas otimizadas ficam em `public/tarot`, com miniaturas, origens, checksums e documentação de domínio público. Não há dependência de imagens remotas em tempo de execução.
 
 ## Interpretação
 

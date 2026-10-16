@@ -1,7 +1,7 @@
 import { useModalAccessibility } from '../utils/useModalAccessibility';
 import React, { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, AlertTriangle, RotateCcw, X, Layers, ArrowRight } from 'lucide-react';
+import { X, Layers, ArrowRight } from './icons/ArcaneIcons';
 import { audio } from '../utils/audio';
 
 export const ConfirmSpreadChangeModal = ({ 
@@ -55,8 +55,8 @@ export const ConfirmSpreadChangeModal = ({
         initial={{ opacity: 0, scale: 0.9, y: 15 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 10 }}
-        transition={{ type: "spring", stiffness: 420, damping: 28 }}
-        className="relative z-10 w-full max-w-md rounded-3xl glass-panel border border-amber-500/40 shadow-2xl p-6 sm:p-8 text-center"
+        transition={{ duration: .7, ease: [.16, 1, .3, 1] }}
+        className="relative z-10 w-full max-w-md rounded-sm glass-panel border border-amber-500/40 shadow-2xl p-6 sm:p-8 text-center"
       >
         {/* Close Button */}
         <button
@@ -68,7 +68,7 @@ export const ConfirmSpreadChangeModal = ({
         </button>
 
         {/* Mystic Icon */}
-        <div className="mx-auto w-14 h-14 rounded-2xl bg-gradient-to-tr from-purple-900/80 to-amber-500/20 border border-amber-400/40 flex items-center justify-center mb-4 shadow-[0_0_20px_rgba(251,191,36,0.25)]">
+        <div className="mx-auto w-14 h-14 rounded-sm bg-gradient-to-tr from-stone-900/80 to-amber-500/20 border border-amber-400/40 flex items-center justify-center mb-4 shadow-[0_0_20px_rgba(251,191,36,0.25)]">
           <Layers className="w-7 h-7 text-amber-300 animate-pulse" />
         </div>
 
@@ -78,7 +78,7 @@ export const ConfirmSpreadChangeModal = ({
         </h3>
 
         {/* Subtitle / Transition Info */}
-        <div className="my-3 px-3 py-2 rounded-xl bg-purple-950/50 border border-purple-500/30 flex items-center justify-center gap-2 text-xs font-cinzel text-purple-200">
+        <div className="my-3 px-3 py-2 rounded-sm bg-stone-950/50 border border-amber-500/30 flex items-center justify-center gap-2 text-xs font-cinzel text-amber-200">
           <span className="truncate">{currentSpread.shortName}</span>
           <ArrowRight className="w-3.5 h-3.5 text-amber-400 shrink-0" />
           <span className="text-amber-300 font-bold truncate">{targetSpread.shortName}</span>
@@ -94,7 +94,7 @@ export const ConfirmSpreadChangeModal = ({
           <button
             type="button"
             onClick={onCancel}
-            className="w-full sm:w-1/2 py-2.5 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300 hover:text-amber-300 text-xs font-semibold transition-all cursor-pointer active:scale-95"
+            className="w-full sm:w-1/2 py-2.5 px-4 rounded-sm bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300 hover:text-amber-300 text-xs font-semibold transition-all cursor-pointer active:scale-95"
           >
             Manter Mesa Atual
           </button>
@@ -102,7 +102,7 @@ export const ConfirmSpreadChangeModal = ({
           <button
             type="button"
             onClick={handleConfirm}
-            className="w-full sm:w-1/2 py-2.5 px-4 rounded-xl bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 hover:from-amber-500 hover:to-amber-400 text-slate-950 font-cinzel font-bold text-xs tracking-wider transition-all cursor-pointer shadow-lg active:scale-95 border border-amber-300/60"
+            className="w-full sm:w-1/2 py-2.5 px-4 rounded-sm bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 hover:from-amber-500 hover:to-amber-400 text-slate-950 font-cinzel font-bold text-xs tracking-wider transition-all cursor-pointer shadow-lg active:scale-95 border border-amber-300/60"
           >
             Confirmar Mudança
           </button>

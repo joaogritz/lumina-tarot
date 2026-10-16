@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, Shuffle, Moon, Sun } from 'lucide-react';
-import { CardBack } from './CardBack';
+import { Sparkles, Shuffle } from './icons/ArcaneIcons';
+import { TarotCard } from './cards/TarotCard.jsx';
 
 export const DeckShuffleAnimation = ({ onComplete }) => {
   const [phase, setPhase] = useState('cut'); // 'cut' | 'riffle' | 'fan' | 'gather'
@@ -46,11 +46,11 @@ export const DeckShuffleAnimation = ({ onComplete }) => {
       {/* Background Sacred Geometry Mandala Watermark */}
       <div className="absolute inset-0 flex items-center justify-center opacity-20 pointer-events-none">
         <div className="w-80 h-80 rounded-full border-2 border-amber-400/40 animate-[spin_30s_linear_infinite]" />
-        <div className="absolute w-64 h-64 rounded-full border border-dashed border-purple-500/50 animate-[spin_20s_linear_infinite_reverse]" />
+        <div className="absolute w-64 h-64 rounded-full border border-dashed border-amber-500/50 animate-[spin_20s_linear_infinite_reverse]" />
       </div>
 
       {/* Floating Golden Stardust Glow */}
-      <div className="absolute w-96 h-96 bg-gradient-to-r from-amber-500/15 via-purple-600/25 to-amber-400/15 blur-3xl rounded-full pointer-events-none animate-pulse" />
+      <div className="absolute w-96 h-96 bg-gradient-to-r from-amber-500/15 via-amber-600/25 to-amber-400/15 blur-3xl rounded-full pointer-events-none animate-pulse" />
 
       {/* Status HUD Header */}
       <motion.div 
@@ -107,13 +107,9 @@ export const DeckShuffleAnimation = ({ onComplete }) => {
                     duration: 0.45,
                     ease: "easeOut"
                   }}
-                  className="absolute w-28 sm:w-32 aspect-[2/3] rounded-xl shadow-2xl"
+                  className="absolute w-28 sm:w-32 aspect-[7/12] rounded-sm shadow-2xl"
                 >
-                  <div className="w-full h-full rounded-xl overflow-hidden border border-amber-400/80 bg-gradient-to-br from-[#120B2E] via-[#0A0F24] to-[#1A0B36] p-1 shadow-[0_4px_20px_rgba(0,0,0,0.8)]">
-                    <div className="w-full h-full rounded-lg border border-amber-400/40 bg-purple-950/40 flex items-center justify-center">
-                      <Sun className="w-6 h-6 text-amber-300/70" />
-                    </div>
-                  </div>
+                  <TarotCard face="back" size="sm" />
                 </motion.div>
               );
             })}
@@ -150,13 +146,9 @@ export const DeckShuffleAnimation = ({ onComplete }) => {
                     duration: 0.45,
                     ease: "easeOut"
                   }}
-                  className="absolute w-28 sm:w-32 aspect-[2/3] rounded-xl shadow-2xl"
+                  className="absolute w-28 sm:w-32 aspect-[7/12] rounded-sm shadow-2xl"
                 >
-                  <div className="w-full h-full rounded-xl overflow-hidden border border-amber-400/80 bg-gradient-to-br from-[#120B2E] via-[#0A0F24] to-[#1A0B36] p-1 shadow-[0_4px_20px_rgba(0,0,0,0.8)]">
-                    <div className="w-full h-full rounded-lg border border-amber-400/40 bg-purple-950/40 flex items-center justify-center">
-                      <Moon className="w-6 h-6 text-purple-300/70" />
-                    </div>
-                  </div>
+                  <TarotCard face="back" size="sm" />
                 </motion.div>
               );
             })}
@@ -187,14 +179,10 @@ export const DeckShuffleAnimation = ({ onComplete }) => {
                     duration: 0.5,
                     ease: "easeOut"
                   }}
-                  className="absolute w-28 sm:w-32 aspect-[2/3] rounded-xl shadow-2xl origin-bottom"
+                  className="absolute w-28 sm:w-32 aspect-[7/12] rounded-sm shadow-2xl origin-bottom"
                   style={{ zIndex: idx }}
                 >
-                  <div className="w-full h-full rounded-xl overflow-hidden border border-amber-400 bg-gradient-to-br from-[#1E124A] via-[#0A0F24] to-[#2D1B69] p-1 shadow-[0_0_25px_rgba(251,191,36,0.3)]">
-                    <div className="w-full h-full rounded-lg border border-amber-400/60 bg-purple-950/60 flex items-center justify-center">
-                      <Sparkles className="w-6 h-6 text-amber-300 animate-pulse" />
-                    </div>
-                  </div>
+                  <TarotCard face="back" size="sm" />
                 </motion.div>
               );
             })}
@@ -207,19 +195,10 @@ export const DeckShuffleAnimation = ({ onComplete }) => {
             initial={{ scale: 1.1, opacity: 0.8 }}
             animate={{ scale: [1.1, 1, 1.05], opacity: 1 }}
             transition={{ duration: 0.35 }}
-            className="relative w-32 sm:w-36 aspect-[2/3] rounded-xl shadow-2xl flex items-center justify-center"
+            className="relative w-32 sm:w-36 aspect-[7/12] rounded-sm shadow-2xl flex items-center justify-center"
           >
-            {/* Radiant Beacon Burst */}
-            <div className="absolute -inset-4 bg-gradient-to-r from-amber-400 via-purple-500 to-amber-300 rounded-2xl blur-xl opacity-80 animate-pulse" />
-            
-            <div className="relative w-full h-full rounded-xl overflow-hidden border-2 border-amber-400 bg-gradient-to-br from-[#120B2E] via-[#0A0F24] to-[#1A0B36] p-1.5 shadow-2xl z-10">
-              <div className="w-full h-full rounded-lg border border-amber-300 bg-purple-950/80 flex flex-col items-center justify-center text-center p-2">
-                <Sparkles className="w-8 h-8 text-amber-300 animate-spin mb-1" style={{ animationDuration: '3s' }} />
-                <span className="font-cinzel text-[11px] font-bold text-amber-200 uppercase tracking-widest">
-                  Baralho Consagrado
-                </span>
-              </div>
-            </div>
+            <TarotCard face="back" size="md" />
+            <span className="sr-only">Baralho Consagrado</span>
           </motion.div>
         )}
 

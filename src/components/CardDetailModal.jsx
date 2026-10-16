@@ -1,10 +1,8 @@
+import { useModalAccessibility } from '../utils/useModalAccessibility';
 import React, { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CardArt } from './CardArt';
-import { 
-  X, Sparkles, Sun, Moon, Shield, Award, 
-  Flame, Droplets, Wind, Mountain, Compass, BookOpen, RotateCw 
-} from 'lucide-react';
+import { X, Sparkles, Compass, RotateCw } from './icons/ArcaneIcons';
 import { SUITS } from '../data/tarotDeck';
 import { audio } from '../utils/audio';
 
@@ -13,6 +11,7 @@ export const CardDetailModal = ({
   positionInfo, 
   onClose 
 }) => {
+  const modalRef = useModalAccessibility(Boolean(card), onClose);
   if (!card) return null;
 
   const suitConfig = SUITS[card.suit?.toUpperCase()] || SUITS.MAJOR;
@@ -63,18 +62,21 @@ export const CardDetailModal = ({
 
       {/* Modal Dialog Card with Spring Physics */}
       <motion.div 
+        ref={modalRef}
+        aria-label={`Detalhes de ${card.name}`}
         role="dialog"
         aria-modal="true"
         initial={{ opacity: 0, scale: 0.92, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 10 }}
-        transition={{ type: "spring", stiffness: 420, damping: 28 }}
-        className="relative z-10 w-full max-w-2xl max-h-[92vh] overflow-y-auto rounded-3xl bg-[#090D24] border border-amber-500/40 shadow-2xl p-4 sm:p-6 md:p-8"
+        transition={{ duration: .7, ease: [.16, 1, .3, 1] }}
+        className="relative z-10 w-full max-w-4xl max-h-[92vh] overflow-y-auto rounded-sm bg-[var(--color-obsidian)] border border-amber-500/40 shadow-2xl p-4 sm:p-6 md:p-8"
       >
         {/* Close Button */}
         <button
           type="button"
           onClick={handleClose}
+          aria-label="Fechar detalhes da carta"
           className="absolute top-4 right-4 p-2 rounded-full bg-slate-900/80 border border-slate-700 text-slate-400 hover:text-amber-300 hover:border-amber-400/50 transition-all cursor-pointer z-20"
         >
           <X className="w-5 h-5" />
@@ -83,7 +85,7 @@ export const CardDetailModal = ({
         {/* Badges Bar (Position & Reversed) */}
         <div className="mb-4 flex flex-wrap items-center gap-2">
           {positionInfo && !isSingleCardMode && (
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-950/80 border border-amber-500/30 text-amber-300 text-xs font-cinzel font-semibold">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-stone-950/80 border border-amber-500/30 text-amber-300 text-xs font-cinzel font-semibold">
               <Sparkles className="w-3.5 h-3.5" />
               <span>Posição: {positionInfo.name}</span>
             </div>
@@ -102,10 +104,9 @@ export const CardDetailModal = ({
           {/* Card Visual Column */}
           <div className="md:col-span-5 flex justify-center">
             <motion.div 
-              whileHover={{ scale: 1.05, rotateY: 5 }}
-              className="w-40 sm:w-48 md:w-56 aspect-[2/3] transform-gpu"
+              className="w-56 sm:w-64 md:w-72 aspect-[7/12] transform-gpu"
             >
-              <CardArt card={card} isMini={false} showKeywords={false} />
+              <CardArt card={card} size="lg" priority showKeywords={false} />
             </motion.div>
           </div>
 
@@ -126,13 +127,13 @@ export const CardDetailModal = ({
             {/* Astrological & Alchemical Correspondences */}
             <div className="flex flex-wrap items-center gap-2">
               {card.astroGlyph && (
-                <span className="text-xs px-2.5 py-0.5 rounded-lg bg-amber-950/70 border border-amber-500/40 text-amber-300 font-medium flex items-center gap-1.5">
+                <span className="text-xs px-2.5 py-0.5 rounded-sm bg-amber-950/70 border border-amber-500/40 text-amber-300 font-medium flex items-center gap-1.5">
                   <span className="text-sm font-serif">{card.astroGlyph}</span>
                   <span>{card.planet || card.element}</span>
                 </span>
               )}
               {(card.alchemySymbol || suitConfig.alchemySymbol) && (
-                <span className="text-xs px-2.5 py-0.5 rounded-lg bg-purple-950/70 border border-purple-500/30 text-purple-200 font-medium flex items-center gap-1.5">
+                <span className="text-xs px-2.5 py-0.5 rounded-sm bg-stone-950/70 border border-amber-500/30 text-amber-200 font-medium flex items-center gap-1.5">
                   <span className="text-sm">{card.alchemySymbol || suitConfig.alchemySymbol}</span>
                   <span>{card.element || suitConfig.element}</span>
                 </span>
@@ -143,7 +144,7 @@ export const CardDetailModal = ({
             {card.keywords && (
               <div className="flex flex-wrap gap-1.5 mt-0.5">
                 {card.keywords.map((kw, i) => (
-                  <span key={i} className="text-xs px-2 py-0.5 rounded-md bg-purple-950/70 border border-purple-500/30 text-purple-200">
+                  <span key={i} className="text-xs px-2 py-0.5 rounded-md bg-stone-950/70 border border-amber-500/30 text-amber-200">
                     {kw}
                   </span>
                 ))}
@@ -152,7 +153,7 @@ export const CardDetailModal = ({
 
             {/* Position Meaning ONLY when meaningful in multi-card spreads */}
             {positionalMessage && (
-              <div className="mt-1 p-3 rounded-xl bg-amber-500/10 border border-amber-500/30">
+              <div className="mt-1 p-3 rounded-sm bg-amber-500/10 border border-amber-500/30">
                 <h4 className="text-xs font-cinzel font-bold text-amber-300 flex items-center gap-1.5 mb-1">
                   <Compass className="w-3.5 h-3.5" />
                   <span>Influência na Posição ({positionInfo.name})</span>
@@ -165,12 +166,12 @@ export const CardDetailModal = ({
 
             {/* Light & Shadow Interpretations */}
             <div className="space-y-2 text-xs">
-              <div className={`p-2.5 rounded-lg border ${card.isReversed ? 'bg-slate-900/40 border-slate-700 opacity-70' : 'bg-slate-900/70 border-emerald-500/30'}`}>
+              <div className={`p-2.5 rounded-sm border ${card.isReversed ? 'bg-slate-900/40 border-slate-700 opacity-70' : 'bg-slate-900/70 border-emerald-500/30'}`}>
                 <span className="font-semibold text-emerald-400 block mb-0.5">Luz & Potencial Positivo:</span>
                 <p className="text-slate-300 leading-relaxed">{card.light}</p>
               </div>
 
-              <div className={`p-2.5 rounded-lg border ${card.isReversed ? 'bg-red-950/50 border-red-500/60 shadow-[0_0_15px_rgba(239,68,68,0.2)]' : 'bg-slate-900/70 border-red-500/30'}`}>
+              <div className={`p-2.5 rounded-sm border ${card.isReversed ? 'bg-red-950/50 border-red-500/60 shadow-[0_0_15px_rgba(239,68,68,0.2)]' : 'bg-slate-900/70 border-red-500/30'}`}>
                 <span className="font-semibold text-red-400 block mb-0.5">
                   {card.isReversed ? '⚡ Manifestação Invertida (Sombra & Bloqueio Ativo):' : 'Sombra & Ponto de Atenção:'}
                 </span>
@@ -179,8 +180,8 @@ export const CardDetailModal = ({
             </div>
 
             {/* Advice */}
-            <div className="p-3 rounded-xl bg-purple-950/50 border border-purple-500/40">
-              <span className="font-cinzel text-xs font-bold text-purple-300 block mb-0.5">
+            <div className="p-3 rounded-sm bg-stone-950/50 border border-amber-500/40">
+              <span className="font-cinzel text-xs font-bold text-amber-300 block mb-0.5">
                 Conselho do Oráculo:
               </span>
               <p className="text-xs text-slate-200 italic leading-relaxed">

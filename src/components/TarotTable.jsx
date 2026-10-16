@@ -1,3 +1,4 @@
+import { CelestialRing } from './CelestialRing';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { DECKS, readDeckId } from '../data/decks';
 import { SPREAD_TYPES } from '../data/spreads';
@@ -335,11 +336,12 @@ export const TarotTable = () => {
 
   return (
     <div 
-      className="relative min-h-screen flex flex-col text-slate-100 selection:bg-amber-400/30 selection:text-amber-200 transition-colors duration-700"
+      className="sanctuary-table relative min-h-screen flex flex-col text-slate-100 selection:bg-amber-400/30 selection:text-amber-200 transition-colors duration-700"
       style={{ backgroundColor: currentTheme.bgColor }}
     >
       {/* Background Animated Celestial Stars Canvas matching active Theme */}
       <BackgroundStars theme={currentTheme} />
+      <a className="skip-link" href="#reading-altar">Ir para a mesa de leitura</a>
 
       {/* Main Content Container */}
       <main className="relative z-10 flex-1 flex flex-col px-3 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full pb-28 md:pb-20">
@@ -376,7 +378,8 @@ export const TarotTable = () => {
         )}
 
         {/* The Spread Reading Altar (Slots Area) */}
-        <div ref={altarRef}>
+        <div ref={altarRef} id="reading-altar" className="altar-scene">
+          <CelestialRing className="altar-instrument" />
           <SpreadArea
             spreadConfig={activeSpread}
             chosenCards={chosenCards}
@@ -415,7 +418,8 @@ export const TarotTable = () => {
       </main>
 
       {/* Footer */}
-      <footer className="relative z-10 py-6 text-center text-xs text-slate-500 border-t border-purple-900/30 glass-panel-subtle mt-auto hidden md:block">
+      <footer className="sanctuary-footer relative z-10 py-6 text-center text-xs text-slate-500 border-t border-stone-900/30 glass-panel-subtle mt-auto hidden md:block">
+        <CelestialRing className="footer-instrument" />
         <p className="font-cinzel tracking-wider text-amber-200/60">
           Lumina Tarot • Sabedoria Ancestral & Arcanos do Destino
         </p>

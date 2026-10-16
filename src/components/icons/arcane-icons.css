@@ -1,0 +1,19 @@
+.arcane-icon {
+  display: inline-block;
+  flex-shrink: 0;
+  vertical-align: middle;
+  overflow: visible;
+  transition: filter 220ms ease, opacity 220ms ease;
+}
+button:not(:disabled):hover .arcane-icon,
+button:focus-visible .arcane-icon {
+  filter: drop-shadow(0 0 2px rgb(201 164 92 / 35%));
+}
+button[aria-pressed="true"] .arcane-icon {
+  color: var(--color-gold-bright, #e7c878);
+  filter: drop-shadow(0 0 2px rgb(201 164 92 / 24%));
+}
+button:disabled .arcane-icon { filter: none; opacity: .45; }
+@media (prefers-reduced-motion: reduce) {
+  .arcane-icon { transition: none; }
+}

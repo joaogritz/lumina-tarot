@@ -1,14 +1,10 @@
 import { useModalAccessibility } from '../utils/useModalAccessibility';
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import confetti from 'canvas-confetti';
+import { CelestialRing } from './CelestialRing';
 import { CardArt } from './CardArt';
 import { CardDetailModal } from './CardDetailModal';
-import { 
-  X, Sparkles, BookOpen, Share2, Copy, Bookmark,
-  RotateCcw, Check, Flame, Droplets, Wind, Mountain, 
-  Feather, Shield, Sun, Star, ZoomIn, Eye
-} from 'lucide-react';
+import { X, Sparkles, BookOpen, Share2, Copy, Bookmark, RotateCcw, Check, Flame, Droplets, Wind, Mountain, Feather, Star, ZoomIn } from './icons/ArcaneIcons';
 import { SUITS } from '../data/tarotDeck';
 import { audio } from '../utils/audio';
 import { historyService } from '../utils/history';
@@ -40,14 +36,6 @@ export const InterpretationModal = ({
   };
 
   useEffect(() => {
-    // Trigger celebration star confetti burst on reveal
-    confetti({
-      particleCount: 55,
-      spread: 70,
-      origin: { y: 0.6 },
-      colors: ['#F59E0B', '#C084FC', '#FDE68A', '#7C3AED', '#38BDF8']
-    });
-
     // Generate real AI reading via Cloudflare Worker Proxy
     const loadInterpretation = async () => {
       setIsLoadingAi(true);
@@ -142,8 +130,7 @@ export const InterpretationModal = ({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 bg-slate-950/90 backdrop-blur-xl" 
-        aria-label="Fechar" onClick={handleClose}
+        className="fixed inset-0 bg-slate-950/90 backdrop-blur-xl" onClick={handleClose}
       />
 
       {/* Modal Dialog Card */}
@@ -155,8 +142,8 @@ export const InterpretationModal = ({
         initial={{ opacity: 0, scale: 0.94, y: 30 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.96, y: 15 }}
-        transition={{ type: "spring", stiffness: 350, damping: 25 }}
-        className="relative z-10 w-full max-w-5xl max-h-[90vh] flex flex-col rounded-3xl bg-[#090D24] border border-amber-500/40 shadow-[0_0_50px_rgba(147,51,234,0.3)] overflow-hidden text-left"
+        transition={{ duration: .7, ease: [.16, 1, .3, 1] }}
+        className="relative z-10 w-full max-w-5xl max-h-[90vh] flex flex-col rounded-sm bg-[var(--color-obsidian)] border border-amber-500/40 shadow-[0_0_50px_rgba(147,51,234,0.3)] overflow-hidden text-left"
       >
         {/* Header Bar */}
         <div className="p-4 sm:p-6 border-b border-amber-500/20 flex items-center justify-between bg-slate-950/60 sticky top-0 z-20 backdrop-blur-md">
@@ -190,7 +177,7 @@ export const InterpretationModal = ({
               Interpretação Completa da Tiragem
             </h2>
 
-            <p className="font-cinzel text-xs md:text-sm text-purple-200/80 mt-1">
+            <p className="font-cinzel text-xs md:text-sm text-amber-200/80 mt-1">
               {spreadConfig.name} • {chosenCards.length} Cartas Reveladas
             </p>
 
@@ -198,7 +185,7 @@ export const InterpretationModal = ({
               <motion.div 
                 initial={{ opacity: 0, y: 6 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="mt-4 max-w-xl mx-auto p-3 rounded-2xl bg-purple-950/60 border border-purple-500/40 text-xs md:text-sm text-amber-200 italic shadow-lg text-left"
+                className="mt-4 max-w-xl mx-auto p-3 rounded-sm bg-stone-950/60 border border-amber-500/40 text-xs md:text-sm text-amber-200 italic shadow-lg text-left"
               >
                 <div className="flex items-center gap-1.5 text-amber-400 font-bold not-italic mb-0.5 font-cinzel text-xs">
                   <Feather className="w-3.5 h-3.5" />
@@ -210,11 +197,11 @@ export const InterpretationModal = ({
           </div>
 
           {/* Authentic Mystical Oracle Synthesis Box */}
-          <div className="relative rounded-3xl bg-gradient-to-br from-purple-950/80 via-slate-950/90 to-purple-950/80 border border-amber-500/40 shadow-2xl p-5 sm:p-7 overflow-hidden">
+          <div className="interpretation-prose relative p-5 sm:p-7">
             {/* Ambient Background Glow */}
             <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
 
-            <div className="flex items-center gap-2 pb-3 mb-3 border-b border-purple-500/20 text-amber-400">
+            <div className="flex items-center gap-2 pb-3 mb-3 border-b border-amber-500/20 text-amber-400">
               <Sparkles className="w-5 h-5 text-amber-400 animate-pulse" />
               <h3 className="font-cinzel text-base sm:text-lg font-bold text-amber-200 gold-gradient-text">
                 Interpretação da sua Leitura
@@ -224,15 +211,15 @@ export const InterpretationModal = ({
             {/* Loading State or Structured Sections */}
             {isLoadingAi ? (
               <div className="py-8 flex flex-col items-center justify-center gap-3 text-center">
-                <Sparkles className="w-8 h-8 text-amber-400 animate-spin" style={{ animationDuration: '4s' }} />
-                <p className="font-cinzel text-xs sm:text-sm text-purple-200 animate-pulse">
+                <CelestialRing className="oracle-loading-instrument" />
+                <p className="font-cinzel text-xs sm:text-sm text-amber-200 animate-pulse">
                   Analisando as cartas e preparando uma resposta clara para você...
                 </p>
               </div>
             ) : aiReading?.diagnosis ? (
               <div className="space-y-3.5 animate-fade-in text-xs sm:text-sm leading-relaxed text-slate-200 font-sans">
                 {/* 1. O que as cartas mostram */}
-                <div className="p-3.5 sm:p-4 rounded-2xl bg-slate-900/80 border border-purple-500/30">
+                <div className="p-3.5 sm:p-4 rounded-sm bg-slate-900/80 border border-amber-500/30">
                   <span className="font-cinzel text-xs font-bold text-amber-300 flex items-center gap-1.5 mb-1.5 uppercase tracking-wider">
                     <span>🔍 O que as cartas estão mostrando</span>
                   </span>
@@ -240,7 +227,7 @@ export const InterpretationModal = ({
                 </div>
 
                 {/* 2. O que está acontecendo */}
-                <div className="p-3.5 sm:p-4 rounded-2xl bg-slate-900/80 border border-purple-500/30">
+                <div className="p-3.5 sm:p-4 rounded-sm bg-slate-900/80 border border-amber-500/30">
                   <span className="font-cinzel text-xs font-bold text-amber-300 flex items-center gap-1.5 mb-1.5 uppercase tracking-wider">
                     <span>💡 O que está acontecendo por trás</span>
                   </span>
@@ -248,7 +235,7 @@ export const InterpretationModal = ({
                 </div>
 
                 {/* 3. Conselho Prático */}
-                <div className="p-3.5 sm:p-4 rounded-2xl bg-purple-950/70 border border-amber-400/40">
+                <div className="p-3.5 sm:p-4 rounded-sm bg-stone-950/70 border border-amber-400/40">
                   <span className="font-cinzel text-xs font-bold text-amber-300 flex items-center gap-1.5 mb-1.5 uppercase tracking-wider">
                     <span>🧭 Conselho prático para você</span>
                   </span>
@@ -269,7 +256,7 @@ export const InterpretationModal = ({
                 <BookOpen className="w-4 h-4" />
                 <span>As Cartas em suas Posições no Altar</span>
               </h3>
-              <span className="text-[11px] text-purple-300/80 font-cinzel flex items-center gap-1">
+              <span className="text-[11px] text-amber-300/80 font-cinzel flex items-center gap-1">
                 <ZoomIn className="w-3.5 h-3.5 text-amber-400" />
                 <span>Clique em qualquer carta para inspecionar</span>
               </span>
@@ -277,10 +264,10 @@ export const InterpretationModal = ({
 
             <div className={`grid gap-4 sm:gap-6 ${
               chosenCards.length === 1
-                ? 'grid-cols-1 max-w-md mx-auto'
+                ? 'grid-cols-1'
                 : chosenCards.length > 5
-                  ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
-                  : 'grid-cols-1 md:grid-cols-3'
+                  ? 'grid-cols-1 md:grid-cols-2'
+                  : 'grid-cols-1'
             }`}>
               {chosenCards.map((card, idx) => {
                 const pos = spreadConfig.positions[idx];
@@ -295,12 +282,12 @@ export const InterpretationModal = ({
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: idx * 0.08, duration: 0.4 }}
                     whileHover={{ y: -4, scale: 1.01 }}
-                    whileActive={{ scale: 0.98 }}
-                    className="group cursor-pointer rounded-2xl glass-panel-subtle border border-amber-500/20 p-4 flex flex-col justify-between hover:border-amber-400/80 hover:shadow-[0_0_25px_rgba(251,191,36,0.3)] transition-all duration-300 text-left relative"
+                    whileTap={{ scale: 0.98 }}
+                    className="reading-editorial group cursor-pointer rounded-sm border border-amber-500/20 p-4 flex flex-col justify-between hover:border-amber-400/80 hover:shadow-[0_0_25px_rgba(251,191,36,0.3)] transition-all duration-300 text-left relative"
                   >
                     {/* Position Header & Inspect Prompt */}
                     <div className="w-full flex items-center justify-between gap-1 mb-3">
-                      <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-purple-950 border border-purple-500/40 text-amber-300 font-cinzel text-[11px] font-bold">
+                      <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-stone-950 border border-amber-500/40 text-amber-300 font-cinzel text-[11px] font-bold">
                         <span className="truncate">{pos ? pos.name : `Carta ${idx + 1}`}</span>
                       </div>
                       <span className="text-[10px] text-amber-400/70 group-hover:text-amber-300 flex items-center gap-1 font-cinzel transition-colors">
@@ -316,12 +303,12 @@ export const InterpretationModal = ({
                     )}
 
                     {/* Card Art Preview with Hover Zoom Effect */}
-                    <div className="w-36 sm:w-40 aspect-[2/3] mx-auto my-2 group-hover:scale-105 transition-transform duration-300">
-                      <CardArt card={card} isMini={true} showKeywords={false} />
+                    <div className="reading-artwork aspect-[7/12] mx-auto my-2">
+                      <CardArt card={card} size="md" showKeywords={false} />
                     </div>
 
                     {/* Card Title & Position Meaning */}
-                    <div className="mt-3 text-left w-full">
+                    <div className="reading-card-text mt-3 text-left w-full">
                       <h4 className="font-cinzel text-base font-bold text-slate-100 flex items-center gap-1.5 group-hover:text-amber-200 transition-colors">
                         <span>{card.name}</span>
                         {card.isReversed && (
@@ -336,7 +323,7 @@ export const InterpretationModal = ({
                         {card.isReversed ? (card.shadow || card.light) : card.light}
                       </p>
 
-                      <div className="p-2.5 rounded-xl bg-slate-900/80 border border-purple-500/20 text-[11px] text-purple-200 italic group-hover:border-amber-500/40 transition-colors">
+                      <div className="p-2.5 rounded-sm bg-slate-900/80 border border-amber-500/20 text-[11px] text-amber-200 italic group-hover:border-amber-500/40 transition-colors">
                         <span className="font-bold text-amber-300 not-italic block mb-0.5 font-cinzel">
                           Conselho da carta:
                         </span>
@@ -350,37 +337,37 @@ export const InterpretationModal = ({
           </div>
 
           {/* Elemental & Arcana Distribution Bar */}
-          {chosenCards[0]?.deckId !== 'lenormand' && <div className="p-4 rounded-2xl glass-panel-subtle border border-purple-500/30">
+          {chosenCards[0]?.deckId !== 'lenormand' && <div className="p-4 rounded-sm glass-panel-subtle border border-amber-500/30">
             <h4 className="font-cinzel text-xs font-bold text-amber-300 uppercase tracking-widest mb-3">
               Balanço Elemental da Tiragem
             </h4>
             <div className="flex flex-wrap items-center gap-2.5">
               {stats.majorCount > 0 && (
-                <div className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-amber-950/60 border border-amber-400/40 text-amber-300 text-xs">
+                <div className="flex items-center gap-1.5 px-3 py-1 rounded-sm bg-amber-950/60 border border-amber-400/40 text-amber-300 text-xs">
                   <Sparkles className="w-3.5 h-3.5" />
                   <span>{stats.majorCount} Arcanos Maiores (Destino)</span>
                 </div>
               )}
               {stats.wandsCount > 0 && (
-                <div className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-orange-950/60 border border-orange-400/40 text-orange-300 text-xs">
+                <div className="flex items-center gap-1.5 px-3 py-1 rounded-sm bg-orange-950/60 border border-orange-400/40 text-orange-300 text-xs">
                   <Flame className="w-3.5 h-3.5" />
                   <span>{stats.wandsCount} Fogo / Paus (Ação & Paixão)</span>
                 </div>
               )}
               {stats.cupsCount > 0 && (
-                <div className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-blue-950/60 border border-cyan-400/40 text-cyan-300 text-xs">
+                <div className="flex items-center gap-1.5 px-3 py-1 rounded-sm bg-blue-950/60 border border-cyan-400/40 text-cyan-300 text-xs">
                   <Droplets className="w-3.5 h-3.5" />
                   <span>{stats.cupsCount} Água / Copas (Coração & Intuição)</span>
                 </div>
               )}
               {stats.swordsCount > 0 && (
-                <div className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-slate-900 border border-slate-400/40 text-slate-200 text-xs">
+                <div className="flex items-center gap-1.5 px-3 py-1 rounded-sm bg-slate-900 border border-slate-400/40 text-slate-200 text-xs">
                   <Wind className="w-3.5 h-3.5" />
                   <span>{stats.swordsCount} Ar / Espadas (Mente & Verdade)</span>
                 </div>
               )}
               {stats.pentaclesCount > 0 && (
-                <div className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-emerald-950/60 border border-emerald-400/40 text-emerald-300 text-xs">
+                <div className="flex items-center gap-1.5 px-3 py-1 rounded-sm bg-emerald-950/60 border border-emerald-400/40 text-emerald-300 text-xs">
                   <Mountain className="w-3.5 h-3.5" />
                   <span>{stats.pentaclesCount} Terra / Ouros (Matéria & Prática)</span>
                 </div>
@@ -396,7 +383,7 @@ export const InterpretationModal = ({
             <button
               type="button"
               onClick={handleCopyReading}
-              className="flex-1 sm:flex-initial px-3.5 py-2.5 rounded-xl bg-purple-950/80 hover:bg-purple-900 border border-purple-500/40 text-purple-200 hover:text-amber-200 text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-md active:scale-95"
+              className="flex-1 sm:flex-initial px-3.5 py-2.5 rounded-sm bg-stone-950/80 hover:bg-stone-900 border border-amber-500/40 text-amber-200 hover:text-amber-200 text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-md active:scale-95"
             >
               {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
               <span>{copied ? 'Copiada!' : 'Copiar Texto'}</span>
@@ -406,9 +393,9 @@ export const InterpretationModal = ({
               type="button"
               onClick={handleShareReading}
               title="Compartilhar leitura no WhatsApp ou outros aplicativos"
-              className="flex-1 sm:flex-initial px-3.5 py-2.5 rounded-xl bg-slate-900 hover:bg-purple-950/80 border border-purple-500/40 text-purple-200 hover:text-amber-200 text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-md active:scale-95"
+              className="flex-1 sm:flex-initial px-3.5 py-2.5 rounded-sm bg-slate-900 hover:bg-stone-950/80 border border-amber-500/40 text-amber-200 hover:text-amber-200 text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-md active:scale-95"
             >
-              {shareNotice ? <Check className="w-4 h-4 text-emerald-400" /> : <Share2 className="w-4 h-4 text-purple-400" />}
+              {shareNotice ? <Check className="w-4 h-4 text-emerald-400" /> : <Share2 className="w-4 h-4 text-amber-400" />}
               <span>{shareNotice ? 'Copiado!' : 'Compartilhar'}</span>
             </button>
 
@@ -427,7 +414,7 @@ export const InterpretationModal = ({
                 setSaveError(!result);
                 setTimeout(() => setSaved(false), 3000);
               }}
-              className={`flex-1 sm:flex-initial px-3.5 py-2.5 rounded-xl border text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-md active:scale-95
+              className={`flex-1 sm:flex-initial px-3.5 py-2.5 rounded-sm border text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-md active:scale-95
                 ${saved 
                   ? 'bg-emerald-950/80 border-emerald-400 text-emerald-300' 
                   : 'glass-panel-subtle hover:border-amber-400/60 text-amber-300'
@@ -443,7 +430,7 @@ export const InterpretationModal = ({
             <button
               type="button"
               onClick={handleReset}
-              className="flex-1 sm:flex-initial px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300 hover:text-amber-300 text-xs font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer"
+              className="flex-1 sm:flex-initial px-4 py-2.5 rounded-sm bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300 hover:text-amber-300 text-xs font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer"
             >
               <RotateCcw className="w-4 h-4" />
               <span>Nova Tiragem</span>
@@ -452,7 +439,7 @@ export const InterpretationModal = ({
             <button
               type="button"
               onClick={handleConclude}
-              className="flex-1 sm:flex-initial px-6 py-2.5 rounded-xl bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-yellow-400 text-slate-950 font-cinzel font-bold text-xs cursor-pointer transition-all shadow-md active:scale-95"
+              className="flex-1 sm:flex-initial px-6 py-2.5 rounded-sm bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-yellow-400 text-slate-950 font-cinzel font-bold text-xs cursor-pointer transition-all shadow-md active:scale-95"
             >
               Concluir Leitura
             </button>

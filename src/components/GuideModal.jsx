@@ -1,10 +1,7 @@
 import { useModalAccessibility } from '../utils/useModalAccessibility';
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  X, Sparkles, Compass, Layers, 
-  Flame, Droplets, Wind, Mountain, Eye, HelpCircle 
-} from 'lucide-react';
+import { X, Sparkles, Compass, Layers, Flame, Droplets, Wind, Mountain, Eye, HelpCircle } from './icons/ArcaneIcons';
 import { audio } from '../utils/audio';
 
 export const GuideModal = ({ isOpen, onClose }) => {
@@ -22,8 +19,7 @@ export const GuideModal = ({ isOpen, onClose }) => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="absolute inset-0 bg-slate-950/85 backdrop-blur-md" 
-        aria-label="Fechar" onClick={handleClose}
+        className="absolute inset-0 bg-slate-950/85 backdrop-blur-md" onClick={handleClose}
       />
 
       <motion.div 
@@ -34,8 +30,8 @@ export const GuideModal = ({ isOpen, onClose }) => {
         initial={{ opacity: 0, scale: 0.92, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 10 }}
-        transition={{ type: "spring", stiffness: 420, damping: 28 }}
-        className="relative z-10 w-full max-w-2xl max-h-[88vh] overflow-y-auto rounded-3xl glass-panel border border-amber-500/40 shadow-2xl p-4 sm:p-6 md:p-8"
+        transition={{ duration: .7, ease: [.16, 1, .3, 1] }}
+        className="relative z-10 w-full max-w-2xl max-h-[88vh] overflow-y-auto rounded-sm glass-panel border border-amber-500/40 shadow-2xl p-4 sm:p-6 md:p-8"
       >
         <button
           type="button"
@@ -57,12 +53,12 @@ export const GuideModal = ({ isOpen, onClose }) => {
         </p>
 
         <div className="space-y-4 text-xs text-slate-300">
-          <div className="p-3.5 rounded-xl bg-emerald-950/40 border border-emerald-500/30">
+          <div className="p-3.5 rounded-sm bg-emerald-950/40 border border-emerald-500/30">
             <h4 className="font-bold text-emerald-200 mb-2">Baralho Cigano · Petit Lenormand</h4>
             <p>Selecione o baralho antes da tiragem. Suas 36 cartas usam símbolos cotidianos e são lidas sem inversões. Na linha de três cartas, leia também os pares vizinhos como uma sequência; na carta única, use o símbolo como foco de reflexão. A Torre representa estruturas e autonomia; a Lua, emoção e reconhecimento. Seus significados diferem do Tarot. Aqui, Sim ou Não é uma adaptação simbólica, não uma probabilidade.</p>
           </div>
           
-          <div className="p-3.5 rounded-xl bg-purple-950/40 border border-purple-500/30">
+          <div className="p-3.5 rounded-sm bg-stone-950/40 border border-amber-500/30">
             <h4 className="font-cinzel font-bold text-amber-300 mb-1 flex items-center gap-1.5">
               <Compass className="w-4 h-4" />
               <span>1. Como Mentalizar sua Pergunta</span>
@@ -72,7 +68,7 @@ export const GuideModal = ({ isOpen, onClose }) => {
             </p>
           </div>
 
-          <div className="p-3.5 rounded-xl bg-slate-900/60 border border-amber-500/20">
+          <div className="p-3.5 rounded-sm bg-slate-900/60 border border-amber-500/20">
             <h4 className="font-cinzel font-bold text-amber-300 mb-1 flex items-center gap-1.5">
               <Layers className="w-4 h-4" />
               <span>2. A Estrutura das 78 Cartas</span>
@@ -101,7 +97,7 @@ export const GuideModal = ({ isOpen, onClose }) => {
             </ul>
           </div>
 
-          <div className="p-3.5 rounded-xl bg-slate-900/60 border border-purple-500/20">
+          <div className="p-3.5 rounded-sm bg-slate-900/60 border border-amber-500/20">
             <h4 className="font-cinzel font-bold text-amber-300 mb-1 flex items-center gap-1.5">
               <Eye className="w-4 h-4" />
               <span>3. A Tiragem de 3 Cartas (Padrão)</span>
@@ -117,7 +113,7 @@ export const GuideModal = ({ isOpen, onClose }) => {
           <button
             type="button"
             onClick={onClose}
-            className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-cinzel font-bold text-xs cursor-pointer transition-colors active:scale-95 text-center"
+            className="w-full sm:w-auto px-5 py-2.5 rounded-sm bg-amber-500 hover:bg-amber-400 text-slate-950 font-cinzel font-bold text-xs cursor-pointer transition-colors active:scale-95 text-center"
           >
             Compreendi, Voltar à Mesa
           </button>

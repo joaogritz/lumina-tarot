@@ -1,10 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Sparkles, Volume2, VolumeX, HelpCircle, 
-  Moon, Sun, Compass, BookOpen, RotateCw, 
-  Bookmark, Feather, Layers, Palette, 
-  Music, Maximize2, Minimize2 
-} from 'lucide-react';
+import { Volume2, VolumeX, HelpCircle, Oracle, Palette, Moon, Sun, BookOpen, RotateCw, Bookmark, Feather, Music, Maximize2, Minimize2 } from './icons/ArcaneIcons';
 import { audio } from '../utils/audio';
 import { bgMusicService } from '../utils/bgMusic';
 
@@ -71,12 +66,12 @@ export const Header = ({
   };
 
   return (
-    <header className={`relative w-full max-w-7xl mx-auto pt-4 sm:pt-6 pb-4 px-3 sm:px-4 flex flex-col items-center text-center transition-opacity duration-300 ${isZenMode ? 'opacity-20 hover:opacity-100' : 'opacity-100'}`}>
+    <header className={`sanctuary-header relative w-full max-w-7xl mx-auto pt-4 sm:pt-6 pb-4 px-3 sm:px-4 flex flex-col items-center text-center transition-opacity duration-300 ${isZenMode ? 'opacity-20 hover:opacity-100' : 'opacity-100'}`}>
       {/* Top Utility Bar */}
       <div className="w-full flex flex-wrap items-center justify-between gap-2.5 mb-4">
         {/* Left: Brand Tag */}
         <div className="flex items-center gap-2 text-amber-400/80">
-          <Moon className="w-4 h-4 text-purple-400" />
+          <Moon className="w-4 h-4 text-amber-400" />
           <span className="text-[11px] font-cinzel tracking-widest text-amber-200/80 uppercase font-semibold">
             Santuário dos Arcanos
           </span>
@@ -93,9 +88,9 @@ export const Header = ({
               if (onOpenYesNo) onOpenYesNo();
             }}
             title="Oráculo do Sim ou Não"
-            className="hidden md:inline-flex px-2.5 py-1.5 rounded-xl bg-emerald-950/70 border border-emerald-500/40 hover:border-emerald-400 text-emerald-300 text-xs font-cinzel font-semibold items-center gap-1.5 transition-all cursor-pointer shadow-sm active:scale-95"
+            className="hidden md:inline-flex px-2.5 py-1.5 rounded-sm bg-emerald-950/70 border border-emerald-500/40 hover:border-emerald-400 text-emerald-300 text-xs font-cinzel font-semibold items-center gap-1.5 transition-all cursor-pointer shadow-sm active:scale-95"
           >
-            <HelpCircle className="w-3.5 h-3.5 text-emerald-400" />
+            <Oracle className="w-3.5 h-3.5 text-amber-300/80" />
             <span>Sim ou Não</span>
           </button>
 
@@ -107,7 +102,7 @@ export const Header = ({
               if (onOpenDaily) onOpenDaily();
             }}
             title="Carta do Dia - Oráculo Diário"
-            className="px-2.5 py-1.5 rounded-xl glass-panel-subtle hover:border-amber-400/60 text-amber-300 text-xs font-cinzel font-semibold flex items-center gap-1.5 transition-all cursor-pointer shadow-sm active:scale-95"
+            className="px-2.5 py-1.5 rounded-sm glass-panel-subtle hover:border-amber-400/60 text-amber-300 text-xs font-cinzel font-semibold flex items-center gap-1.5 transition-all cursor-pointer shadow-sm active:scale-95"
           >
             <Sun className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
             <span className="hidden sm:inline">Carta do Dia</span>
@@ -121,9 +116,9 @@ export const Header = ({
               if (onOpenGrimoire) onOpenGrimoire();
             }}
             title="Grimório - Enciclopédia das Cartas (Atalho: G)"
-            className="hidden md:inline-flex px-2.5 py-1.5 rounded-xl glass-panel-subtle hover:border-purple-400/60 text-purple-200 text-xs font-cinzel font-semibold items-center gap-1.5 transition-all cursor-pointer shadow-sm active:scale-95"
+            className="hidden md:inline-flex px-2.5 py-1.5 rounded-sm glass-panel-subtle hover:border-amber-400/60 text-amber-200 text-xs font-cinzel font-semibold items-center gap-1.5 transition-all cursor-pointer shadow-sm active:scale-95"
           >
-            <BookOpen className="w-3.5 h-3.5 text-purple-400" />
+            <BookOpen className="w-3.5 h-3.5 text-amber-400" />
             <span>Grimório</span>
           </button>
 
@@ -135,7 +130,7 @@ export const Header = ({
               if (onOpenHistory) onOpenHistory();
             }}
             title="Diário Oracular - Histórico de Leituras (Atalho: H)"
-            className="hidden md:inline-flex px-2.5 py-1.5 rounded-xl glass-panel-subtle hover:border-amber-400/60 text-slate-200 text-xs font-cinzel font-semibold items-center gap-1.5 transition-all cursor-pointer shadow-sm active:scale-95"
+            className="hidden md:inline-flex px-2.5 py-1.5 rounded-sm glass-panel-subtle hover:border-amber-400/60 text-slate-200 text-xs font-cinzel font-semibold items-center gap-1.5 transition-all cursor-pointer shadow-sm active:scale-95"
           >
             <Bookmark className="w-3.5 h-3.5 text-amber-400" />
             <span>Diário</span>
@@ -154,15 +149,17 @@ export const Header = ({
               if (onOpenThemes) onOpenThemes();
             }}
             title={`Tema do Altar: ${currentTheme?.name || 'Padrão'} (Atalho: T)`}
-            className="hidden md:inline-flex px-2.5 py-1.5 rounded-xl glass-panel-subtle hover:border-amber-400/60 text-slate-200 text-xs font-cinzel font-semibold items-center gap-1.5 transition-all cursor-pointer shadow-sm active:scale-95"
+            className="hidden md:inline-flex px-2.5 py-1.5 rounded-sm glass-panel-subtle hover:border-amber-400/60 text-slate-200 text-xs font-cinzel font-semibold items-center gap-1.5 transition-all cursor-pointer shadow-sm active:scale-95"
           >
-            <div className={`w-3 h-3 rounded-full ${currentTheme?.previewDot || 'bg-amber-400'} shadow-sm`} />
+            <Palette className="w-3.5 h-3.5 text-amber-300/80" />
             <span>Temas</span>
           </button>
 
           {/* Sanctuary Background Music Button + Volume Slider (Visible on Mobile & Desktop) */}
           <div 
             className="relative"
+            onFocus={() => setShowVolumeSlider(true)}
+            onBlur={e => { if (!e.currentTarget.contains(e.relatedTarget)) setShowVolumeSlider(false); }}
             onMouseEnter={() => {
               if (window._volTimer) clearTimeout(window._volTimer);
               setShowVolumeSlider(true);
@@ -175,7 +172,7 @@ export const Header = ({
               type="button"
               onClick={toggleMusic}
               title={isMusicPlaying ? `Música de Fundo: Ligada (${Math.round(volume * 100)}%) - Passe o mouse para ajustar` : 'Ativar Música de Fundo do Santuário'}
-              className={`px-2.5 py-1.5 rounded-xl border text-xs font-cinzel font-semibold flex items-center gap-1.5 transition-all cursor-pointer shadow-sm active:scale-95
+              className={`px-2.5 py-1.5 rounded-sm border text-xs font-cinzel font-semibold flex items-center gap-1.5 transition-all cursor-pointer shadow-sm active:scale-95
                 ${isMusicPlaying 
                   ? 'bg-amber-400/20 border-amber-400/70 text-amber-300 shadow-[0_0_12px_rgba(251,191,36,0.3)]' 
                   : 'glass-panel-subtle border-slate-700/60 text-slate-400 hover:text-slate-200'
@@ -197,7 +194,7 @@ export const Header = ({
                 }}
                 className="absolute top-full pt-2 left-1/2 -translate-x-1/2 z-50 min-w-[150px]"
               >
-                <div className="p-2.5 rounded-2xl bg-slate-900/95 backdrop-blur-2xl border border-amber-500/40 shadow-2xl shadow-purple-950/80 flex flex-col gap-1.5">
+                <div className="p-2.5 rounded-sm bg-slate-900/95 backdrop-blur-2xl border border-amber-500/40 shadow-2xl shadow-stone-950/80 flex flex-col gap-1.5">
                   <div className="flex items-center justify-between text-[11px] font-cinzel text-amber-300 font-semibold px-0.5">
                     <span className="flex items-center gap-1">
                       <Volume2 className="w-3.5 h-3.5 text-amber-400" />
@@ -206,13 +203,14 @@ export const Header = ({
                     <span className="text-[10px] text-slate-400">{Math.round(volume * 100)}%</span>
                   </div>
                   <input
+                    aria-label="Volume da música de fundo"
                     type="range"
                     min="0"
                     max="1"
                     step="0.01"
                     value={volume}
                     onChange={handleVolumeChange}
-                    className="w-full accent-amber-400 h-1.5 bg-slate-800 rounded-lg cursor-pointer"
+                    className="w-full accent-amber-400 h-1.5 bg-slate-800 rounded-sm cursor-pointer"
                   />
                 </div>
               </div>
@@ -227,7 +225,7 @@ export const Header = ({
             aria-label={reversalsSupported ? "Cartas invertidas" : "Baralho cigano usa cartas diretas"}
             onClick={toggleReversed}
             title={allowReversed ? 'Cartas Invertidas: ATIVADAS' : 'Cartas Invertidas: DESATIVADAS'}
-            className={`px-2.5 py-1.5 rounded-xl border text-xs font-cinzel font-semibold flex items-center gap-1.5 transition-all cursor-pointer shadow-sm active:scale-95
+            className={`px-2.5 py-1.5 rounded-sm border text-xs font-cinzel font-semibold flex items-center gap-1.5 transition-all cursor-pointer shadow-sm active:scale-95
               ${allowReversed 
                 ? 'bg-amber-400/20 border-amber-400/70 text-amber-300 shadow-[0_0_12px_rgba(251,191,36,0.3)]' 
                 : 'glass-panel-subtle border-slate-700/60 text-slate-400 hover:text-slate-200'
@@ -243,7 +241,7 @@ export const Header = ({
             type="button"
             onClick={toggleSound}
             title={isMuted ? 'Ativar Efeitos Sonoros' : 'Silenciar Efeitos Sonoros'}
-            className="p-2 rounded-xl glass-panel-subtle text-slate-300 hover:text-amber-300 hover:border-amber-400/50 transition-all cursor-pointer"
+            className="p-2 rounded-sm glass-panel-subtle text-slate-300 hover:text-amber-300 hover:border-amber-400/50 transition-all cursor-pointer"
           >
             {isMuted ? <VolumeX className="w-4 h-4 text-slate-500" /> : <Volume2 className="w-4 h-4 text-amber-400" />}
           </button>
@@ -253,7 +251,7 @@ export const Header = ({
             type="button"
             onClick={onToggleZenMode}
             title={isZenMode ? 'Sair do Modo Zen' : 'Modo Foco / Zen (Oculta controles da mesa)'}
-            className={`hidden md:inline-flex p-2 rounded-xl border transition-all cursor-pointer
+            className={`hidden md:inline-flex p-2 rounded-sm border transition-all cursor-pointer
               ${isZenMode 
                 ? 'bg-amber-400/20 border-amber-400 text-amber-300' 
                 : 'glass-panel-subtle border-slate-700/60 text-slate-400 hover:text-slate-200'
@@ -268,41 +266,29 @@ export const Header = ({
             type="button"
             onClick={onOpenGuide}
             title="Como funciona a leitura de Tarot"
-            className="p-2 rounded-xl glass-panel-subtle text-slate-300 hover:text-amber-300 hover:border-amber-400/50 transition-all cursor-pointer"
+            className="p-2 rounded-sm glass-panel-subtle text-slate-300 hover:text-amber-300 hover:border-amber-400/50 transition-all cursor-pointer"
           >
             <HelpCircle className="w-4 h-4 text-amber-300/80" />
           </button>
         </div>
       </div>
 
-      {/* Main Title & Mystical Emblem */}
-      <div className="relative mb-2">
-        <div className="absolute -inset-4 bg-gradient-to-r from-purple-600/30 via-amber-400/20 to-indigo-600/30 blur-2xl rounded-full pointer-events-none" />
-        
-        <div className="relative flex items-center justify-center gap-3">
-          <Sparkles className="w-5 h-5 sm:w-7 sm:h-7 text-amber-400 animate-pulse" />
-          <h1 className={`font-cinzel-dec text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-black tracking-wider ${currentTheme?.goldTextClass || 'gold-gradient-text'}`}>
-            LUMINA TAROT
-          </h1>
-          <Sparkles className="w-5 h-5 sm:w-7 sm:h-7 text-amber-400 animate-pulse" />
-        </div>
+      <div className="table-introduction">
+        <p className="micro-label">I / O RITUAL DA ESCOLHA</p>
+        <h1>Lumina <em>Tarot</em></h1>
+        <p>Sua jornada começa com uma pergunta e uma escolha</p>
       </div>
-
-      {/* Subtitle */}
-      <p className="font-cinzel text-xs sm:text-sm md:text-base text-purple-200/90 tracking-widest uppercase mb-4 max-w-xl">
-        Sua jornada começa com uma pergunta e uma escolha
-      </p>
-
       {/* Mentalize Question Input Box */}
       <div className="w-full max-w-2xl relative mb-2">
-        <div className={`relative rounded-2xl transition-all duration-300 ${
+        <div className={`relative rounded-sm transition-all duration-300 ${
           isFocused 
             ? 'shadow-[0_0_25px_rgba(251,191,36,0.3)] border border-amber-400/80 bg-slate-950/90' 
-            : 'border border-purple-500/30 bg-slate-950/60 hover:border-purple-400/50'
+            : 'border border-amber-500/30 bg-slate-950/60 hover:border-amber-400/50'
         }`}>
           <div className="flex items-center px-4 py-2.5">
             <Feather className="w-4 h-4 text-amber-400/80 mr-3 shrink-0" />
             <input
+                  aria-label="Sua pergunta ou intenção (opcional)"
                   maxLength={1000}
               type="text"
               value={userQuestion}

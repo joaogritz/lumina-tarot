@@ -1,3 +1,5 @@
+import { CARD_ARTWORK } from './cardArtwork.js';
+
 // Complete 78 Tarot Cards Dataset (22 Major Arcana + 56 Minor Arcana)
 // Detailed Portuguese meanings, archetypes, elements, and position nuances.
 
@@ -1591,4 +1593,4 @@ export const TAROT_DECK = [
     future: 'Consagração como líder realizador, mentor financeiro e senhor do próprio destino.',
     advice: 'Use seus recursos materiais para gerar bem-estar e segurança para todos ao redor.'
   }
-];
+].map(card => ({ ...card, artwork: CARD_ARTWORK[card.id] }));

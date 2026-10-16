@@ -1,3 +1,5 @@
+import { CARD_ARTWORK } from './cardArtwork.js';
+
 // Petit Lenormand: ordem tradicional, textos autorais em português.
 const entries = [
   ['O Cavaleiro','Horse','Notícias, movimento','Uma novidade se aproxima e convida à iniciativa.','Pressa e mensagens incompletas.','Confirme a notícia antes de agir.'],
@@ -40,6 +42,7 @@ const entries = [
 
 export const LENORMAND_DECK = entries.map(([name, symbol, words, light, shadow, advice], i) => ({
   id: `lenormand_${i + 1}`, deckId: 'lenormand', number: i + 1, roman: String(i + 1),
+  artwork: CARD_ARTWORK[`lenormand_${i + 1}`],
   name, nameEn: name, symbol, suit: 'lenormand', arcana: 'Lenormand',
   element: 'Símbolos cotidianos', archetype: words, keywords: words.split(', '),
   light, shadow, advice, past: `Como raiz da situação: ${light}`, present: light,

@@ -5,8 +5,8 @@
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#070A18",
-  "theme_color": "#070A18",
+  "background_color": "#030303",
+  "theme_color": "#030303",
   "orientation": "portrait-primary",
   "categories": ["lifestyle", "entertainment", "spirituality"],
   "icons": [

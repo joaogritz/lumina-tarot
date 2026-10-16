@@ -1,10 +1,7 @@
 import { useModalAccessibility } from '../utils/useModalAccessibility';
 import React, { useMemo, useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { 
-  X, Sparkles, Sun, Moon, Star, Calendar, 
-  Compass, Feather, Heart, Flame, Shield, Bell, BellRing, Check 
-} from 'lucide-react';
+import { X, Sun, Flame, Bell, Check } from './icons/ArcaneIcons';
 import { CardArt } from './CardArt';
 import { TAROT_DECK, SUITS } from '../data/tarotDeck';
 import { audio } from '../utils/audio';
@@ -115,8 +112,7 @@ export const DailyCardModal = ({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="absolute inset-0 bg-slate-950/90 backdrop-blur-md" 
-        aria-label="Fechar" onClick={handleClose}
+        className="absolute inset-0 bg-slate-950/90 backdrop-blur-md" onClick={handleClose}
       />
 
       {/* Modal Dialog Card */}
@@ -128,8 +124,8 @@ export const DailyCardModal = ({
         initial={{ opacity: 0, scale: 0.92, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 10 }}
-        transition={{ type: "spring", stiffness: 420, damping: 28 }}
-        className="relative z-10 w-full max-w-2xl max-h-[92vh] flex flex-col rounded-3xl glass-panel border border-amber-500/40 shadow-2xl overflow-y-auto p-4 sm:p-6 md:p-8 text-center"
+        transition={{ duration: .7, ease: [.16, 1, .3, 1] }}
+        className="relative z-10 w-full max-w-2xl max-h-[92vh] flex flex-col rounded-sm glass-panel border border-amber-500/40 shadow-2xl overflow-y-auto p-4 sm:p-6 md:p-8 text-center"
       >
         {/* Close Button */}
         <button
@@ -149,7 +145,7 @@ export const DailyCardModal = ({
             </div>
 
             {streak > 0 && (
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-950/80 border border-purple-400/40 text-purple-200 text-xs font-cinzel font-semibold shadow-sm">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-stone-950/80 border border-amber-400/40 text-amber-200 text-xs font-cinzel font-semibold shadow-sm">
                 <Flame className="w-3.5 h-3.5 text-amber-400 fill-amber-400 animate-pulse" />
                 <span>{streak} {streak === 1 ? 'Dia de Conexão' : 'Dias Consecutivos'}</span>
               </div>
@@ -159,7 +155,7 @@ export const DailyCardModal = ({
           <h3 className="font-cinzel text-xl sm:text-3xl font-black text-slate-100 gold-gradient-text tracking-wide">
             Carta do Dia • Oráculo Diário
           </h3>
-          <p className="text-xs text-purple-200/80 mt-1 max-w-md">
+          <p className="text-xs text-amber-200/80 mt-1 max-w-md">
             Sua frequência energética e arquétipo guia para reflexão, presença e foco nas próximas 24 horas.
           </p>
         </div>
@@ -169,14 +165,14 @@ export const DailyCardModal = ({
           
           {/* Card Presentation */}
           <div className="md:col-span-5 flex justify-center">
-            <motion.div 
-              whileHover={{ scale: 1.05, rotateY: 5 }}
+            <motion.button type="button" aria-label={`Ver detalhes de ${dailyCard.name}`}
+              whileHover={{ scale: 1.02 }}
               onClick={() => onOpenCardDetail && onOpenCardDetail(dailyCard, null)}
-              className="w-44 sm:w-52 aspect-[2/3] transform-gpu cursor-pointer shadow-2xl"
+              className="w-44 sm:w-52 aspect-[7/12] transform-gpu cursor-pointer shadow-2xl"
               title="Clique para ver detalhes completos"
             >
-              <CardArt card={dailyCard} isMini={false} showKeywords={false} />
-            </motion.div>
+              <CardArt card={dailyCard} size="lg" priority showKeywords={false} />
+            </motion.button>
           </div>
 
           {/* Meaning & Daily Alignment */}
@@ -194,8 +190,8 @@ export const DailyCardModal = ({
             </div>
 
             {/* Daily Energy Message */}
-            <div className="p-3 rounded-xl bg-purple-950/50 border border-purple-500/30">
-              <span className="font-cinzel text-[11px] font-bold text-purple-300 block mb-1">
+            <div className="p-3 rounded-sm bg-stone-950/50 border border-amber-500/30">
+              <span className="font-cinzel text-[11px] font-bold text-amber-300 block mb-1">
                 Foco e Energia do Dia:
               </span>
               <p className="text-xs text-slate-200 leading-relaxed">
@@ -204,7 +200,7 @@ export const DailyCardModal = ({
             </div>
 
             {/* Daily Advice */}
-            <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30">
+            <div className="p-3 rounded-sm bg-amber-500/10 border border-amber-500/30">
               <span className="font-cinzel text-[11px] font-bold text-amber-300 block mb-1">
                 Conselho Prático para Hoje:
               </span>
@@ -217,7 +213,7 @@ export const DailyCardModal = ({
 
         {/* Notification Feedback Message */}
         {notifyFeedback && (
-          <div className="mt-3 p-2 rounded-xl bg-amber-500/20 border border-amber-400/50 text-amber-200 text-xs text-center font-cinzel animate-fade-in">
+          <div className="mt-3 p-2 rounded-sm bg-amber-500/20 border border-amber-400/50 text-amber-200 text-xs text-center font-cinzel animate-fade-in">
             {notifyFeedback}
           </div>
         )}
@@ -227,10 +223,10 @@ export const DailyCardModal = ({
           <button
             type="button"
             onClick={handleToggleNotifications}
-            className={`px-3 py-1.5 rounded-xl border text-xs font-cinzel flex items-center gap-1.5 transition-all cursor-pointer ${
+            className={`px-3 py-1.5 rounded-sm border text-xs font-cinzel flex items-center gap-1.5 transition-all cursor-pointer ${
               notificationEnabled 
                 ? 'bg-emerald-950/80 border-emerald-400/60 text-emerald-300' 
-                : 'bg-purple-950/70 hover:bg-purple-900 border-purple-500/40 text-purple-200 hover:text-amber-200'
+                : 'bg-stone-950/70 hover:bg-stone-900 border-amber-500/40 text-amber-200 hover:text-amber-200'
             }`}
           >
             {notificationEnabled ? (
@@ -249,7 +245,7 @@ export const DailyCardModal = ({
           <button
             type="button"
             aria-label="Fechar" onClick={handleClose}
-            className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-slate-950 font-cinzel font-bold text-xs cursor-pointer transition-all shadow-md active:scale-95 text-center"
+            className="w-full sm:w-auto px-6 py-2.5 rounded-sm bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-slate-950 font-cinzel font-bold text-xs cursor-pointer transition-all shadow-md active:scale-95 text-center"
           >
             Acolher Mensagem
           </button>

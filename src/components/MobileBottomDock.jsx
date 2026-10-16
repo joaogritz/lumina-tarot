@@ -1,8 +1,5 @@
 import React from 'react';
-import { 
-  Layers, Sparkles, BookOpen, Bookmark, 
-  Palette, HelpCircle, Sun, Heart, Compass, Flame 
-} from 'lucide-react';
+import { Layers, BookOpen, Bookmark, Palette, Oracle, Destiny } from './icons/ArcaneIcons';
 import { audio } from '../utils/audio';
 
 export const MobileBottomDock = ({ 
@@ -18,7 +15,7 @@ export const MobileBottomDock = ({
   return (
     <nav 
       aria-label="Navegação Rápida Mobile"
-      className="md:hidden fixed bottom-3 left-3 right-3 z-40 flex items-center justify-around px-3 py-2 rounded-2xl bg-slate-950/90 backdrop-blur-lg border border-amber-500/30 shadow-[0_8px_32px_rgba(0,0,0,0.6)]"
+      className="md:hidden fixed bottom-3 left-3 right-3 z-40 flex items-center justify-around px-3 py-2 rounded-sm bg-slate-950/90 backdrop-blur-lg border border-amber-500/30 shadow-[0_8px_32px_rgba(0,0,0,0.6)]"
     >
       {/* 1. Altar / Mesa */}
       <button
@@ -41,8 +38,8 @@ export const MobileBottomDock = ({
         }}
         className="flex flex-col items-center gap-0.5 text-amber-300 p-1 relative -top-2 cursor-pointer active:scale-95"
       >
-        <div className="w-10 h-10 rounded-full bg-gradient-to-b from-[#2D1B69] to-[#120A2B] border border-amber-400/80 flex items-center justify-center text-amber-300 shadow-[0_0_15px_rgba(245,158,11,0.4)]">
-          <Flame className="w-5 h-5 text-amber-400 fill-amber-400/30" />
+        <div className="w-10 h-10 rounded-full bg-gradient-to-b from-[var(--color-obsidian)] to-[var(--color-obsidian)] border border-amber-400/80 flex items-center justify-center text-amber-300 shadow-[0_0_15px_rgba(245,158,11,0.4)]">
+          <Destiny className="w-5 h-5 text-amber-400" />
         </div>
         <span className="text-[10px] font-cormorant font-bold text-amber-300 tracking-wide">Destino</span>
       </button>
@@ -56,7 +53,7 @@ export const MobileBottomDock = ({
         }}
         className="flex flex-col items-center gap-0.5 text-slate-400 hover:text-amber-300 transition-colors p-1"
       >
-        <HelpCircle className="w-4 h-4 text-emerald-400" />
+        <Oracle className="w-4 h-4 text-amber-300/80" />
         <span className="text-[9px] font-cinzel font-semibold">Sim/Não</span>
       </button>
 
@@ -67,9 +64,9 @@ export const MobileBottomDock = ({
           audio.playHover();
           if (onOpenGrimoire) onOpenGrimoire();
         }}
-        className="flex flex-col items-center gap-0.5 text-slate-400 hover:text-purple-300 transition-colors p-1"
+        className="flex flex-col items-center gap-0.5 text-slate-400 hover:text-amber-300 transition-colors p-1"
       >
-        <BookOpen className="w-4 h-4 text-purple-400" />
+        <BookOpen className="w-4 h-4 text-amber-400" />
         <span className="text-[9px] font-cinzel font-semibold">Grimório</span>
       </button>
 
@@ -100,7 +97,7 @@ export const MobileBottomDock = ({
         }}
         className="flex flex-col items-center gap-0.5 text-slate-400 hover:text-cyan-300 transition-colors p-1"
       >
-        <Palette className="w-4 h-4 text-cyan-400" />
+        <Palette className="w-4 h-4 text-amber-300/80" />
         <span className="text-[9px] font-cinzel font-semibold">Temas</span>
       </button>
     </nav>

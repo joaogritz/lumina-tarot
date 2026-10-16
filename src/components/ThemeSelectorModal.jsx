@@ -1,7 +1,7 @@
 import { useModalAccessibility } from '../utils/useModalAccessibility';
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Palette, Check, Sparkles, Moon, Sun, Flame } from 'lucide-react';
+import { X, Palette, Check, Sparkles, Moon, Sun, Flame } from './icons/ArcaneIcons';
 import { ALTAR_THEMES } from '../utils/theme';
 import { audio } from '../utils/audio';
 
@@ -38,8 +38,7 @@ export const ThemeSelectorModal = ({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="absolute inset-0 bg-slate-950/85 backdrop-blur-md" 
-        aria-label="Fechar" onClick={handleClose}
+        className="absolute inset-0 bg-slate-950/85 backdrop-blur-md" onClick={handleClose}
       />
 
       {/* Modal Dialog Card */}
@@ -51,8 +50,8 @@ export const ThemeSelectorModal = ({
         initial={{ opacity: 0, scale: 0.92, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 10 }}
-        transition={{ type: "spring", stiffness: 420, damping: 28 }}
-        className="relative z-10 w-full max-w-lg rounded-3xl bg-[#090D24] border border-amber-500/40 shadow-2xl p-4 sm:p-6 text-left"
+        transition={{ duration: .7, ease: [.16, 1, .3, 1] }}
+        className="relative z-10 w-full max-w-lg rounded-sm bg-[var(--color-obsidian)] border border-amber-500/40 shadow-2xl p-4 sm:p-6 text-left"
       >
         {/* Header */}
         <div className="flex items-center justify-between pb-3 border-b border-amber-500/20">
@@ -87,10 +86,10 @@ export const ThemeSelectorModal = ({
                 key={theme.id}
                 type="button"
                 onClick={() => handleSelect(theme)}
-                className={`relative p-3.5 rounded-2xl border text-left flex flex-col justify-between transition-all duration-300 cursor-pointer overflow-hidden group
+                className={`relative p-3.5 rounded-sm border text-left flex flex-col justify-between transition-all duration-300 cursor-pointer overflow-hidden group
                   ${isSelected
                     ? 'border-amber-400/80 shadow-[0_0_20px_rgba(251,191,36,0.25)] bg-slate-900/90 ring-1 ring-amber-400/50'
-                    : 'border-slate-800/80 bg-slate-950/60 hover:border-purple-500/40 hover:bg-slate-900/60'
+                    : 'border-slate-800/80 bg-slate-950/60 hover:border-amber-500/40 hover:bg-slate-900/60'
                   }
                 `}
                 style={{ backgroundColor: isSelected ? undefined : `${theme.bgColor}CC` }}
@@ -128,11 +127,11 @@ export const ThemeSelectorModal = ({
         </div>
 
         {/* Footer */}
-        <div className="mt-5 pt-3 border-t border-purple-900/30 flex justify-end">
+        <div className="mt-5 pt-3 border-t border-stone-900/30 flex justify-end">
           <button
             type="button"
             aria-label="Fechar" onClick={handleClose}
-            className="px-5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-cinzel font-bold text-xs cursor-pointer transition-all shadow-md active:scale-95"
+            className="px-5 py-2 rounded-sm bg-amber-500 hover:bg-amber-400 text-slate-950 font-cinzel font-bold text-xs cursor-pointer transition-all shadow-md active:scale-95"
           >
             Aplicar Santuário
           </button>

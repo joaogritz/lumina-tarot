@@ -1,10 +1,7 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { SPREAD_TYPES } from '../data/spreads';
-import { 
-  Layers, Sparkles, Compass, HeartHandshake, 
-  PlusCircle, Heart, Briefcase, Star, ChevronLeft, ChevronRight 
-} from 'lucide-react';
+import { Layers, Sparkles, Compass, HeartHandshake, PlusCircle, Heart, Briefcase, Star, ChevronLeft, ChevronRight } from './icons/ArcaneIcons';
 import { audio } from '../utils/audio';
 
 const ICONS_MAP = {
@@ -65,7 +62,7 @@ export const SpreadSelector = ({
   };
 
   return (
-    <nav aria-label="Seletor de Tipo de Tiragem" className="w-full max-w-6xl mx-auto mb-8 px-2 sm:px-4">
+    <nav aria-label="Seletor de Tipo de Tiragem" className="spread-navigation w-full max-w-6xl mx-auto mb-8 px-2 sm:px-4">
       <div className="flex items-center gap-1.5 sm:gap-2.5 w-full">
         {/* Left Navigation Chevron Button (separated from pills) */}
         {canScrollLeft && (
@@ -96,12 +93,13 @@ export const SpreadSelector = ({
             return (
               <button
                 key={spread.id}
+                aria-pressed={isSelected}
                 onClick={(e) => handleSelect(spread, e)}
                 type="button"
-                className={`group relative px-4 py-2.5 rounded-xl text-xs md:text-sm font-cinzel font-semibold flex items-center gap-2 shrink-0 transition-all duration-200 cursor-pointer snap-center
+                className={`group relative px-4 py-2.5 rounded-sm text-xs md:text-sm font-cinzel font-semibold flex items-center gap-2 shrink-0 transition-all duration-200 cursor-pointer snap-center
                   ${isSelected
                     ? 'text-amber-200 shadow-[0_4px_20px_rgba(245,158,11,0.2)]'
-                    : 'text-slate-400 hover:text-slate-200 bg-slate-950/70 border border-purple-900/40 hover:border-purple-500/50 hover:bg-slate-900/90 shadow-sm'
+                    : 'text-slate-400 hover:text-slate-200 bg-slate-950/70 border border-stone-900/40 hover:border-amber-500/50 hover:bg-slate-900/90 shadow-sm'
                   }
                 `}
               >
@@ -109,12 +107,12 @@ export const SpreadSelector = ({
                 {isSelected && (
                   <motion.div
                     layoutId="activeSpreadIndicator"
-                    className="absolute inset-0 rounded-xl bg-gradient-to-r from-purple-950 via-[#1E124A] to-purple-950 border border-amber-400/90 shadow-[0_0_18px_rgba(251,191,36,0.35)] ring-1 ring-amber-400/40 -z-0"
-                    transition={{ type: "spring", stiffness: 450, damping: 30 }}
+                    className="absolute inset-0 rounded-sm bg-gradient-to-r from-stone-950 via-[var(--color-obsidian)] to-stone-950 border border-amber-400/90 shadow-[0_0_18px_rgba(251,191,36,0.35)] ring-1 ring-amber-400/40 -z-0"
+                    transition={{ duration: .6, ease: [0.16, 1, 0.3, 1] }}
                   />
                 )}
 
-                <Icon className={`w-4 h-4 shrink-0 relative z-10 transition-transform group-hover:rotate-12 ${isSelected ? 'text-amber-400' : 'text-purple-400'}`} />
+                <Icon className={`w-4 h-4 shrink-0 relative z-10 transition-transform group-hover:rotate-12 ${isSelected ? 'text-amber-400' : 'text-amber-400'}`} />
                 
                 <span className="relative z-10 whitespace-nowrap">{spread.shortName}</span>
                 
@@ -122,7 +120,7 @@ export const SpreadSelector = ({
                 <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-sans font-bold shrink-0 relative z-10
                   ${isSelected 
                     ? 'bg-amber-400 text-slate-950 font-black' 
-                    : 'bg-purple-950/90 text-purple-300 border border-purple-800/80'
+                    : 'bg-stone-950/90 text-amber-300 border border-stone-800/80'
                   }
                 `}>
                   {spread.cardCount}

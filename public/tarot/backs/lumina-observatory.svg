@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 210 360" fill="none">
+  <rect width="210" height="360" rx="2" fill="#060504"/>
+  <g stroke="#C9A45C" stroke-width=".6">
+    <path d="M9 39V9h30m132 0h30v30m0 282v30h-30M39 351H9v-30"/>
+    <rect x="15" y="15" width="180" height="330" rx="1" opacity=".4"/>
+    <path d="M105 37 174 180 105 323 36 180Z" opacity=".45"/>
+    <ellipse cx="105" cy="180" rx="73" ry="119"/>
+    <ellipse cx="105" cy="180" rx="61" ry="101" opacity=".5"/>
+    <circle cx="105" cy="180" r="67"/>
+    <circle cx="105" cy="180" r="55" stroke-dasharray=".6 3"/>
+    <ellipse cx="105" cy="180" rx="80" ry="28" transform="rotate(-45 105 180)" opacity=".6"/>
+    <ellipse cx="105" cy="180" rx="80" ry="28" transform="rotate(45 105 180)" opacity=".6"/>
+    <path d="M105 113v134m-67-67h134" opacity=".5"/>
+    <path d="m105 141 6 25 22-14-14 22 25 6-25 6 14 22-22-14-6 25-6-25-22 14 14-22-25-6 25-6-14-22 22 14Z"/>
+    <circle cx="105" cy="180" r="12" fill="#060504"/>
+    <path d="M92 180q13-15 26 0-13 15-26 0Z"/>
+    <circle cx="105" cy="180" r="4" fill="#C9A45C" stroke="none"/>
+    <path d="m47 54 16 20-12 22m112-42-16 20 12 22m-112 210 16-20-12-22m112 42-16-20 12-22" opacity=".6"/>
+    <path d="M105 25v16m-8-8h16M105 319v16m-8-8h16"/>
+  </g>
+  <g fill="#D6B66B"><circle cx="47" cy="54" r="1.5"/><circle cx="63" cy="74" r="1"/><circle cx="51" cy="96" r="1.5"/><circle cx="163" cy="54" r="1.5"/><circle cx="147" cy="74" r="1"/><circle cx="159" cy="96" r="1.5"/><circle cx="47" cy="306" r="1.5"/><circle cx="163" cy="306" r="1.5"/></g>
+  <text x="105" y="282" text-anchor="middle" fill="#C9A45C" font-family="Georgia,serif" font-size="9" letter-spacing="4">LUMINA</text>
+  <text x="105" y="295" text-anchor="middle" fill="#BEB5A3" font-family="Georgia,serif" font-size="4" letter-spacing="2">SANTUÁRIO DOS ARCANOS</text>
+</svg>
