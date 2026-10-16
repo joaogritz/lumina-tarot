@@ -20,6 +20,8 @@ As cartas do cigano têm IDs próprios (`lenormand_1` a `lenormand_36`). O estad
 
 ## Interface e acessibilidade
 
+`DeckSelectionRow` apresenta as cartas restantes em um leque que se ajusta à largura disponível, sem rolagem horizontal. O mouse ou o arraste por toque destaca uma carta; no toque, uma nova pressão na carta destacada confirma a escolha. Setas, Home e End percorrem o leque pelo teclado, e Enter ou Espaço puxam a carta. O sorteio usa as mesmas regras da mesa e reorganiza as cartas restantes.
+
 O seletor usa botões com estado `aria-pressed`; a confirmação usa `dialog.showModal()`. `useModalAccessibility` gerencia foco, Tab, Escape e restauração de foco nas outras nove janelas, inclusive sobreposição de detalhes. Atalhos globais não atuam sobre campos, botões ou janelas abertas. MotionConfig e CSS respeitam movimento reduzido; animações próprias de canvas ainda precisam de avaliação específica para conformidade integral.
 
 ## Build e offline
