@@ -14,6 +14,7 @@ export function DeckSelectionRow({ deck, canSelectMore, isShuffling, onSelectCar
   const completeRef = useRef(onShuffleComplete);
   const [activeIndex, setActiveIndex] = useState(null);
   const [focusIndex, setFocusIndex] = useState(0);
+  const [isMobile, setIsMobile] = useState(() => window.matchMedia('(max-width: 767px)').matches);
   const [geometry, setGeometry] = useState({ width: 0, cardWidth: 112 });
   completeRef.current = onShuffleComplete;
   const cards = deck.filter(card => !card.estaEscolhida);
@@ -22,13 +23,20 @@ export function DeckSelectionRow({ deck, canSelectMore, isShuffling, onSelectCar
   const active = activeIndex === null ? null : Math.min(activeIndex, cards.length - 1);
 
   useEffect(() => {
+    const query = window.matchMedia('(max-width: 767px)');
+    const update = () => { setIsMobile(query.matches); setActiveIndex(null); };
+    query.addEventListener('change', update);
+    return () => query.removeEventListener('change', update);
+  }, []);
+
+  useEffect(() => {
     const row = rowRef.current;
     const measure = () => setGeometry({ width: row.clientWidth, cardWidth: row.querySelector('button')?.offsetWidth || 112 });
     measure();
     const observer = new ResizeObserver(measure);
     observer.observe(row);
     return () => observer.disconnect();
-  }, []);
+  }, [isMobile]);
 
   useEffect(() => {
     if (!isShuffling) { drawLock.current = false; return; }
@@ -92,8 +100,8 @@ export function DeckSelectionRow({ deck, canSelectMore, isShuffling, onSelectCar
     gesture.current = null;
     if (!current || blocked) return;
     const index = indexAt(event.clientX);
-    // A drag explores; a second tap on the highlighted card confirms the draw.
-    if (!current.moved && (!current.touch || current.previous === index)) draw(cards[index], index);
+    // On mobile, the separate confirmation button draws the highlighted card.
+    if (!isMobile && !current.moved && (!current.touch || current.previous === index)) draw(cards[index], index);
   };
 
   const onKeyDown = (event, index) => {
@@ -111,13 +119,13 @@ export function DeckSelectionRow({ deck, canSelectMore, isShuffling, onSelectCar
   const span = Math.max(0, geometry.width - geometry.cardWidth - 72);
   return <div className="single-row-deck" data-shuffling={isShuffling}>
     <p className="single-row-guidance" id="single-row-guidance">
-      Explore o leque com o mouse e clique para puxar. No celular, arraste para explorar e toque na carta destacada para confirmar.
+      {isMobile ? 'Toque ou arraste para destacar uma carta. Depois, toque em Confirmar carta.' : 'Explore o leque com o mouse e clique para puxar. No celular, arraste para explorar e toque na carta destacada para confirmar.'}
     </p>
     <div ref={rowRef} className="single-row-fan" role="group" aria-label="Baralho em leque" aria-describedby="single-row-guidance" aria-busy={isShuffling} tabIndex={-1}
       onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp}
       onPointerCancel={() => { gesture.current = null; }}
-      onPointerLeave={event => { if (event.pointerType === 'mouse') { gesture.current = null; setActiveIndex(null); } }}
-      onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget)) setActiveIndex(null); }}>
+      onPointerLeave={event => { if (!isMobile && event.pointerType === 'mouse') { gesture.current = null; setActiveIndex(null); } }}
+      onBlur={event => { if (!isMobile && !event.currentTarget.contains(event.relatedTarget)) setActiveIndex(null); }}>
       {cards.map((card, index) => {
         const position = cards.length === 1 ? .5 : index / (cards.length - 1);
         const distance = active === null ? 0 : index - active;
@@ -146,6 +154,10 @@ export function DeckSelectionRow({ deck, canSelectMore, isShuffling, onSelectCar
     <div className="single-row-status" aria-live="polite" aria-atomic="true">
       {isShuffling ? 'Reorganizando o leque…' : active !== null && !blocked ? `Carta ${active + 1} de ${cards.length}` : `${cards.length} cartas no leque`}
     </div>
+    {isMobile && <button type="button" className="mobile-row-confirm" disabled={blocked || active === null || !cards[active]}
+      onClick={() => { if (cards[active]) draw(cards[active], active); }}>
+      {isShuffling ? 'Reorganizando…' : 'Confirmar carta'}
+    </button>}
     <p className="single-row-keyboard">Teclado: ← → para explorar · Home / End para ir às pontas · Enter para puxar</p>
   </div>;
 }

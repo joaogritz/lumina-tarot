@@ -16,3 +16,8 @@
 .deck-layout-switch button[aria-pressed="true"] { border-color: var(--border-lit); color: var(--color-gold-bright); background: #c9a45c0c; }
 .deck-layout-switch button:disabled { opacity: .45; cursor: wait; }
 @media (pointer: coarse) { .single-row-keyboard { display: none; } }
+@media (max-width: 767px) {
+  .mobile-row-confirm { display: block; width: 100%; min-height: 48px; margin-top: 10px; border: 1px solid var(--color-gold); background: #c9a45c18; color: var(--color-gold-bright); font: inherit; cursor: pointer; }
+  .mobile-row-confirm:disabled { opacity: .45; cursor: default; }
+  .mobile-row-confirm:focus-visible { outline: 2px solid var(--color-gold-bright); outline-offset: 3px; }
+}
