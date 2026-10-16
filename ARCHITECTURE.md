@@ -10,9 +10,9 @@ As cartas do cigano têm IDs próprios (`lenormand_1` a `lenormand_36`). O estad
 
 ## Interpretação
 
-`aiOracle.js` monta uma interpretação local ou, com endpoint configurado e consentimento salvo, solicita IA. Lenormand tem composição local própria para pares vizinhos, sem aplicar correspondências de arcanos do Tarot. As respostas não são inseridas como HTML.
+`aiOracle.js` tenta solicitar uma interpretação online pelo endpoint definido em `VITE_ORACLE_API_URL` ou pelo endereço padrão incluído no código. O fluxo atual não exige ativação prévia pelo usuário. Quando a consulta falha ou a resposta não pode ser aproveitada, usa uma interpretação local. Lenormand tem composição local própria para pares vizinhos, sem aplicar correspondências de arcanos do Tarot. As respostas não são inseridas como HTML.
 
-`cloudflare_worker_code.js` é independente da aplicação. Valida origem, método, tipo, tamanho e estrutura do corpo; exige rate limiter, mantém o segredo no servidor e separa instruções de sistema dos dados. Faz uma única chamada ao modelo, com timeout e erro genérico. Não aceita `customPrompt`, não expõe listagem de modelos e não registra perguntas.
+`cloudflare_worker_code.js` é independente da aplicação. Valida consultas JSON, limita tamanho e estrutura do corpo, mantém o segredo no servidor e separa instruções de sistema dos dados. Não aceita `customPrompt`. O rate limiter é opcional; uma lista de origens vazia permite qualquer origem, e há exceções para localhost, painel do Cloudflare e requisições sem `Origin`. O Worker tenta modelos alternativos em caso de falha, com timeout de 15 segundos por tentativa; o cliente espera até 20 segundos. Também oferece listagem de modelos por GET ou pelo caminho `/models`. As configurações de implantação estão descritas no README.
 
 ## Persistência
 
