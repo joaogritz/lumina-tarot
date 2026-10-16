@@ -218,7 +218,7 @@ export const YesNoOracleModal = ({
             </div>
             <div className="space-y-1">
               <h4 className="font-cinzel text-base font-bold text-amber-300 animate-pulse">
-                Sintonizando a Sabedoria da IA...
+                Sintonizando a energia das cartas...
               </h4>
               <p className="text-xs text-slate-400">
                 Interpretando o arcano <span className="text-slate-200 font-semibold">{drawnCard.name}</span> para a sua dúvida
