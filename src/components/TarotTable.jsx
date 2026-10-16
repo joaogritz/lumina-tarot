@@ -1,7 +1,7 @@
 import { CelestialRing } from './CelestialRing';
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { DECKS, readDeckId } from '../data/decks';
-import { SPREAD_TYPES } from '../data/spreads';
+import { SPREAD_TYPES, FREE_SPREAD_ID, createFreeSpread } from '../data/spreads';
 import { Header } from './Header';
 import { SpreadSelector } from './SpreadSelector';
 import { SpreadArea } from './SpreadArea';
@@ -61,6 +61,7 @@ const shuffleArray = (array) => {
 export const TarotTable = () => {
   const [deckId, setDeckId] = useState(readDeckId);
   const [pendingDeckId, setPendingDeckId] = useState(null);
+  const [deckLayout, setDeckLayout] = useState('classic');
   const activeDeck = DECKS[deckId];
   const altarRef = useRef(null);
   const deckDialogRef = useRef(null);
@@ -88,6 +89,10 @@ export const TarotTable = () => {
 
   // 3. Active spread type (Default: 3 cards - Passado, Presente & Futuro)
   const [activeSpread, setActiveSpread] = useState(SPREAD_TYPES[0]);
+  const [freeCardCount, setFreeCardCount] = useState(3);
+  const availableSpreads = useMemo(() => SPREAD_TYPES
+    .filter(spread => deckId !== 'lenormand' || ['three_cards', 'single_card', FREE_SPREAD_ID].includes(spread.id))
+    .map(spread => spread.id === FREE_SPREAD_ID ? createFreeSpread(freeCardCount) : spread), [deckId, freeCardCount]);
 
   // 4. Chosen cards in spread slots (Array matching spread length)
   const [chosenCards, setChosenCards] = useState(() => 
@@ -184,6 +189,16 @@ export const TarotTable = () => {
     setDeck(prevDeck => prevDeck.map(card => ({ ...card, estaEscolhida: false, isReversed: false })));
     setPendingSpreadChange(null);
   }, [pendingSpreadChange]);
+
+  // Resize only empty positions: drawn cards and their order remain intact.
+  const minimumFreeCount = Math.max(1, chosenCards.findLastIndex(Boolean) + 1);
+  const handleFreeCountChange = (value) => {
+    const count = Number(value);
+    if (activeSpread.id !== FREE_SPREAD_ID || !Number.isInteger(count) || count < minimumFreeCount || count > 10) return;
+    setFreeCardCount(count);
+    setActiveSpread(createFreeSpread(count));
+    setChosenCards(previous => Array.from({ length: count }, (_, index) => previous[index] || null));
+  };
 
   // Single Card Selection Handler (Click from Grid)
   const handleSelectCard = useCallback((card) => {
@@ -371,9 +386,11 @@ export const TarotTable = () => {
         {/* Spread Selector Navigation (Visible when not in Zen Mode) */}
         {!isZenMode && (
           <SpreadSelector
-            spreads={deckId === 'lenormand' ? SPREAD_TYPES.slice(0, 2) : SPREAD_TYPES}
+            spreads={availableSpreads}
             currentSpread={activeSpread}
             onSelectSpread={handleSelectSpreadRequest}
+            onFreeCountChange={handleFreeCountChange}
+            minimumFreeCount={minimumFreeCount}
           />
         )}
 
@@ -399,6 +416,8 @@ export const TarotTable = () => {
             key={deckId}
             deck={deck}
             activeDeckId={deckId}
+            layoutMode={deckLayout}
+            onChangeLayoutMode={setDeckLayout}
             onSwitchDeck={() => {
               const targetDeck = deckId === 'tarot' ? 'lenormand' : 'tarot';
               if (filledCount > 0) {

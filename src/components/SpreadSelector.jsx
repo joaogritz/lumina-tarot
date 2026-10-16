@@ -1,6 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { SPREAD_TYPES } from '../data/spreads';
+import { SPREAD_TYPES, FREE_SPREAD_ID } from '../data/spreads';
 import { Layers, Sparkles, Compass, HeartHandshake, PlusCircle, Heart, Briefcase, Star, ChevronLeft, ChevronRight } from './icons/ArcaneIcons';
 import { audio } from '../utils/audio';
 
@@ -18,7 +18,9 @@ const ICONS_MAP = {
 export const SpreadSelector = ({ 
   spreads = SPREAD_TYPES,
   currentSpread, 
-  onSelectSpread 
+  onSelectSpread,
+  onFreeCountChange,
+  minimumFreeCount = 1
 }) => {
   const scrollRef = useRef(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
@@ -142,6 +144,20 @@ export const SpreadSelector = ({
           </button>
         )}
       </div>
+      {currentSpread.id === FREE_SPREAD_ID && (
+        <div className="free-spread-controls">
+          <label htmlFor="free-spread-count">Quantidade de cartas</label>
+          <select id="free-spread-count" value={currentSpread.cardCount} onChange={event => {
+            audio.playTabSwitch();
+            onFreeCountChange(Number(event.target.value));
+          }}>
+            {Array.from({ length: 10 }, (_, index) => index + 1).map(count => (
+              <option key={count} value={count} disabled={count < minimumFreeCount}>{count} {count === 1 ? 'carta' : 'cartas'}</option>
+            ))}
+          </select>
+          <p>Sem posições fixas. Você pode ampliar a leitura até 10 cartas sem perder as já tiradas.</p>
+        </div>
+      )}
     </nav>
   );
 };

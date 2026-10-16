@@ -42,3 +42,13 @@ O verso SVG é original do Lumina. O objeto físico possui moldura dupla, espess
 As variantes pequenas priorizam imagem e numeral; resultados e detalhes usam arte maior. Abertura carrega somente a carta de destaque, cartas sorteadas são carregadas imediatamente e imagens de catálogo/diário são lazy. O carregamento faz uma transição entre verso e artwork; falha de imagem mantém uma indicação legível sem voltar a emojis. Leituras antigas recebem a arte pelo mesmo ID, sem migração de armazenamento.
 
 A verificação adicional inclui decodificação dos 114 arquivos e miniaturas, renderização das 114 cartas no Chromium, carregamento inicial de uma única artwork, alt text, inversões, imagem ausente, comportamento de ponteiro/toque/movimento reduzido e revisão visual de contato das duas coleções. A comparação integral dos catálogos confirmou que todos os campos anteriores, exceto a nova referência visual, permanecem iguais.
+
+## Seleção em fileira única
+
+O seletor oferece as disposições Clássica e Fileira única. A segunda exibe todas as cartas disponíveis em uma faixa horizontal sobreposta, navegável por rolagem, toque, setas e teclado. A escolha do modo permanece durante trocas de baralho e do modo Zen na sessão.
+
+Cada carta puxada usa o mesmo handler de seleção da mesa, preenche a próxima posição e inicia um embaralhamento das cartas restantes. Novas escolhas e mudanças de disposição ficam bloqueadas durante a animação. Cartas já escolhidas permanecem na tiragem e não retornam à fileira. Os filtros e a busca continuam disponíveis na disposição clássica; a fileira sempre representa o baralho inteiro disponível. A animação respeita movimento reduzido e restaura o foco após uma escolha por teclado.
+
+## Tiragem Livre
+
+A tiragem livre permite escolher entre 1 e 10 cartas, no Tarot e no Petit Lenormand, com posições neutras numeradas. O controle de quantidade pode ampliar uma leitura em andamento; só permite reduzir posições vazias ao final para preservar as cartas e sua ordem. A mesa se adapta à quantidade, com uma carta em destaque ou uma grade responsiva. As disposições clássica e em fileira, o sorteio do destino, a interpretação e o diário usam a mesma configuração dinâmica, sem temas fixos por posição.

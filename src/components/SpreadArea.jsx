@@ -360,6 +360,12 @@ export const SpreadArea = ({
         return renderTriangleLayout();
       case 'trinity':
         return renderTrinityLayout();
+      case 'free':
+        return totalSlots === 1 ? renderSingleLayout() : (
+          <div className="spread-free-grid" style={{ '--free-columns': Math.min(totalSlots, 5) }}>
+            {spreadConfig.positions.map((_, index) => renderSlot(index, 'md', false, true))}
+          </div>
+        );
       case 'single':
         return renderSingleLayout();
       case 'love':

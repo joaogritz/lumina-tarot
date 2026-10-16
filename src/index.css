@@ -258,3 +258,14 @@ body::after { content: ''; position: fixed; inset: 0; z-index: var(--z-texture);
 @keyframes cardSuspension { 0%,100% { transform: translateY(0) rotate(-8deg); } 50% { transform: translateY(-7px) rotate(-7deg); } }
 .entry-card { animation: cardSuspension 12s ease-in-out infinite; }
 @media(pointer:coarse) { .entry-card { animation: none; } }
+
+/* Open readings share the physical altar, with neutral numbered positions. */
+.free-spread-controls { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin-top: 20px; padding: 16px 4px 0; border-top: 1px solid var(--border-quiet); }
+.free-spread-controls label { font-family: var(--font-cinzel); font-size: 12px; color: var(--color-ivory); }
+.free-spread-controls select { min-height: 44px; padding: 8px 30px 8px 12px; border: 1px solid var(--border-lit); border-radius: 2px; background: var(--color-obsidian); color: var(--color-gold-bright); font-size: 13px; cursor: pointer; color-scheme: dark; }
+.free-spread-controls select:focus-visible { outline: 1px solid var(--color-gold-bright); outline-offset: 3px; }
+.free-spread-controls p { flex-basis: 100%; font-size: 12px; color: var(--color-parchment); }
+.spread-free-grid { display: grid; grid-template-columns: repeat(var(--free-columns), minmax(0, 1fr)); gap: 32px 20px; padding: 24px 4px; }
+.spread-free-grid .spread-slot { min-width: 0; }
+.spread-free-grid .spread-card-frame { width: 100%; max-width: 208px; }
+@media(max-width: 767px) { .spread-free-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 26px 16px; } }

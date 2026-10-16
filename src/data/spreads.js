@@ -1,5 +1,29 @@
 // Spreads / Tiragens de Tarot com descrições das posições e layouts espaciais autênticos de mesa
 
+export const FREE_SPREAD_ID = 'free_reading';
+
+export function createFreeSpread(count = 3) {
+  const value = Number(count);
+  const cardCount = Number.isFinite(value) ? Math.max(1, Math.min(10, Math.trunc(value))) : 3;
+  return {
+    id: FREE_SPREAD_ID,
+    name: 'Tiragem Livre',
+    shortName: 'Tiragem Livre',
+    compactName: 'Livre',
+    cardCount,
+    layoutType: 'free',
+    icon: 'Sparkles',
+    description: 'De 1 a 10 cartas para uma leitura aberta, sem temas ou significados fixos por posição. Leia cada mensagem e as relações entre elas.',
+    positions: Array.from({ length: cardCount }, (_, index) => ({
+      index,
+      name: `Carta ${index + 1}`,
+      subtitle: '',
+      icon: 'Sparkles',
+      color: '#C9A45C',
+    })),
+  };
+}
+
 export const SPREAD_TYPES = [
   {
     id: 'three_cards',
@@ -53,6 +77,7 @@ export const SPREAD_TYPES = [
       }
     ]
   },
+  createFreeSpread(),
   {
     id: 'love_spread',
     name: 'Templo dos Enamorados (Amor & Vínculos)',

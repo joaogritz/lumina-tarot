@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { DeckSelectionRow } from './DeckSelectionRow';
 import { CardBack } from './CardBack';
 import { DeckShuffleAnimation } from './DeckShuffleAnimation';
 import { Sparkles, Flame, Droplets, Wind, Mountain, Search, Shuffle, Layers, Destiny } from './icons/ArcaneIcons';
@@ -7,6 +8,8 @@ import { audio } from '../utils/audio';
 export const DeckSelectionGrid = ({ 
   deck, 
   activeDeckId = 'tarot',
+  layoutMode = 'classic',
+  onChangeLayoutMode,
   onSwitchDeck,
   onSelectCard, 
   onRandomPick, 
@@ -85,6 +88,7 @@ export const DeckSelectionGrid = ({
                 <button
                   type="button"
                   onClick={onSwitchDeck}
+                  disabled={isShuffling}
                   title={activeDeckId === 'tarot' ? 'Trocar para o Baralho Cigano (Petit Lenormand)' : 'Trocar para o Tarot Tradicional (78 Cartas)'}
                   className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-sm bg-gradient-to-r from-stone-950/90 via-slate-900 to-emerald-950/90 hover:from-stone-900 hover:to-emerald-900 border border-amber-400/50 hover:border-amber-300 text-amber-200 hover:text-white text-xs font-cinzel font-semibold transition-all shadow-md active:scale-95 cursor-pointer"
                 >
@@ -92,12 +96,24 @@ export const DeckSelectionGrid = ({
                   <span>{activeDeckId === 'tarot' ? 'Trocar para Baralho Cigano' : 'Trocar para Tarot'}</span>
                 </button>
               )}
+              <div className="deck-layout-switch" role="group" aria-label="Disposição do baralho">
+                {[['classic', 'Clássica'], ['row', 'Fileira única']].map(([mode, label]) => (
+                  <button key={mode} type="button" aria-pressed={layoutMode === mode} disabled={isShuffling}
+                    title={mode === 'row' ? 'Uma fileira que embaralha a cada carta puxada' : 'Distribuir cartas em várias fileiras'}
+                    onClick={() => { audio.playTabSwitch(); onChangeLayoutMode(mode); }}>
+                    {mode === 'row' ? <Shuffle className="w-3.5 h-3.5" /> : <Layers className="w-3.5 h-3.5" />}
+                    {label}
+                  </button>
+                ))}
+              </div>
             </div>
-            <p className="text-xs sm:text-sm text-slate-400 mt-0.5">
+            <p role="status" className="text-xs sm:text-sm text-slate-400 mt-0.5">
               {isShuffling 
                 ? 'Embaralhando as cartas...'
                 : canSelectMore 
-                  ? `Passe o mouse ou toque para escolher mais ${remainingToPick} carta(s).`
+                  ? layoutMode === 'row'
+                    ? `Puxe uma carta da fileira. Faltam ${remainingToPick} carta(s).`
+                    : `Passe o mouse ou toque para escolher mais ${remainingToPick} carta(s).`
                   : 'Todos os slots foram preenchidos! Veja a interpretação acima.'
               }
             </p>
@@ -142,7 +158,7 @@ export const DeckSelectionGrid = ({
         </div>
 
         {/* Filter Bar & Search (visible when not shuffling) */}
-        {!isShuffling && (
+        {!isShuffling && layoutMode === 'classic' && (
           <div className="mt-4 pt-4 border-t border-stone-900/40 flex flex-col md:flex-row items-center justify-between gap-3 animate-fade-in">
             
             {/* Suit / Arcana Filter Tabs (Scrollable on Mobile, Flex on Desktop) */}
@@ -190,7 +206,10 @@ export const DeckSelectionGrid = ({
 
       {/* Main Area: Either 3D Shuffle Animation Arena OR the 78-Card Deck Grid */}
       <div className="relative min-h-[420px]">
-        {isShuffling ? (
+        {layoutMode === 'row' ? (
+          <DeckSelectionRow deck={deck} canSelectMore={canSelectMore} isShuffling={isShuffling}
+            onSelectCard={onSelectCard} onStartShuffle={handleShuffle} onShuffleComplete={handleShuffleFinished} />
+        ) : isShuffling ? (
           /* 3D Cinematic Shuffle Experience */
           <div className="w-full rounded-sm glass-panel-subtle border border-amber-500/30 p-4 sm:p-6 shadow-2xl animate-fade-in flex items-center justify-center">
             <DeckShuffleAnimation onComplete={handleShuffleFinished} />
