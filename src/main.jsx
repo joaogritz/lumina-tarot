@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import App from './App';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import './index.css';
+import './mobile.css';
 
 // Register PWA Service Worker in production
 if ('serviceWorker' in navigator && import.meta.env.PROD) {

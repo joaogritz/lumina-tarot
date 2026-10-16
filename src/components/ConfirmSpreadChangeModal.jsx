@@ -36,7 +36,7 @@ export const ConfirmSpreadChangeModal = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className="mobile-modal-layer fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Outer Click Backdrop with Fluid Fade */}
       <motion.div 
         initial={{ opacity: 0 }}
@@ -56,12 +56,13 @@ export const ConfirmSpreadChangeModal = ({
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 10 }}
         transition={{ duration: .7, ease: [.16, 1, .3, 1] }}
-        className="relative z-10 w-full max-w-md rounded-sm glass-panel border border-amber-500/40 shadow-2xl p-6 sm:p-8 text-center"
+        className="responsive-dialog dialog-confirm relative z-10 w-full max-w-md rounded-sm glass-panel border border-amber-500/40 shadow-2xl p-6 sm:p-8 text-center"
       >
         {/* Close Button */}
         <button
           type="button"
           onClick={handleCancel}
+          aria-label="Cancelar troca de tiragem"
           className="absolute top-4 right-4 p-2 rounded-full bg-slate-900/80 border border-slate-700 text-slate-400 hover:text-amber-300 hover:border-amber-400/50 transition-all cursor-pointer"
         >
           <X aria-hidden="true" className="w-4 h-4" />

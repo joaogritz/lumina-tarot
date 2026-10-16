@@ -32,7 +32,7 @@ export const ThemeSelectorModal = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4">
+    <div className="mobile-modal-layer fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4">
       {/* Outer Click Backdrop */}
       <motion.div 
         initial={{ opacity: 0 }}
@@ -51,7 +51,7 @@ export const ThemeSelectorModal = ({
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 10 }}
         transition={{ duration: .7, ease: [.16, 1, .3, 1] }}
-        className="relative z-10 w-full max-w-lg rounded-sm bg-[var(--color-obsidian)] border border-amber-500/40 shadow-2xl p-4 sm:p-6 text-left"
+        className="responsive-dialog dialog-themes relative z-10 w-full max-w-lg rounded-sm bg-[var(--color-obsidian)] border border-amber-500/40 shadow-2xl p-4 sm:p-6 text-left"
       >
         {/* Header */}
         <div className="flex items-center justify-between pb-3 border-b border-amber-500/20">

@@ -140,7 +140,7 @@ export const DeckSelectionGrid = ({
               <button
                 type="button"
                 onClick={handleRandomPick}
-                className="ritual-button"
+                className="ritual-button deck-destiny-action"
               >
                 {/* Subtle light streak */}
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-amber-300/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 pointer-events-none" />
@@ -205,7 +205,7 @@ export const DeckSelectionGrid = ({
       </div>
 
       {/* Main Area: Either 3D Shuffle Animation Arena OR the 78-Card Deck Grid */}
-      <div className="relative min-h-[420px]">
+      <div className="deck-catalog relative min-h-[420px]">
         {layoutMode === 'row' ? (
           <DeckSelectionRow deck={deck} canSelectMore={canSelectMore} isShuffling={isShuffling}
             onSelectCard={onSelectCard} onStartShuffle={handleShuffle} onShuffleComplete={handleShuffleFinished} />

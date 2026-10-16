@@ -94,7 +94,7 @@ export const YesNoOracleModal = ({
   const evaluation = drawnCard ? (aiReading || getYesNoEvaluation(drawnCard, drawnCard.isReversed)) : null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4">
+    <div className="mobile-modal-layer fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4">
       {/* Outer Click Backdrop */}
       <motion.div 
         initial={{ opacity: 0 }}
@@ -113,7 +113,7 @@ export const YesNoOracleModal = ({
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 10 }}
         transition={{ duration: .7, ease: [.16, 1, .3, 1] }}
-        className="relative z-10 w-full max-w-xl max-h-[92vh] flex flex-col rounded-sm bg-[var(--color-obsidian)] border border-amber-500/40 shadow-2xl overflow-y-auto p-4 sm:p-6 md:p-8 text-center scrollbar-thin scrollbar-thumb-amber-500/20"
+        className="responsive-dialog dialog-yesno relative z-10 w-full max-w-xl max-h-[92vh] flex flex-col rounded-sm bg-[var(--color-obsidian)] border border-amber-500/40 shadow-2xl overflow-y-auto p-4 sm:p-6 md:p-8 text-center scrollbar-thin scrollbar-thumb-amber-500/20"
       >
         {/* Close Button */}
         <button
@@ -140,7 +140,7 @@ export const YesNoOracleModal = ({
 
         {/* Question Input Box & Suggestion Chips */}
         {!drawnCard && (
-          <div className="my-3 text-left">
+          <div className="yesno-question-step my-3 text-left">
             <div className="relative rounded-sm border border-amber-500/30 bg-slate-950/80 p-3 focus-within:border-amber-400/70 transition-all shadow-inner">
               <div className="flex items-center gap-2">
                 <Feather className="w-4 h-4 text-amber-400 shrink-0" />

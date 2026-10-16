@@ -51,7 +51,7 @@ export const GrimoireModal = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4">
+    <div className="mobile-modal-layer fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4">
       {/* Outer Click Backdrop */}
       <motion.div 
         initial={{ opacity: 0 }}
@@ -70,7 +70,7 @@ export const GrimoireModal = ({
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 10 }}
         transition={{ duration: .7, ease: [.16, 1, .3, 1] }}
-        className="relative z-10 w-full max-w-5xl h-[88vh] flex flex-col rounded-sm bg-[var(--color-obsidian)] border border-amber-500/40 shadow-2xl overflow-hidden p-4 sm:p-6"
+        className="responsive-dialog dialog-grimoire relative z-10 w-full max-w-5xl h-[88vh] flex flex-col rounded-sm bg-[var(--color-obsidian)] border border-amber-500/40 shadow-2xl overflow-hidden p-4 sm:p-6"
       >
         {/* Header */}
         <div className="flex items-center justify-between pb-3 border-b border-amber-500/20 shrink-0">
@@ -130,7 +130,7 @@ export const GrimoireModal = ({
             <Search className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
-              placeholder="Buscar por nome, arquétipo ou palavra-chave..."
+              aria-label="Buscar no grimório" placeholder="Buscar por nome, arquétipo ou palavra-chave..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-9 pr-4 py-1.5 rounded-sm bg-slate-950/70 border border-amber-500/30 focus:border-amber-400/70 text-xs text-slate-200 placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-amber-400/30 transition-all"

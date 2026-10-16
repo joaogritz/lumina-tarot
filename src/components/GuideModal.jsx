@@ -14,7 +14,7 @@ export const GuideModal = ({ isOpen, onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className="mobile-modal-layer fixed inset-0 z-50 flex items-center justify-center p-4">
       <motion.div 
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -31,7 +31,7 @@ export const GuideModal = ({ isOpen, onClose }) => {
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 10 }}
         transition={{ duration: .7, ease: [.16, 1, .3, 1] }}
-        className="relative z-10 w-full max-w-2xl max-h-[88vh] overflow-y-auto rounded-sm glass-panel border border-amber-500/40 shadow-2xl p-4 sm:p-6 md:p-8"
+        className="responsive-dialog dialog-guide relative z-10 w-full max-w-2xl max-h-[88vh] overflow-y-auto rounded-sm glass-panel border border-amber-500/40 shadow-2xl p-4 sm:p-6 md:p-8"
       >
         <button
           type="button"

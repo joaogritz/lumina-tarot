@@ -25,6 +25,7 @@ export const Header = ({
   const [volume, setVolume] = useState(() => bgMusicService.getVolume());
   const [showVolumeSlider, setShowVolumeSlider] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
+  const [mobileControlsOpen, setMobileControlsOpen] = useState(false);
 
   useEffect(() => {
     const handleMusicChange = (e) => {
@@ -79,7 +80,10 @@ export const Header = ({
         </div>
 
         {/* Right: Quick Features Buttons */}
-        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+        <button type="button" className="mobile-settings-toggle md:hidden" aria-label="Ajustes & ferramentas" aria-expanded={mobileControlsOpen} aria-controls="sanctuary-tools" onClick={() => setMobileControlsOpen(open => !open)}>
+          <Palette className="w-4 h-4" /> <span>Ajustes</span>
+        </button>
+        <div id="sanctuary-tools" data-mobile-open={mobileControlsOpen} className="header-tools flex flex-wrap items-center gap-1.5 sm:gap-2">
           {/* Sim / Não Oracle Button (Desktop only - covered by bottom dock on mobile) */}
           <button
             type="button"
@@ -105,7 +109,7 @@ export const Header = ({
             className="px-2.5 py-1.5 rounded-sm glass-panel-subtle hover:border-amber-400/60 text-amber-300 text-xs font-cinzel font-semibold flex items-center gap-1.5 transition-all cursor-pointer shadow-sm active:scale-95"
           >
             <Sun className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
-            <span className="hidden sm:inline">Carta do Dia</span>
+            <span className="mobile-tool-label hidden sm:inline">Carta do Dia</span>
           </button>
 
           {/* Grimoire Codex Button (Desktop only - covered by bottom dock on mobile) */}
@@ -180,7 +184,7 @@ export const Header = ({
               `}
             >
               <Music className={`w-3.5 h-3.5 ${isMusicPlaying ? 'text-amber-400 animate-pulse' : 'text-slate-400'}`} />
-              <span className="hidden lg:inline">{isMusicPlaying ? `${Math.round(volume * 100)}%` : 'Música'}</span>
+              <span className="mobile-tool-label hidden lg:inline">{isMusicPlaying ? `${Math.round(volume * 100)}%` : 'Música'}</span>
             </button>
 
             {/* Floating Volume Slider on Hover / Focus with Invisible Bridge */}
@@ -233,7 +237,7 @@ export const Header = ({
             `}
           >
             <RotateCw className={`w-3.5 h-3.5 ${allowReversed ? 'text-amber-400' : 'text-slate-500'}`} />
-            <span className="hidden md:inline">Invertidas</span>
+            <span className="mobile-tool-label hidden md:inline">Invertidas</span>
           </button>
 
           {/* Sound Effects Toggle (Visible on Mobile & Desktop) */}
@@ -243,6 +247,7 @@ export const Header = ({
             title={isMuted ? 'Ativar Efeitos Sonoros' : 'Silenciar Efeitos Sonoros'}
             className="p-2 rounded-sm glass-panel-subtle text-slate-300 hover:text-amber-300 hover:border-amber-400/50 transition-all cursor-pointer"
           >
+            <span className="md:hidden">Efeitos</span>
             {isMuted ? <VolumeX className="w-4 h-4 text-slate-500" /> : <Volume2 className="w-4 h-4 text-amber-400" />}
           </button>
 
@@ -268,7 +273,7 @@ export const Header = ({
             title="Como funciona a leitura de Tarot"
             className="p-2 rounded-sm glass-panel-subtle text-slate-300 hover:text-amber-300 hover:border-amber-400/50 transition-all cursor-pointer"
           >
-            <HelpCircle className="w-4 h-4 text-amber-300/80" />
+            <HelpCircle className="w-4 h-4 text-amber-300/80" /><span className="md:hidden">Como ler</span>
           </button>
         </div>
       </div>
@@ -279,6 +284,7 @@ export const Header = ({
         <p>Sua jornada começa com uma pergunta e uma escolha</p>
       </div>
       {/* Mentalize Question Input Box */}
+      <label htmlFor="reading-intention" className="mobile-intention-label md:hidden">Sua pergunta ou intenção <span>· opcional</span></label>
       <div className="w-full max-w-2xl relative mb-2">
         <div className={`relative rounded-sm transition-all duration-300 ${
           isFocused 
@@ -288,7 +294,7 @@ export const Header = ({
           <div className="flex items-center px-4 py-2.5">
             <Feather className="w-4 h-4 text-amber-400/80 mr-3 shrink-0" />
             <input
-                  aria-label="Sua pergunta ou intenção (opcional)"
+                  id="reading-intention" enterKeyHint="done" aria-label="Sua pergunta ou intenção (opcional)"
                   maxLength={1000}
               type="text"
               value={userQuestion}

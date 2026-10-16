@@ -73,7 +73,7 @@ export const ReadingHistoryModal = ({
   });
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4">
+    <div className="mobile-modal-layer fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4">
       {/* Outer Click Backdrop */}
       <motion.div 
         initial={{ opacity: 0 }}
@@ -92,7 +92,7 @@ export const ReadingHistoryModal = ({
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 10 }}
         transition={{ duration: .7, ease: [.16, 1, .3, 1] }}
-        className="relative z-10 w-full max-w-4xl max-h-[90vh] flex flex-col rounded-sm glass-panel border border-amber-500/40 shadow-2xl overflow-hidden p-4 sm:p-6 md:p-8"
+        className="responsive-dialog dialog-history relative z-10 w-full max-w-4xl max-h-[90vh] flex flex-col rounded-sm glass-panel border border-amber-500/40 shadow-2xl overflow-hidden p-4 sm:p-6 md:p-8"
       >
         {/* Header */}
         <div className="flex items-center justify-between pb-4 border-b border-amber-500/20">
@@ -113,7 +113,7 @@ export const ReadingHistoryModal = ({
         </div>
 
         {/* Navigation Tabs (Diário vs Estatísticas) */}
-        <div className="my-3.5 flex items-center gap-2 border-b border-stone-900/40 pb-2">
+        <div className="journal-tabs my-3.5 flex items-center gap-2 border-b border-stone-900/40 pb-2">
           <button
             type="button"
             onClick={() => {
@@ -127,7 +127,7 @@ export const ReadingHistoryModal = ({
             }`}
           >
             <BookOpen className="w-4 h-4" />
-            <span>Diário de Leituras ({readings.length})</span>
+            <span className="hidden md:inline">Diário de Leituras ({readings.length})</span><span className="md:hidden">Diário ({readings.length})</span>
           </button>
 
           <button
@@ -143,7 +143,7 @@ export const ReadingHistoryModal = ({
             }`}
           >
             <BarChart3 className="w-4 h-4 text-amber-400" />
-            <span>Estatísticas & Autoconhecimento</span>
+            <span className="hidden md:inline">Estatísticas & Autoconhecimento</span><span className="md:hidden">Estatísticas</span>
           </button>
         </div>
 
@@ -156,7 +156,7 @@ export const ReadingHistoryModal = ({
                 <Search className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
                 <input
                   type="text"
-                  placeholder="Pesquisar por carta, pergunta, tiragem ou notas..."
+                  aria-label="Buscar no diário" placeholder="Pesquisar por carta, pergunta, tiragem ou notas..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full pl-9 pr-4 py-2 rounded-sm bg-slate-950/70 border border-amber-500/30 focus:border-amber-400/70 text-xs sm:text-sm text-slate-200 placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-amber-400/30 transition-all"
@@ -194,7 +194,7 @@ export const ReadingHistoryModal = ({
                       }`}
                     >
                       {/* Top Row: Spread name, Date & Delete */}
-                      <div className="flex items-center justify-between gap-2 mb-2">
+                      <div className="journal-entry-heading flex items-center justify-between gap-2 mb-2">
                         <div className="flex items-center gap-2">
                           <span className="px-2.5 py-0.5 rounded-full bg-amber-500/20 border border-amber-500/40 text-[10px] font-cinzel font-bold text-amber-300">
                             {reading.deckName || 'Tarot'} · {reading.spreadName}
@@ -223,7 +223,7 @@ export const ReadingHistoryModal = ({
                       )}
 
                       {/* Cards Mini Thumbnails */}
-                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 my-2">
+                      <div className="journal-cards grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 my-2">
                         {reading.cards?.map((card, idx) => (
                           <button type="button" aria-label={`Ver detalhes de ${card.name}`}
                             key={idx}

@@ -381,7 +381,7 @@ export const SpreadArea = ({
   };
 
   return (
-    <section aria-label="Mesa de leitura" className="reading-area w-full max-w-6xl mx-auto mb-10">
+    <section data-layout={spreadConfig.layoutType} aria-label="Mesa de leitura" className="reading-area w-full max-w-6xl mx-auto mb-10">
       {/* Altar Velvet Mat Container */}
       <div className="altar-surface relative p-4 sm:p-6 md:p-8 overflow-hidden shadow-2xl border border-amber-500/30">
         
@@ -431,6 +431,9 @@ export const SpreadArea = ({
           </div>
         </div>
 
+        {['timeline', 'celtic_cross', 'pentagram'].includes(spreadConfig.layoutType) && (
+          <p className="mobile-spread-guidance md:hidden">Deslize a mesa para explorar todas as posições. Toque nas cartas reveladas para ampliar.</p>
+        )}
         {/* Dynamic Sacred Mat Spatial Layout */}
         <div className="relative z-10 min-h-[300px] flex items-center justify-center">
           <AnimatePresence mode="wait">
@@ -442,11 +445,18 @@ export const SpreadArea = ({
               transition={{ duration: 0.35 }}
               className="w-full flex items-center justify-center"
             >
-              {renderLayoutContent()}
+              <div className="spread-layout-container">{renderLayoutContent()}</div>
             </motion.div>
           </AnimatePresence>
         </div>
 
+        {spreadConfig.layoutType === 'celtic_cross' && (
+          <div className="mobile-celtic-focus md:hidden">
+            <h3>As dez posições</h3>
+            <p>O mapa acima preserva a cruz e o bastão. Explore cada posição abaixo; toque em uma carta para ampliar ou use × para recolhê-la.</p>
+            <div className="mobile-celtic-positions">{spreadConfig.positions.map((_, index) => renderSlot(index))}</div>
+          </div>
+        )}
         {/* Action Reveal Button when Spread is Complete */}
         <AnimatePresence>
           {isComplete && (

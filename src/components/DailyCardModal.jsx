@@ -106,7 +106,7 @@ export const DailyCardModal = ({
   const suitConfig = SUITS[dailyCard.suit?.toUpperCase()] || SUITS.MAJOR;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4">
+    <div className="mobile-modal-layer fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4">
       {/* Outer Click Backdrop */}
       <motion.div 
         initial={{ opacity: 0 }}
@@ -125,7 +125,7 @@ export const DailyCardModal = ({
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 10 }}
         transition={{ duration: .7, ease: [.16, 1, .3, 1] }}
-        className="relative z-10 w-full max-w-2xl max-h-[92vh] flex flex-col rounded-sm glass-panel border border-amber-500/40 shadow-2xl overflow-y-auto p-4 sm:p-6 md:p-8 text-center"
+        className="responsive-dialog dialog-daily relative z-10 w-full max-w-2xl max-h-[92vh] flex flex-col rounded-sm glass-panel border border-amber-500/40 shadow-2xl overflow-y-auto p-4 sm:p-6 md:p-8 text-center"
       >
         {/* Close Button */}
         <button
@@ -153,7 +153,7 @@ export const DailyCardModal = ({
           </div>
 
           <h3 className="font-cinzel text-xl sm:text-3xl font-black text-slate-100 gold-gradient-text tracking-wide">
-            Carta do Dia • Oráculo Diário
+            <span className="hidden md:inline">Carta do Dia • Oráculo Diário</span><span className="md:hidden">Carta do dia</span>
           </h3>
           <p className="text-xs text-amber-200/80 mt-1 max-w-md">
             Sua frequência energética e arquétipo guia para reflexão, presença e foco nas próximas 24 horas.

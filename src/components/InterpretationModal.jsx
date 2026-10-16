@@ -124,7 +124,7 @@ export const InterpretationModal = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 md:p-6 overflow-y-auto">
+    <div className="mobile-modal-layer fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 md:p-6 overflow-y-auto">
       {/* Outer Click Backdrop */}
       <motion.div 
         initial={{ opacity: 0 }}
@@ -143,7 +143,7 @@ export const InterpretationModal = ({
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.96, y: 15 }}
         transition={{ duration: .7, ease: [.16, 1, .3, 1] }}
-        className="relative z-10 w-full max-w-5xl max-h-[90vh] flex flex-col rounded-sm bg-[var(--color-obsidian)] border border-amber-500/40 shadow-[0_0_50px_rgba(147,51,234,0.3)] overflow-hidden text-left"
+        className="responsive-dialog dialog-interpretation relative z-10 w-full max-w-5xl max-h-[90vh] flex flex-col rounded-sm bg-[var(--color-obsidian)] border border-amber-500/40 shadow-[0_0_50px_rgba(147,51,234,0.3)] overflow-hidden text-left"
       >
         {/* Header Bar */}
         <div className="p-4 sm:p-6 border-b border-amber-500/20 flex items-center justify-between bg-slate-950/60 sticky top-0 z-20 backdrop-blur-md">
