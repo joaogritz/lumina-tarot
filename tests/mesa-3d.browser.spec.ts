@@ -676,6 +676,13 @@ test("keyboard draw flip discard and navigation work without stealing text input
 });
 
 test("return controls and shuffle shortcuts preserve cards and undo", async ({ page }) => {
+  await page.addInitScript(() => {
+    const original = crypto.getRandomValues.bind(crypto);
+    crypto.getRandomValues = ((array) => {
+      if (array instanceof Uint32Array && array.length === 1) { array[0] = 0xffffffff; return array; }
+      return original(array);
+    }) as typeof crypto.getRandomValues;
+  });
   await newTable(page);
   await expect(page.locator("#return-button")).toBeDisabled();
   await page.locator("#draw").click();
@@ -694,4 +701,50 @@ test("return controls and shuffle shortcuts preserve cards and undo", async ({ p
   await page.keyboard.press("s");
   await expect(page.locator("#remaining")).toHaveText("77");
   await expect(page.locator("#return-button")).toBeDisabled();
+});
+
+test("shuffle jumper, sideways rotation, audio and undo work together", async ({ page }) => {
+  await page.addInitScript(() => {
+    // Force the 1/50 branch without changing UUID generation.
+    const original = crypto.getRandomValues.bind(crypto);
+    crypto.getRandomValues = ((array) => {
+      if (array instanceof Uint32Array && array.length === 1) { array[0] = 0; return array; }
+      return original(array);
+    }) as typeof crypto.getRandomValues;
+    const NativeAudioContext = window.AudioContext;
+    (window as any).__paperSounds = 0;
+    window.AudioContext = class extends NativeAudioContext {
+      createBufferSource() {
+        (window as any).__paperSounds++;
+        return super.createBufferSource();
+      }
+    };
+  });
+  await newTable(page);
+  await expect(page.locator("#sideways-button")).toBeDisabled();
+  await page.locator("#shuffle-button").click();
+  await expect(page.locator("#remaining")).toHaveText("77");
+  await expect(page.locator("#sideways-button")).toBeEnabled();
+  await expect.poll(() => page.evaluate(() => (window as any).__paperSounds)).toBeGreaterThan(0);
+  const jumped = await savedSession(page);
+  expect(jumped.cards).toHaveLength(1);
+  expect(jumped.cards[0].faceUp).toBe(false);
+  await page.locator("#sideways-button").click();
+  await expect.poll(async () => (await savedSession(page)).cards[0].rotation).toBeCloseTo(-Math.PI / 12 + Math.PI / 2);
+  await page.keyboard.press("l");
+  await expect.poll(async () => (await savedSession(page)).cards[0].rotation).toBeCloseTo(-Math.PI / 12 + Math.PI);
+  await page.locator("#undo").click();
+  await page.locator("#undo").click();
+  await page.locator("#undo").click();
+  await expect(page.locator("#remaining")).toHaveText("78");
+  await page.locator("#redo").click();
+  await expect(page.locator("#remaining")).toHaveText("77");
+  expect((await savedSession(page)).cards[0].cardId).toBe(jumped.cards[0].cardId);
+  await page.locator("#settings-button").click();
+  await page.getByLabel("Som ao embaralhar").uncheck();
+  await page.keyboard.press("Escape");
+  const sounds = await page.evaluate(() => (window as any).__paperSounds);
+  await page.locator("#shuffle-button").click();
+  await expect(page.locator("#remaining")).toHaveText("76");
+  expect(await page.evaluate(() => (window as any).__paperSounds)).toBe(sounds);
 });

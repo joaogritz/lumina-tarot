@@ -77,3 +77,7 @@ A retirada, os cancelamentos e os atalhos foram verificados no navegador; os com
 ### Devolver e embaralhar
 
 A barra principal expõe Devolver (B) e Embaralhar (S). Soltar uma carta sobre o bolo também a devolve, com a animação de retorno existente. A devolução e o embaralhamento são ações independentes no histórico. Embaralhar afeta apenas as cartas restantes e anima o monte, respeitando movimento reduzido; cartas na mesa e descartes são preservados. Os controles ficam desabilitados quando não há carta selecionada ou há menos de duas cartas no bolo, respectivamente.
+
+### Carta que salta, giro lateral e áudio
+
+Cada embaralhamento pela interface ou pelo atalho S sorteia uma chance de 1 em 50 de uma carta saltar fechada para a mesa, com arco mais alto. A saída e o embaralhamento formam uma única ação no histórico; refazer preserva o resultado sorteado. O botão De lado, o atalho L e a ação Girar 90° no inspetor giram a carta sem alterar sua inversão no Tarot. O embaralhamento acompanha um som de papel sintetizado localmente com Web Audio, sem assets externos. Configurações permite desativar o som, com preferência persistida no navegador.

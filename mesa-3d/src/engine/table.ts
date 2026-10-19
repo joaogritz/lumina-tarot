@@ -71,6 +71,8 @@ export class Table {
   private frontLoads: Promise<void>[] = [];
   private motion = new CardMotion(() => this.reducedMotion);
   private pendingArrival?: Vector3;
+  private jumperArrival = false;
+  prepareJumper() { this.jumperArrival = true; }
   private exits = new Map<string, Mesh>();
   private glow: GlowLayer;
   private flames: Mesh[] = [];
@@ -1059,9 +1061,10 @@ export class Table {
         const from = this.pendingArrival || this.deckOrigin();
         this.pendingArrival = undefined;
         this.motion.fly(o.instanceId, mesh, from, mesh.position, {
-          duration: from.y > 0.5 ? 260 : 720,
-          arc: from.y > 0.5 ? 0.12 : 1.2,
+          duration: this.jumperArrival ? 1100 : from.y > 0.5 ? 260 : 720,
+          arc: this.jumperArrival ? 3.4 : from.y > 0.5 ? 0.12 : 1.2,
         });
+        this.jumperArrival = false;
       }
     });
     this.discardedTop.setEnabled(session.discardedCardIds.length > 0);

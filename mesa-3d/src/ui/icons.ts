@@ -27,6 +27,7 @@ export function decorateTools() {
   for (const [id, name, label, key] of [
     ["draw", "draw", "Puxar carta", "D"],
     ["flip-button", "flip", "Virar", "F"],
+    ["sideways-button", "redo", "De lado", "L"],
     ["return-button", "return", "Devolver", "B"],
     ["shuffle-button", "shuffle", "Embaralhar", "S"],
     ["discard-button", "discard", "Descartar", "Del"],

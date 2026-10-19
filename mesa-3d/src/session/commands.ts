@@ -11,7 +11,7 @@ import {
 } from "./model";
 export type Command =
   | { type: "draw"; position?: Position }
-  | { type: "shuffle" }
+  | { type: "shuffle"; jump?: boolean }
   | { type: "move"; id: string; position: Position }
   | { type: "rotate"; id: string; amount: number }
   | {
@@ -22,6 +22,10 @@ export type Command =
   | { type: "note"; note: Note }
   | { type: "title"; title: string }
   | { type: "snap"; enabled: boolean };
+export function shuffleJump(random = randomUnit) {
+  return random() < 1 / 50;
+}
+
 export function applyCommand(
   state: Session,
   command: Command,
@@ -62,9 +66,18 @@ export function applyCommand(
       });
       break;
     }
-    case "shuffle":
+    case "shuffle": {
+      if (s.remainingCardIds.length < 2) return state;
       s.remainingCardIds = shuffle(s.remainingCardIds, random);
+      // Keep shuffle and its optional jumper in a single undoable transaction.
+      if (command.jump) {
+        const next = applyCommand(s, { type: "draw" }, random);
+        const jumper = next.cards.at(-1)!;
+        jumper.rotation = -Math.PI / 12;
+        return next;
+      }
       break;
+    }
     case "move":
       if (target) {
         const p = clampPosition(command.position);

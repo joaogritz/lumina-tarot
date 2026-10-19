@@ -16,7 +16,9 @@ import {
   type Note,
   type Quality,
 } from "./session/model";
-import { History, type Command } from "./session/commands";
+import { ShuffleSound } from "./audio/shuffleSound";
+const shuffleSound = new ShuffleSound();
+import { History, shuffleJump, type Command } from "./session/commands";
 import {
   SessionStorage,
   ConflictError,
@@ -105,8 +107,12 @@ function flush(): Promise<void> {
 }
 function execute(command: Command) {
   if (!history) return;
+  if (command.type === "shuffle") command = { ...command, jump: shuffleJump() };
+  const previousCardCount = session().cards.length;
   if (history.execute(command)) {
-    if (command.type === "draw") {
+    const jumped = command.type === "shuffle" && session().cards.length > previousCardCount;
+    if (jumped) table?.prepareJumper();
+    if (command.type === "draw" || jumped) {
       selected = session().cards.at(-1)?.instanceId;
       announce("Carta retirada, ainda fechada. Use Revelar para vê-la.");
     }
@@ -121,7 +127,11 @@ function execute(command: Command) {
     render();
     if (command.type === "shuffle") {
       table?.shuffleDeck();
-      announce("Bolo embaralhado. As cartas na mesa e os descartes foram preservados.");
+      void shuffleSound.play();
+      if (jumped) notice("Uma carta saltou do bolo! Selecione Virar ou pressione F para revelar.");
+      announce(jumped
+        ? "Uma carta saltou do bolo para a mesa! Continua fechada; F para revelar."
+        : "Bolo embaralhado.");
     }
     if (command.type === "return") announce("Carta devolvida ao bolo. Ctrl Z para desfazer.");
     if (["shuffle", "draw", "reveal", "discard", "return", "note"].includes(command.type))
@@ -311,6 +321,7 @@ function render() {
   $<HTMLButtonElement>("flip-button").disabled = !chosen;
   $<HTMLButtonElement>("discard-button").disabled = !chosen;
   $<HTMLButtonElement>("return-button").disabled = !chosen;
+  $<HTMLButtonElement>("sideways-button").disabled = !chosen;
   $<HTMLButtonElement>("shuffle-button").disabled = s.remainingCardIds.length < 2;
   $<HTMLButtonElement>("draw").disabled = !s.remainingCardIds.length;
   $<HTMLButtonElement>("undo").disabled = !history.past.length;
@@ -433,6 +444,9 @@ function renderDetail() {
         execute({ type: "reveal", id: c.instanceId });
         announce(c.faceUp ? "Carta fechada." : `Carta revelada: ${data.name}.`);
       }),
+      button("Girar 90° · de lado", () =>
+        execute({ type: "rotate", id: c.instanceId, amount: Math.PI / 2 }),
+      ),
       button("Girar 15°", () =>
         execute({ type: "rotate", id: c.instanceId, amount: Math.PI / 12 }),
       ),
@@ -734,6 +748,13 @@ function settings() {
   };
   label.append(select);
   box.append(label);
+  const soundLabel = document.createElement("label");
+  const soundToggle = document.createElement("input");
+  soundToggle.type = "checkbox";
+  soundToggle.checked = shuffleSound.enabled;
+  soundToggle.onchange = () => { shuffleSound.enabled = soundToggle.checked; };
+  soundLabel.append(soundToggle, document.createTextNode(" Som ao embaralhar"));
+  box.append(soundLabel);
   if (history) {
     const titleLabel = document.createElement("label");
     titleLabel.textContent = "Nome da mesa";
@@ -797,6 +818,9 @@ $("settings-button").onclick = settings;
 $("sessions-button").onclick = () => void showSessions();
 $("welcome-saved").onclick = () => void showSessions(true);
 $("draw").onclick = () => execute({ type: "draw" });
+$("sideways-button").onclick = () => {
+  if (selected) execute({ type: "rotate", id: selected, amount: Math.PI / 2 });
+};
 $("return-button").onclick = () => {
   if (selected) execute({ type: "return", id: selected });
 };
@@ -822,6 +846,7 @@ function shortcuts() {
     ["S", "Embaralhar as cartas restantes do bolo"],
     ["F / Espaço", "Virar a carta selecionada"],
     ["Delete / Backspace", "Descartar a seleção"],
+    ["L", "Girar a carta 90° · deixar de lado"],
     ["R / Shift R", "Girar / inverter no Tarot"],
     ["← ↑ ↓ →", "Mover no canvas · Shift para passos maiores"],
     ["[ / ]", "Selecionar a carta anterior / seguinte"],
@@ -880,7 +905,6 @@ $("organize").onclick = () => {
   box.append(
     button("Embaralhar restantes", () => {
       execute({ type: "shuffle" });
-      notice("Somente as cartas restantes foram embaralhadas.");
       closeModal();
     }),
   );
@@ -1013,6 +1037,13 @@ document.addEventListener("keydown", (e) => {
     table?.cancelDrag();
     execute({ type: "cardId" in o ? "discard" : "deleteNote", id: selected });
     announce("Objeto removido. Ctrl Z para desfazer.");
+    return;
+  }
+  if (key === "l" && "cardId" in o && !e.repeat) {
+    e.preventDefault();
+    table?.cancelDrag();
+    execute({ type: "rotate", id: selected, amount: Math.PI / 2 });
+    announce("Carta girada em 90 graus.");
     return;
   }
   if (key === "r" && !e.repeat) {

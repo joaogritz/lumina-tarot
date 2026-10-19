@@ -7,7 +7,7 @@ import {
   shuffle,
   LIMITS,
 } from "../mesa-3d/src/session/model";
-import { applyCommand, History } from "../mesa-3d/src/session/commands";
+import { applyCommand, History, shuffleJump } from "../mesa-3d/src/session/commands";
 
 test("draws every card exactly once; shuffled remainder survives serialization", () => {
   let s = createSession("tarot", "Leitura", true);
@@ -241,4 +241,43 @@ test("return and shuffle preserve the complete deck and can both be undone", () 
   h.undo();
   assert.deepEqual(h.state.cards, before.cards);
   assert.deepEqual(h.state.remainingCardIds, before.remainingCardIds);
+});
+
+test("shuffle jump has a 1 in 50 threshold and never triggers at the boundary", () => {
+  assert.equal(shuffleJump(() => 0), true);
+  assert.equal(shuffleJump(() => 1 / 50 - Number.EPSILON), true);
+  assert.equal(shuffleJump(() => 1 / 50), false);
+  assert.equal(shuffleJump(() => 0.99999), false);
+  assert.equal(Array.from({ length: 5000 }, (_, i) => shuffleJump(() => i / 5000)).filter(Boolean).length, 100);
+});
+
+test("a shuffle jumper conserves cards, remains closed and undoes atomically", () => {
+  for (const deck of ["tarot", "lenormand"] as const) {
+    const h = new History(createSession(deck));
+    h.execute({ type: "draw" });
+    const original = structuredClone(h.state);
+    h.execute({ type: "shuffle", jump: true });
+    const jumped = structuredClone(h.state);
+    assert.equal(jumped.cards.length, original.cards.length + 1);
+    assert.equal(jumped.remainingCardIds.length, original.remainingCardIds.length - 1);
+    assert.deepEqual(jumped.cards[0], original.cards[0]);
+    assert.equal(jumped.cards.at(-1)!.faceUp, false);
+    assert.equal(jumped.cards.at(-1)!.rotation, -Math.PI / 12);
+    const all = [...jumped.cards.map(c => c.cardId), ...jumped.remainingCardIds];
+    assert.equal(new Set(all).size, all.length);
+    h.undo();
+    assert.deepEqual(h.state.cards, original.cards);
+    assert.deepEqual(h.state.remainingCardIds, original.remainingCardIds);
+    h.redo();
+    assert.deepEqual(h.state.cards, jumped.cards);
+    assert.deepEqual(h.state.remainingCardIds, jumped.remainingCardIds);
+  }
+});
+
+test("empty or one-card piles cannot trigger phantom shuffle jumpers", () => {
+  let s = createSession("lenormand");
+  for (let i = 0; i < 35; i++) s = applyCommand(s, { type: "draw" });
+  assert.equal(applyCommand(s, { type: "shuffle", jump: true }), s);
+  s = applyCommand(s, { type: "draw" });
+  assert.equal(applyCommand(s, { type: "shuffle", jump: true }), s);
 });
