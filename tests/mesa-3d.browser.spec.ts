@@ -726,6 +726,7 @@ test("shuffle jumper, sideways rotation, audio and undo work together", async ({
   await expect(page.locator("#remaining")).toHaveText("77");
   await expect(page.locator("#sideways-button")).toBeEnabled();
   await expect.poll(() => page.evaluate(() => (window as any).__paperSounds)).toBeGreaterThan(0);
+  await expect(page.locator("#save-status")).toHaveText("Salvo neste navegador");
   const jumped = await savedSession(page);
   expect(jumped.cards).toHaveLength(1);
   expect(jumped.cards[0].faceUp).toBe(false);
@@ -739,6 +740,7 @@ test("shuffle jumper, sideways rotation, audio and undo work together", async ({
   await expect(page.locator("#remaining")).toHaveText("78");
   await page.locator("#redo").click();
   await expect(page.locator("#remaining")).toHaveText("77");
+  await expect(page.locator("#save-status")).toHaveText("Salvo neste navegador");
   expect((await savedSession(page)).cards[0].cardId).toBe(jumped.cards[0].cardId);
   await page.locator("#settings-button").click();
   await page.getByLabel("Som ao embaralhar").uncheck();
