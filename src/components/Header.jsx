@@ -70,6 +70,7 @@ export const Header = ({
     <header className={`sanctuary-header relative w-full max-w-7xl mx-auto pt-4 sm:pt-6 pb-4 px-3 sm:px-4 flex flex-col items-center text-center transition-opacity duration-300 ${isZenMode ? 'opacity-20 hover:opacity-100' : 'opacity-100'}`}>
       {/* Top Utility Bar */}
       <div className="w-full flex flex-wrap items-center justify-between gap-2.5 mb-4">
+        <a href={`${import.meta.env.BASE_URL}mesa-3d/`} className="inline-flex items-center px-3 py-2 rounded-sm border border-amber-500/40 text-amber-200 text-xs font-cinzel" title="Abrir a Mesa Livre 3D">✧ Mesa 3D</a>
         {/* Left: Brand Tag */}
         <div className="flex items-center gap-2 text-amber-400/80">
           <Moon className="w-4 h-4 text-amber-400" />

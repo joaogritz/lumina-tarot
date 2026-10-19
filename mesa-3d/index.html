@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#080706" />
+    <meta
+      name="description"
+      content="Seu observatório íntimo de Tarot. Uma mesa livre para cartas, posições e reflexões."
+    />
+    <title>Mesa 3D · Lumina Tarot</title>
+    <link rel="icon" href="../icon.svg" />
+    <script type="module">
+      // Older development builds registered a worker; release it without touching saved tables.
+      if (import.meta.env.DEV && "serviceWorker" in navigator) {
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        await Promise.all(
+          registrations.map((registration) => registration.unregister()),
+        );
+        if (
+          navigator.serviceWorker.controller &&
+          !sessionStorage.getItem("lumina_mesa_dev_worker_reset")
+        ) {
+          sessionStorage.setItem("lumina_mesa_dev_worker_reset", "1");
+          location.reload();
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <div id="app">
+      <header class="topbar">
+        <a href="../" id="back" class="back">← <span>Lumina</span></a>
+        <div class="identity">
+          <span class="eyebrow">LUMINA TAROT · SANTUÁRIO DOS ARCANOS</span>
+          <h1 id="table-title">Mesa livre <em>3D</em></h1>
+        </div>
+        <div class="top-actions">
+          <span id="save-status" role="status">Sua leitura, no seu tempo</span
+          ><button id="sessions-button">Mesas</button
+          ><button id="settings-button" aria-label="Preferências">⚙</button>
+        </div>
+      </header>
+      <main id="workspace">
+        <div id="viewport">
+          <canvas
+            id="table-canvas"
+            aria-label="Mesa tridimensional. Use a lista de objetos para operar pelo teclado."
+            tabindex="0"
+          ></canvas>
+          <div class="scene-context" aria-hidden="true">
+            <span class="eyebrow">O OBSERVATÓRIO</span
+            ><span class="scene-name">Sua mesa, seu ritual.</span
+            ><span id="deck-caption">Uma leitura no seu tempo</span>
+          </div>
+          <div class="table-caption" aria-hidden="true">
+            <span>✧</span><small>UM ESPAÇO PARA ESCUTAR</small>
+          </div>
+          <p id="hint">Puxe uma carta. Encontre seu próprio caminho.</p>
+        </div>
+        <aside id="inspector" aria-label="Objetos e seleção" hidden>
+          <div class="panel-heading">
+            <span class="eyebrow">SUA LEITURA</span
+            ><button id="close-panel" aria-label="Fechar painel">×</button>
+          </div>
+          <div id="selection-detail"></div>
+          <h2>Na mesa <span id="object-count"></span></h2>
+          <div id="object-list" class="object-list"></div>
+        </aside>
+      </main>
+      <nav class="toolbar" aria-label="Ferramentas da mesa">
+        <button id="draw" aria-keyshortcuts="D" class="primary">
+          ✧ Puxar carta <small id="remaining"></small>
+        </button>
+        <button
+          id="flip-button"
+          aria-keyshortcuts="F"
+          title="Virar a seleção (F)"
+        >
+          Virar
+        </button>
+        <button
+          id="discard-button"
+          aria-keyshortcuts="Delete Backspace"
+          title="Descartar a seleção (Delete)"
+        >
+          Descartar
+        </button>
+        <button id="return-button" aria-keyshortcuts="B" title="Devolver a carta ao bolo (B)">Devolver</button>
+        <button id="shuffle-button" aria-keyshortcuts="S" title="Embaralhar as cartas do bolo (S)">Embaralhar</button>
+        <button id="add-note">＋ Nota</button
+        ><button id="add-position">＋ Posição</button>
+        <button id="objects" aria-controls="inspector" aria-expanded="false">
+          ☷ Objetos
+        </button>
+        <button id="organize">▦ Organizar</button>
+        <span class="divider"></span>
+        <button id="undo" aria-label="Desfazer" title="Desfazer (Ctrl Z)">
+          ↶</button
+        ><button id="redo" aria-label="Refazer" title="Refazer (Ctrl Shift Z)">
+          ↷
+        </button>
+        <button id="camera-button">◎ Câmera</button>
+        <button
+          id="shortcuts-button"
+          aria-label="Atalhos de teclado"
+          title="Atalhos (?)"
+        >
+          ?
+        </button>
+      </nav>
+      <p id="announcement" role="status" class="sr-only" aria-live="polite"></p>
+      <div id="notice" role="status" hidden></div>
+    </div>
+    <dialog id="welcome" aria-labelledby="welcome-title">
+      <div class="welcome-art" aria-hidden="true">
+        <div class="orbit orbit-a"></div>
+        <div class="orbit orbit-b"></div>
+        <div class="illustrated-card">✧</div>
+        <span class="constellation">✦</span>
+      </div>
+      <div class="welcome-copy">
+        <span class="eyebrow">LUMINA TAROT · MESA LIVRE</span>
+        <h2 id="welcome-title">
+          Um pequeno universo.<br /><em>Sua própria leitura.</em>
+        </h2>
+        <p>
+          Disponha as cartas, nomeie suas posições e dê espaço às suas
+          reflexões.
+        </p>
+        <form id="new-session-form">
+          <label
+            >Nome da mesa
+            <input
+              id="new-title"
+              maxlength="120"
+              placeholder="O que pede sua atenção hoje?"
+          /></label>
+          <fieldset>
+            <legend>Escolha seu baralho</legend>
+            <label class="deck-option"
+              ><input type="radio" name="deck" value="tarot" checked /><span
+                ><strong>Tarot</strong
+                ><small>78 cartas · Rider–Waite–Smith</small></span
+              ><span>☾</span></label
+            ><label class="deck-option"
+              ><input type="radio" name="deck" value="lenormand" /><span
+                ><strong>Baralho Cigano</strong
+                ><small>36 cartas · Petit Lenormand</small></span
+              ><span>✿</span></label
+            >
+          </fieldset>
+          <label class="check"
+            ><input type="checkbox" id="allow-reversed" /> Permitir cartas
+            invertidas</label
+          >
+          <button type="submit" class="primary wide">
+            Abrir nova mesa <span>↗</span>
+          </button>
+        </form>
+        <button id="continue" class="wide" hidden>
+          Continuar última sessão</button
+        ><button id="welcome-saved" class="text-button">
+          Mesas salvas e importar arquivo
+        </button>
+        <a href="../" class="text-link">← Voltar ao Lumina</a>
+        <p class="local-note">Salvamento neste navegador · Sem conta</p>
+      </div>
+    </dialog>
+    <dialog id="modal" aria-labelledby="modal-title">
+      <div class="modal-heading">
+        <h2 id="modal-title"></h2>
+        <button id="modal-close" aria-label="Fechar">×</button>
+      </div>
+      <div id="modal-body"></div>
+    </dialog>
+    <div id="loading" role="status" aria-live="polite" hidden>
+      <div class="loading-brand" aria-hidden="true">LUMINA <span>TAROT</span></div>
+      <div class="loading-content">
+        <div class="loading-celestial" aria-hidden="true">
+          <div class="loading-orbit loading-orbit-outer"></div>
+          <div class="loading-orbit loading-orbit-inner"></div>
+          <span class="loading-star loading-star-one">✦</span>
+          <span class="loading-star loading-star-two">✧</span>
+          <div class="loading-cards">
+            <i class="loading-card"></i><i class="loading-card"></i><i class="loading-card"><span>☾</span></i>
+          </div>
+        </div>
+        <p class="loading-eyebrow">UM INSTANTE DE PRESENÇA</p>
+        <h2>Seu santuário está<br /><em>ganhando forma.</em></h2>
+        <div class="loading-divider" aria-hidden="true"><span>✧</span></div>
+        <p id="loading-step">Preparando seu observatório…</p>
+        <div class="loading-dots" aria-hidden="true"><i></i><i></i><i></i></div>
+      </div>
+      <p class="loading-footer">Respire. A próxima carta pode abrir um novo olhar.</p>
+    </div>
+    <noscript
+      >Ative JavaScript para abrir a mesa.
+      <a href="../">Voltar ao Lumina</a></noscript
+    >
+    <script type="module" src="./src/bootstrap.ts"></script>
+  </body>
+</html>

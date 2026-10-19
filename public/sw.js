@@ -1,83 +1,91 @@
-// Lumina Tarot Service Worker (Resilient Offline Cache & Network-First HTML Shell)
-const CACHE_NAME = 'lumina-tarot-v3.0';
-
+// Separate navigation shells. The main visit never prefetches the 3D experience.
+const CACHE_NAME = "lumina-tarot-v4.1";
 const OFFLINE_ASSETS = [
-  './',
-  './index.html',
-  './manifest.webmanifest',
-  './icon.svg',
-  './robots.txt'
+  "./",
+  "./index.html",
+  "./manifest.webmanifest",
+  "./icon.svg",
+  "./robots.txt",
 ];
-
-self.addEventListener('install', (event) => {
+const scope = new URL("./", self.location.href);
+const mesaShell = new URL("mesa-3d/index.html", scope).href;
+const mainShell = new URL("index.html", scope).href;
+self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(OFFLINE_ASSETS).catch((err) => {
-        console.warn('Pre-caching offline assets notice:', err);
-      });
-    })
+    caches
+      .open(CACHE_NAME)
+      .then((cache) => cache.addAll(OFFLINE_ASSETS))
+      .catch(() => {}),
   );
   self.skipWaiting();
 });
-
-self.addEventListener('activate', (event) => {
+self.addEventListener("activate", (event) => {
+  // Retain the previous cache for clients still running its hashed bundles.
   event.waitUntil(
-    caches.keys().then((keys) => {
-      return Promise.all(
-        keys.map((key) => {
-          if (key.startsWith('lumina-tarot-') && key !== CACHE_NAME) {
-            return caches.delete(key);
-          }
-        })
-      );
-    })
+    caches.keys().then((keys) =>
+      Promise.all(
+        keys
+          .filter((k) => k.startsWith("lumina-tarot-") && k !== CACHE_NAME)
+          .slice(0, -1)
+          .map((k) => caches.delete(k)),
+      ),
+    ),
   );
   self.clients.claim();
 });
-
-self.addEventListener('fetch', (event) => {
-  if (event.request.method !== 'GET') return;
-  const url = event.request.url;
-  if (new URL(url).origin !== self.location.origin) return;
-
-  // Skip external APIs
-  if (url.includes('workers.dev') || url.includes('googleapis.com') || url.includes('gstatic.com')) {
-    return;
-  }
-
-  // Network-First for HTML navigation to prevent stale chunk hash mismatch on new deployments
-  if (event.request.mode === 'navigate' || url.endsWith('.html') || url.endsWith('/')) {
+self.addEventListener("fetch", (event) => {
+  if (event.request.method !== "GET") return;
+  const url = new URL(event.request.url);
+  if (url.origin !== self.location.origin) return;
+  // Never cache development sources or Vite's module graph.
+  if (/\/(?:src|@vite|@fs|node_modules)\//.test(url.pathname)) return;
+  const isMesa = url.pathname.startsWith(new URL("mesa-3d/", scope).pathname);
+  if (event.request.mode === "navigate") {
+    const shell = isMesa ? mesaShell : mainShell;
     event.respondWith(
       fetch(event.request)
         .then((response) => {
-          if (response && response.status === 200) {
-            const clone = response.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+          if (response.status === 200) {
+            const copy = response.clone();
+            event.waitUntil(
+              caches.open(CACHE_NAME).then((cache) => cache.put(shell, copy)),
+            );
           }
           return response;
         })
-        .catch(() => caches.match(event.request).then((res) => res || caches.match('./index.html')))
+        .catch(async () => {
+          const cached = await caches.match(shell);
+          if (cached) return cached;
+          return new Response(
+            `<!doctype html><html lang="pt-BR"><meta name="viewport" content="width=device-width"><title>Mesa offline · Lumina</title><body style="background:#111d29;color:#f1e9d9;font:18px system-ui;padding:32px"><h1>A mesa precisa de conexão</h1><p>Os recursos desta experiência ainda não estão disponíveis neste navegador. Reconecte para abrir a mesa. As sessões salvas permanecem no dispositivo.</p><p><a style="color:#d9bd83" href="${url.href}">Tentar novamente</a></p><a style="color:#d9bd83" href="${scope.href}">Voltar ao Lumina</a></body></html>`,
+            {
+              status: 503,
+              headers: { "Content-Type": "text/html; charset=utf-8" },
+            },
+          );
+        }),
     );
     return;
   }
-
-  // Cache-first with network fallback for static hashed assets
   event.respondWith(
-    caches.match(event.request).then((cached) => {
-      if (cached) {
-        return cached;
-      }
-      return fetch(event.request).then((response) => {
-        if (!response || response.status !== 200 || response.type !== 'basic') {
-          return response;
-        }
-        const clone = response.clone();
-        caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
-        return response;
-      }).catch(() => {
-        // If chunk failed to fetch and is not in cache, return 404 so lazyWithRetry triggers reload
-        return new Response('Asset not found', { status: 404, statusText: 'Not Found' });
-      });
-    })
+    caches.match(event.request).then(
+      (cached) =>
+        cached ||
+        fetch(event.request)
+          .then((response) => {
+            if (response.status === 200 && response.type === "basic") {
+              const copy = response.clone();
+              event.waitUntil(
+                caches
+                  .open(CACHE_NAME)
+                  .then((cache) => cache.put(event.request, copy)),
+              );
+            }
+            return response;
+          })
+          .catch(
+            () => new Response("Recurso indisponível offline", { status: 503 }),
+          ),
+    ),
   );
 });

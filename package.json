@@ -7,19 +7,28 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "node --test tests/*.test.mjs"
+    "test": "node --test tests/*.test.mjs",
+    "typecheck": "tsc --noEmit",
+    "test:mesa": "tsx --test tests/mesa-3d.test.ts",
+    "test:browser": "playwright test"
   },
   "dependencies": {
+    "@babylonjs/core": "9.31.0",
     "canvas-confetti": "^1.9.4",
     "framer-motion": "^13.1.0",
+    "idb": "8.0.4",
     "lucide-react": "^1.16.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
   "devDependencies": {
+    "@playwright/test": "1.64.1",
     "@tailwindcss/vite": "^4.1.1",
+    "@types/node": "26.6.5",
     "@vitejs/plugin-react": "^4.3.4",
     "tailwindcss": "^4.1.1",
+    "tsx": "4.23.15",
+    "typescript": "7.0.2",
     "vite": "^6.4.3"
   }
 }

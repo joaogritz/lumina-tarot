@@ -36,8 +36,27 @@ jobs:
       - name: Test Application
         run: npm test
 
+      - name: Check Mesa TypeScript and Rules
+        run: npm run typecheck && npm run test:mesa
+
       - name: Build Application
         run: npm run build
+
+      - name: Verify Both Entrypoints
+        run: test -f dist/index.html && test -f dist/mesa-3d/index.html
+
+      - name: Install Browser
+        run: npx playwright install --with-deps chromium
+
+      - name: Test Mesa in Browser
+        run: npm run test:browser
+
+      - name: Upload Browser Evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mesa-browser-results
+          path: test-results/
 
       - name: Setup Pages
         uses: actions/configure-pages@v4

@@ -36,3 +36,7 @@ Thumbs.db
 .eslintcache
 .cache
 .pnpm-store/
+
+# Browser verification artifacts
+/test-results/
+/playwright-report/

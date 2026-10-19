@@ -108,3 +108,9 @@ As imagens são servidas pelo próprio projeto. As fontes e condições de uso e
 ## Licença
 
 O código do projeto está sob a [licença MIT](LICENSE). As fontes e condições de uso das artes estão nos documentos dos conjuntos acima.
+
+## Mesa Livre 3D
+
+Acesse **Mesa 3D** no cabeçalho ou abra `/mesa-3d/`. É uma aplicação independente com Tarot e Baralho Cigano, manipulação de cartas, notas, posições, significados, histórico reversível e mesas salvas no navegador. Importação e exportação usam JSON; as leituras do diário tradicional permanecem independentes.
+
+Desenvolvimento: `npm run dev`. Verificações: `npm run typecheck`, `npm run test:mesa`, `npm run build` e `npm run test:browser` (instale antes o Chromium com `npx playwright install chromium`). Consulte [implementação, controles, assets e limitações de validação](docs/mesa-3d/IMPLEMENTACAO.md).
