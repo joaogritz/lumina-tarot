@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://joaogritz.github.io/lumina-tarot/sitemap.xml
+Sitemap: https://lumina-tarot-amber.vercel.app/sitemap.xml

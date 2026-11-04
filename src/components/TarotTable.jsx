@@ -27,7 +27,7 @@ const lazyWithRetry = (componentImport) =>
       return component;
     } catch (error) {
       if (!pageHasBeenRefreshed && typeof window !== 'undefined') {
-        // Chunk hash mismatch on new GitHub Pages deployment -> Auto-refresh to load new assets
+        // Chunk hash mismatch after a new deployment -> Auto-refresh to load new assets
         try { sessionStorage.setItem('lumina_chunk_recovered', 'true'); } catch { throw error; }
         window.location.reload();
         return new Promise(() => {}); // Wait for page refresh

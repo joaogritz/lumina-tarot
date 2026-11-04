@@ -25,8 +25,8 @@ npm run build
 npm run test:browser
 ```
 
-Todas precisam passar. O job `test` do GitHub Actions roda em todo PR, e a `main` só publica
-o site depois que ele passa.
+Todas precisam passar. O job `test` do GitHub Actions roda em todo PR e é obrigatório
+para a `main`. A Vercel gera uma prévia de cada PR.
 
 ## Diretrizes
 
