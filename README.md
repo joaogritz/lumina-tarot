@@ -3,7 +3,7 @@
 [![CI](https://github.com/joaogritz/lumina-tarot/actions/workflows/ci.yml/badge.svg)](https://github.com/joaogritz/lumina-tarot/actions/workflows/ci.yml)
 [![Licença MIT](https://img.shields.io/badge/licen%C3%A7a-MIT-c9a45c)](LICENSE)
 
-**[Abrir o Lumina →](https://lumina-tarot-amber.vercel.app/)**
+**[Abrir o Lumina →](https://luminatarot.app/)**
 
 ![Lumina Tarot: a carta A Estrela sobre o verso dourado do baralho](public/og-image.png)
 
@@ -80,7 +80,7 @@ O backend está no arquivo independente [`cloudflare_worker_code.js`](cloudflare
 | Configuração | Obrigatória | Uso |
 | --- | --- | --- |
 | `GEMINI_API_KEY` | Sim | Segredo com a chave do provedor, mantido somente no Worker. |
-| `ALLOWED_ORIGINS` | Sim | Origens separadas por vírgula, como `https://lumina-tarot-amber.vercel.app`. Aceita curinga de subdomínio (`https://*.exemplo.com`); `*` sozinho é ignorado. |
+| `ALLOWED_ORIGINS` | Sim | Origens separadas por vírgula, como `https://luminatarot.app`. Aceita curinga de subdomínio (`https://*.exemplo.com`); `*` sozinho é ignorado. |
 | `ORACLE_RATE_LIMITER` | Sim | Binding de rate limit por IP. Se faltar ou falhar, o Worker responde 503. |
 | `GEMINI_MODEL` | Não | Modelo preferido. O Worker tenta no máximo dois modelos por consulta. |
 | `ALLOW_LOCALHOST` | Não | `true` libera `localhost` e `127.0.0.1`. Use só em desenvolvimento. |
@@ -94,7 +94,7 @@ Nunca coloque a chave do Gemini em variáveis `VITE_*`: elas ficam expostas no J
 
 ## Publicação
 
-O site oficial fica na Vercel: <https://lumina-tarot-amber.vercel.app/>.
+O site oficial fica em <https://luminatarot.app/>, hospedado na Vercel. O `www.luminatarot.app` redireciona para ele, e o Worker de interpretação responde em `https://api.luminatarot.app` (domínio personalizado do Worker na Cloudflare). O DNS do domínio fica na Cloudflare, com os registros da Vercel em modo "DNS only".
 
 - **Vercel** publica pela integração com o GitHub: cada push na `main` gera a produção, e cada pull request gera uma prévia. O comando de build é `npm run build` e a pasta publicada é `dist/`.
 - **[`vercel.json`](vercel.json)** envia cabeçalhos de segurança (proteção contra o site ser embutido em outro, `nosniff`, `Referrer-Policy`, `Permissions-Policy`), cache longo para os arquivos com hash em `/assets/` e `no-cache` para o service worker. A CSP completa continua na tag `<meta>` gerada no build.

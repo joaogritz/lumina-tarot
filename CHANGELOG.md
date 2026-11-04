@@ -3,6 +3,16 @@
 Mudanças relevantes do projeto. O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 e as versões seguem [SemVer](https://semver.org/lang/pt-BR/).
 
+## [1.2.1] - 2026-11-04
+
+### Alterado
+- Domínio próprio: o site oficial passa a ser https://luminatarot.app (Vercel), com
+  `www.luminatarot.app` redirecionando para ele.
+- O Worker de interpretação responde em https://api.luminatarot.app; o endereço antigo em
+  `workers.dev`, que expunha o usuário de email do mantenedor, deixa de ser usado pelo site.
+- Prévia em redes sociais, sitemap, robots, CSP e documentação apontam para o domínio novo.
+- GitHub Pages descontinuado; publicação somente pela Vercel, com cabeçalhos de segurança em `vercel.json`.
+
 ## [1.2.0] - 2026-11-04
 
 ### Alterado
@@ -67,7 +77,8 @@ e as versões seguem [SemVer](https://semver.org/lang/pt-BR/).
 ### Alterado
 - Cartas, grade do baralho, legibilidade, posições vazias e prévia em redes sociais.
 
-[1.2.0]: https://github.com/joaogritz/lumina-tarot/compare/e8ca17a...HEAD
+[1.2.1]: https://github.com/joaogritz/lumina-tarot/compare/f6abb1c...HEAD
+[1.2.0]: https://github.com/joaogritz/lumina-tarot/pull/16
 [1.1.1]: https://github.com/joaogritz/lumina-tarot/pull/11
 [1.1.0]: https://github.com/joaogritz/lumina-tarot/pull/3
 [1.0.2]: https://github.com/joaogritz/lumina-tarot/pull/2

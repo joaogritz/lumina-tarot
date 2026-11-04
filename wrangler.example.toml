@@ -6,7 +6,7 @@ compatibility_date = "2026-11-01"
 
 [vars]
 # Origens que podem chamar o Worker, separadas por vírgula. "*" sozinho é ignorado.
-ALLOWED_ORIGINS = "https://lumina-tarot-amber.vercel.app"
+ALLOWED_ORIGINS = "https://luminatarot.app"
 # Opcional: modelo preferido. O Worker tenta no máximo dois modelos por consulta.
 # GEMINI_MODEL = "gemini-2.5-flash-lite"
 # Somente para desenvolvimento local (wrangler dev):

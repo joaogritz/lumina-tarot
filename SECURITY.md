@@ -13,7 +13,7 @@ na `main` e registradas no [CHANGELOG](CHANGELOG.md).
 
 | Componente | No escopo |
 | --- | --- |
-| Site publicado em `lumina-tarot-amber.vercel.app` (React e Mesa 3D) | Sim |
+| Site publicado em `luminatarot.app` (React e Mesa 3D) | Sim |
 | Worker de interpretação (`cloudflare_worker_code.js`) | Sim |
 | Workflow de CI/CD (`.github/workflows`) | Sim |
 | Contas e infraestrutura da Cloudflare, do Google ou do GitHub | Não: reporte aos respectivos fornecedores |
