@@ -348,7 +348,7 @@ export const generateOfflineYesNoReading = ({ card, userQuestion, evaluation }) 
 
   const evalData = evaluation || getYesNoEvaluation(card, card?.isReversed);
 
-  let directAnswer = '';
+  let directAnswer;
   if (q) {
     directAnswer = `Para a sua dúvida ("${q}"): o arcano ${card?.name || 'revelado'} ${card?.isReversed ? '(Invertido)' : ''} indica ${evalData.summary.toLowerCase()}`;
   } else {
