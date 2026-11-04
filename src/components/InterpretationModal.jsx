@@ -23,6 +23,7 @@ export const InterpretationModal = ({
   const [saved, setSaved] = useState(false);
   const [aiReading, setAiReading] = useState(null);
   const [isLoadingAi, setIsLoadingAi] = useState(true);
+  const [attempt, setAttempt] = useState(0);
   const [selectedCardDetail, setSelectedCardDetail] = useState(null);
   const [shareNotice, setShareNotice] = useState(false);
 
@@ -36,26 +37,31 @@ export const InterpretationModal = ({
   };
 
   useEffect(() => {
-    // Generate real AI reading via Cloudflare Worker Proxy
+    // The reading comes only from the oracle; on failure the user gets a retry, never local text.
+    let active = true;
     const loadInterpretation = async () => {
       setIsLoadingAi(true);
+      let result;
       try {
-        const result = await aiOracleService.generateRealAiReading({
+        result = await aiOracleService.generateRealAiReading({
           spreadConfig,
           chosenCards,
           userQuestion
         });
-        setAiReading(result);
       } catch (err) {
         console.error('Error generating AI reading:', err);
-        setAiReading(aiOracleService.generateOfflineFallback({ spreadConfig, chosenCards, userQuestion }));
-      } finally {
-        setIsLoadingAi(false);
+        result = { source: 'unavailable' };
       }
+      if (!active) return;
+      setAiReading(result);
+      setIsLoadingAi(false);
     };
 
     loadInterpretation();
-  }, [spreadConfig, chosenCards, userQuestion]);
+    return () => { active = false; };
+  }, [spreadConfig, chosenCards, userQuestion, attempt]);
+
+  const unavailable = !aiReading || aiReading.source === 'unavailable';
 
   const getReadingText = () => {
     const lines = [
@@ -215,6 +221,23 @@ export const InterpretationModal = ({
                 <p className="font-cinzel text-xs sm:text-sm text-amber-200 animate-pulse">
                   Analisando as cartas e preparando uma resposta clara para você...
                 </p>
+              </div>
+            ) : unavailable ? (
+              <div role="alert" className="py-8 flex flex-col items-center justify-center gap-3 text-center animate-fade-in">
+                <p className="font-cinzel text-sm text-amber-200">
+                  Não foi possível consultar o oráculo agora.
+                </p>
+                <p className="text-xs text-slate-400 max-w-sm">
+                  Suas cartas continuam aqui. Tente de novo em alguns instantes.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => { audio.playSelect(); setAttempt(n => n + 1); }}
+                  className="mt-1 px-4 py-2 rounded-sm bg-amber-500/15 hover:bg-amber-500/25 border border-amber-400/60 text-amber-200 text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer active:scale-95"
+                >
+                  <RotateCcw className="w-4 h-4" aria-hidden="true" />
+                  <span>Tentar novamente</span>
+                </button>
               </div>
             ) : aiReading?.diagnosis ? (
               <div className="space-y-3.5 animate-fade-in text-xs sm:text-sm leading-relaxed text-slate-200 font-sans">
@@ -405,7 +428,7 @@ export const InterpretationModal = ({
 
             <button
               type="button"
-              disabled={isLoadingAi || saved}
+              disabled={isLoadingAi || unavailable || saved}
               onClick={() => {
                 audio.playSelect();
                 const result = historyService.saveReading({

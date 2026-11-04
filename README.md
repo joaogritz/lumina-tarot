@@ -49,9 +49,9 @@ Abra o endereço exibido pelo Vite, normalmente `http://localhost:5173`.
 
 ## Interpretações e privacidade
 
-Ao consultar uma tiragem ou o Sim ou Não, a aplicação gera uma interpretação online por meio de um Cloudflare Worker conectado ao Google Gemini. Se o serviço falhar ou não retornar uma resposta utilizável, o frontend recorre à interpretação local.
+Ao consultar uma tiragem ou o Sim ou Não, a aplicação gera uma interpretação online por meio de um Cloudflare Worker. O Worker consulta primeiro o Cloudflare Workers AI (Gemma 4 26B e, se ele falhar, gpt-oss-120b) e, por último, o Google Gemini, tudo dentro de 29 s. Não há leitura gerada localmente: se nenhum dos dois responder, o site avisa que não foi possível consultar e oferece **Tentar novamente**, mantendo as cartas tiradas. As salvaguardas éticas (temas como autolesão) respondem localmente, sem consultar o serviço.
 
-A interface não menciona a IA; a [política de privacidade](public/privacidade.html), publicada em `/privacidade.html` e linkada no rodapé e na janela da interpretação, explica que a pergunta e as cartas são enviadas ao Worker e ao Google Gemini. A interpretação online é sempre usada; o modo local entra só quando o serviço falha.
+A interface não menciona a IA; a [política de privacidade](public/privacidade.html), publicada em `/privacidade.html` e linkada no rodapé e na janela da interpretação, explica que a pergunta e as cartas são enviadas ao Worker, ao Google Gemini e, quando necessário, ao Workers AI.
 
 O endereço padrão do Worker fica em [`src/config.js`](src/config.js). Para usar seu próprio serviço, copie [`.env.example`](.env.example) para `.env.local` na raiz do projeto e ajuste o endereço:
 
@@ -69,20 +69,22 @@ O service worker permite reutilizar recursos já carregados quando não há cone
 
 ## Configurar seu próprio Worker
 
-O backend está no arquivo independente [`cloudflare_worker_code.js`](cloudflare_worker_code.js). Ele **recusa por padrão**: sem as configurações abaixo, responde 403 ou 503 e não chama o Gemini.
+O backend está no arquivo independente [`cloudflare_worker_code.js`](cloudflare_worker_code.js). Ele **recusa por padrão**: sem as configurações abaixo, responde 403 ou 503 e não chama nenhum provedor.
 
 1. Copie [`wrangler.example.toml`](wrangler.example.toml) para `wrangler.toml` (ignorado pelo git) e ajuste `ALLOWED_ORIGINS`.
-2. Cadastre a chave como segredo: `npx wrangler secret put GEMINI_API_KEY`.
+2. Cadastre a chave como segredo: `npx wrangler secret put GEMINI_API_KEY`. O binding `AI` (Workers AI) já vem no `wrangler.example.toml`; no painel, fica em **Settings → Bindings → Add binding → Workers AI**.
 3. Publique: `npx wrangler deploy`.
 4. Confira: `curl https://seu-worker.workers.dev/health` deve responder `{"status":"ok"}`.
 5. No Google Cloud, defina um orçamento com alerta para o projeto da chave da API.
 
 | Configuração | Obrigatória | Uso |
 | --- | --- | --- |
-| `GEMINI_API_KEY` | Sim | Segredo com a chave do provedor, mantido somente no Worker. |
+| `GEMINI_API_KEY` | Um dos dois | Segredo com a chave do Gemini, mantido somente no Worker. |
+| `AI` | Um dos dois | Binding do Workers AI, consultado primeiro; o Gemini fica como reserva. Recomendado: o plano gratuito do Gemini fica lento ou indisponível em horários de pico. |
 | `ALLOWED_ORIGINS` | Sim | Origens separadas por vírgula, como `https://luminatarot.app`. Aceita curinga de subdomínio (`https://*.exemplo.com`); `*` sozinho é ignorado. |
 | `ORACLE_RATE_LIMITER` | Sim | Binding de rate limit por IP. Se faltar ou falhar, o Worker responde 503. |
-| `GEMINI_MODEL` | Não | Modelo preferido. O Worker tenta no máximo dois modelos por consulta. |
+| `GEMINI_MODEL` | Não | Modelo do Gemini (padrão `gemini-3.5-flash-lite`), tentado uma vez, por até 12 s, quando os modelos do Workers AI falham e ainda há tempo. Prefira versões fixas a apelidos `-latest`. |
+| `WORKERS_AI_MODEL` | Não | Modelo do Workers AI tentado antes da cadeia padrão (`@cf/google/gemma-4-26b-a4b-it`, depois `@cf/openai/gpt-oss-120b`). Precisa começar com `@cf/`. |
 | `ALLOW_LOCALHOST` | Não | `true` libera `localhost` e `127.0.0.1`. Use só em desenvolvimento. |
 | `ALLOW_UNLIMITED` | Não | `true` dispensa o rate limiter. Use só em desenvolvimento. |
 
@@ -100,7 +102,7 @@ O site oficial fica em <https://luminatarot.app/>, hospedado na Vercel. O `www.l
 - **[`vercel.json`](vercel.json)** envia cabeçalhos de segurança (proteção contra o site ser embutido em outro, `nosniff`, `Referrer-Policy`, `Permissions-Policy`), cache longo para os arquivos com hash em `/assets/` e `no-cache` para o service worker. A CSP completa continua na tag `<meta>` gerada no build.
 - **CI** ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) roda em todo pull request e push na `main`: lint, testes Node, typecheck e testes da Mesa 3D, build, conferência das duas páginas e testes de navegador. Se falhar, as evidências do Playwright ficam no artefato `mesa-browser-results`. A `main` exige que o job `test` passe.
 
-Para usar um Worker próprio, defina `VITE_ORACLE_API_URL` nas variáveis de ambiente do projeto na Vercel e inclua a origem do site em `ALLOWED_ORIGINS`. As prévias de pull request usam endereços próprios da Vercel; como o Worker só aceita origens listadas, nelas a interpretação cai no modo local. Não use curinga como `https://lumina-tarot-*.vercel.app`, porque qualquer pessoa pode criar um projeto com esse prefixo.
+Para usar um Worker próprio, defina `VITE_ORACLE_API_URL` nas variáveis de ambiente do projeto na Vercel e inclua a origem do site em `ALLOWED_ORIGINS`. As prévias de pull request usam endereços próprios da Vercel; como o Worker só aceita origens listadas, nelas a interpretação fica indisponível. Não use curinga como `https://lumina-tarot-*.vercel.app`, porque qualquer pessoa pode criar um projeto com esse prefixo.
 
 O GitHub Pages foi descontinuado: ele limita requisições por endereço IP e bloqueava o site em redes com IP compartilhado.
 

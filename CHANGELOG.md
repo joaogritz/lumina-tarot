@@ -3,6 +3,16 @@
 Mudanças relevantes do projeto. O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 e as versões seguem [SemVer](https://semver.org/lang/pt-BR/).
 
+## [Não lançado]
+
+### Alterado
+- Interpretações mais confiáveis e rápidas: o Worker usa o Cloudflare Workers AI (Gemma 4 26B, com
+  gpt-oss-120b de reserva) e deixa o Gemini como último recurso, dentro de um prazo único de 29 s.
+  Uma Cruz Céltica sai em ~9 s. O Gemini 2.5 não está mais disponível para chaves novas, e o plano
+  gratuito do Gemini 3 recusa ou atrasa consultas em horários de pico.
+- O site não gera mais leituras locais: se o serviço não responder, mostra um aviso com
+  **Tentar novamente**, mantendo as cartas. As salvaguardas éticas continuam locais.
+
 ## [1.2.1] - 2026-11-04
 
 ### Alterado

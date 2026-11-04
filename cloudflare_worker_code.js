@@ -146,9 +146,39 @@ const validSpread = (spread) => spread === undefined || (spread && typeof spread
 const normalizeOrigin = (value) => value.trim().replace(/\/+$/, '').toLowerCase();
 const flag = (value) => String(value || '').trim().toLowerCase() === 'true';
 
-// One request may try at most this many models, so a single call never fans out into many paid calls.
-const MAX_MODEL_ATTEMPTS = 2;
-const FALLBACK_MODELS = ['gemini-2.5-flash-lite', 'gemini-flash-lite-latest'];
+// Providers, in order. Gemini's free tier is deprioritised under load (frequent 503 "high demand"
+// and slow answers), so Cloudflare Workers AI answers first and Gemini is the last resort.
+// Measured with the real prompt (Nov 2026): Gemma 4 26B without thinking answers a 10-card spread in
+// ~9 s for ~35 neurons (the free 10,000/day covers ~280 readings); gpt-oss-120b takes 4-12 s for
+// ~100 neurons; Llama 3.3 70B took 11 s for ~160. Gemma with thinking on timed out or came back empty.
+// Every attempt shares one deadline so the site (32 s wait) always gets an answer or a clean 502.
+// Pinned versions: '-latest' aliases move silently, and Gemini 2.5 answers 404 for new keys.
+const WORKERS_AI_MODELS = [
+  { model: '@cf/google/gemma-4-26b-a4b-it', timeout: 15000 },
+  { model: '@cf/openai/gpt-oss-120b', timeout: 12000 },
+];
+const GEMINI_DEFAULT_MODEL = 'gemini-3.5-flash-lite';
+const GEMINI_TIMEOUT_MS = 12000;
+const TOTAL_BUDGET_MS = 29000;
+// An attempt with less time than this left is skipped: it would only delay the 502.
+const MIN_ATTEMPT_MS = 3000;
+// Workers AI models that reason by default are switched to their fastest mode.
+function workersAiOptions(model) {
+  if (model.includes('gpt-oss')) return { reasoning_effort: 'low' };
+  if (/gemma-4|qwen3|glm-/.test(model)) return { chat_template_kwargs: { enable_thinking: false } };
+  return {};
+}
+// Short readings gain little from reasoning, which mostly adds latency: use each model's lowest level.
+function thinkingFor(model) {
+  if (model.startsWith('gemini-2.5')) return { thinkingBudget: 0 };
+  if (model.includes('flash-lite')) return { thinkingLevel: 'minimal' };
+  if (model.startsWith('gemini-3')) return { thinkingLevel: 'low' };
+  return undefined;
+}
+const withTimeout = (promise, ms) => Promise.race([
+  promise,
+  new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), ms)),
+]);
 
 // Only listed origins may call the Worker. A bare "*" is ignored on purpose: it would turn the
 // Worker back into an open proxy. Subdomain wildcards like https://*.example.com are supported.
@@ -196,11 +226,12 @@ export default {
     if (Number(request.headers.get('Content-Length')) > MAX_BODY) return respond(413, { error: 'Consulta muito grande.' });
 
     const geminiApiKey = (env.GEMINI_API_KEY || '').trim();
+    const workersAi = env.AI && typeof env.AI.run === 'function' ? env.AI : null;
     const limiter = env.ORACLE_RATE_LIMITER;
     const hasLimiter = !!limiter && typeof limiter.limit === 'function';
-    if (!geminiApiKey || (!hasLimiter && !flag(env.ALLOW_UNLIMITED))) {
+    if ((!geminiApiKey && !workersAi) || (!hasLimiter && !flag(env.ALLOW_UNLIMITED))) {
       // Details go to the Worker logs only; callers get a generic message.
-      console.error('Worker misconfigured:', !geminiApiKey ? 'GEMINI_API_KEY missing' : 'ORACLE_RATE_LIMITER binding missing');
+      console.error('Worker misconfigured:', !geminiApiKey && !workersAi ? 'no AI provider (GEMINI_API_KEY or AI binding)' : 'ORACLE_RATE_LIMITER binding missing');
       return respond(503, { error: 'Serviço temporariamente indisponível.' });
     }
 
@@ -254,47 +285,81 @@ export default {
 
     const instruction = isYesNo ? YES_NO_INSTRUCTIONS : SPREAD_INSTRUCTIONS;
 
-    const modelsToTry = [...new Set([env.GEMINI_MODEL, ...FALLBACK_MODELS].filter(Boolean))]
-      .filter(model => /^[a-zA-Z0-9.-]+$/.test(model))
-      .slice(0, MAX_MODEL_ATTEMPTS);
-
+    const prompt = `${SYSTEM}\n\n${instruction}`;
+    const consultation = JSON.stringify({ question: data.userQuestion || '', spread, cards });
     let generatedText = null;
     let modelUsed = null;
 
-    for (const model of modelsToTry) {
+    const deadline = Date.now() + TOTAL_BUDGET_MS;
+    const timeLeft = (limit) => Math.min(limit, deadline - Date.now());
+
+    // 1. Cloudflare Workers AI, each model once. WORKERS_AI_MODEL, if set, is tried first.
+    const override = /^@cf\/[\w./-]+$/.test(env.WORKERS_AI_MODEL || '') ? [{ model: env.WORKERS_AI_MODEL, timeout: 15000 }] : [];
+    const aiChain = [...override, ...WORKERS_AI_MODELS.filter(m => m.model !== env.WORKERS_AI_MODEL)];
+    for (const { model: aiModel, timeout } of workersAi ? aiChain : []) {
+      if (generatedText) break;
+      const ms = timeLeft(timeout);
+      if (ms < MIN_ATTEMPT_MS) break;
       try {
-        const upstream = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
+        const out = await withTimeout(workersAi.run(aiModel, {
+          messages: [
+            { role: 'system', content: prompt },
+            { role: 'user', content: consultation },
+          ],
+          max_tokens: isYesNo ? 400 : 1400,
+          temperature: 0.6,
+          ...workersAiOptions(aiModel),
+        }), ms);
+        const choice = out?.choices?.[0];
+        const text = (typeof out?.response === 'string' && out.response ? out.response : choice?.message?.content || '').slice(0, 12000);
+        if (choice?.finish_reason === 'length') console.error('Provider truncated', aiModel);
+        else if (text.trim()) {
+          generatedText = text;
+          modelUsed = aiModel;
+        } else console.error('Provider returned empty', aiModel);
+      } catch (e) {
+        console.error('Provider call failed:', aiModel, e?.message);
+      }
+    }
+
+    // 2. Gemini, one attempt, if Workers AI did not answer and time remains.
+    const geminiModel = [env.GEMINI_MODEL, GEMINI_DEFAULT_MODEL].find(m => m && /^[a-zA-Z0-9.-]+$/.test(m));
+    if (!generatedText && geminiApiKey && geminiModel && timeLeft(GEMINI_TIMEOUT_MS) >= MIN_ATTEMPT_MS) {
+      try {
+        const upstream = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent`, {
           method: 'POST',
-          signal: AbortSignal.timeout(15000),
+          signal: AbortSignal.timeout(timeLeft(GEMINI_TIMEOUT_MS)),
           headers: {
             'Content-Type': 'application/json',
             'x-goog-api-key': geminiApiKey
           },
           body: JSON.stringify({
-            systemInstruction: { parts: [{ text: `${SYSTEM}\n\n${instruction}` }] },
-            contents: [{ role: 'user', parts: [{ text: JSON.stringify({ question: data.userQuestion || '', spread, cards }) }] }],
+            systemInstruction: { parts: [{ text: prompt }] },
+            contents: [{ role: 'user', parts: [{ text: consultation }] }],
             generationConfig: {
               temperature: 0.6,
-              maxOutputTokens: isYesNo ? 1000 : 3000
+              maxOutputTokens: isYesNo ? 1000 : 3000,
+              ...(thinkingFor(geminiModel) ? { thinkingConfig: thinkingFor(geminiModel) } : {}),
             },
           }),
         });
-
-        if (!upstream.ok) continue;
-
-        const result = await upstream.json();
-        if (result.candidates?.[0]?.finishReason === 'MAX_TOKENS') {
-          return respond(502, { error: 'Leitura incompleta. Tente novamente.' });
-        }
-
-        const text = result.candidates?.[0]?.content?.parts?.map(p => p.text || '').join('').slice(0, 12000);
-        if (text && text.trim().length > 0) {
-          generatedText = text;
-          modelUsed = model;
-          break;
+        if (!upstream.ok) {
+          // Status and a short excerpt go to the Worker logs only, to tell quota, retired models
+          // and outages apart. The provider's message never reaches the caller.
+          console.error('Provider returned', geminiModel, upstream.status, (await upstream.text()).slice(0, 300));
+        } else {
+          const result = await upstream.json();
+          const candidate = result.candidates?.[0];
+          const text = candidate?.content?.parts?.map(p => p.text || '').join('').slice(0, 12000);
+          // A truncated reading is never delivered; the next provider gets a chance instead.
+          if (candidate?.finishReason === 'MAX_TOKENS') console.error('Provider truncated', geminiModel);
+          else if (text && text.trim()) {
+            generatedText = text;
+            modelUsed = geminiModel;
+          }
         }
       } catch (e) {
-        console.error('Provider call failed:', model, e?.message);
+        console.error('Provider call failed:', geminiModel, e?.message);
       }
     }
 
