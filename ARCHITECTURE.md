@@ -12,7 +12,9 @@ As cartas do cigano têm IDs próprios (`lenormand_1` a `lenormand_36`). O estad
 
 `aiOracle.js` tenta solicitar uma interpretação online pelo endpoint definido em `VITE_ORACLE_API_URL` ou pelo endereço padrão incluído no código. O fluxo atual não exige ativação prévia pelo usuário. Quando a consulta falha ou a resposta não pode ser aproveitada, usa uma interpretação local. Lenormand tem composição local própria para pares vizinhos, sem aplicar correspondências de arcanos do Tarot. As respostas não são inseridas como HTML.
 
-`cloudflare_worker_code.js` é independente da aplicação. Valida consultas JSON, limita tamanho e estrutura do corpo, mantém o segredo no servidor e separa instruções de sistema dos dados. Não aceita `customPrompt`. O rate limiter é opcional; uma lista de origens vazia permite qualquer origem, e há exceções para localhost, painel do Cloudflare e requisições sem `Origin`. O Worker tenta modelos alternativos em caso de falha, com timeout de 15 segundos por tentativa; o cliente espera até 20 segundos. Também oferece listagem de modelos por GET ou pelo caminho `/models`. As configurações de implantação estão descritas no README.
+`aiOracle.js` respeita a escolha de privacidade de `utils/privacy.js` (`localStorage` `lumina_online_ai`): no modo local, não há chamada de rede e a leitura vem direto do fallback. O endereço padrão do Worker fica em `src/config.js`, compartilhado com a CSP gerada no build.
+
+`cloudflare_worker_code.js` é independente da aplicação e recusa por padrão. Só aceita origens listadas em `ALLOWED_ORIGINS` (com curinga de subdomínio; `*` sozinho é ignorado), sem exceções para requisições sem `Origin`, painel da Cloudflare ou localhost (este só com `ALLOW_LOCALHOST=true`). Exige o binding `ORACLE_RATE_LIMITER` e responde 503 se ele faltar ou falhar. Lê o corpo em streaming com limite de 24 KB, valida cada campo, mantém o segredo no servidor e separa instruções de sistema dos dados; não aceita `customPrompt`. Tenta no máximo dois modelos, com timeout de 15 segundos cada; o cliente espera até 20 segundos. As rotas são apenas `POST /` e `GET /health`. Erros detalhados vão para os logs do Worker, nunca para a resposta. As configurações de implantação estão no README e em `wrangler.example.toml`.
 
 ## Persistência
 
@@ -26,7 +28,7 @@ O seletor usa botões com estado `aria-pressed`; a confirmação usa `dialog.sho
 
 ## Build e offline
 
-Vite divide o código em chunks. O service worker usa navegação network-first e cache de assets de mesma origem. A limpeza remove apenas caches com prefixo do Lumina. O fallback offline depende de os recursos terem sido carregados anteriormente; não se garante primeira visita offline nem disponibilidade de todos os chunks ainda não visitados.
+Vite divide o código em chunks. No build, um plugin em `vite.config.js` adiciona a Content-Security-Policy e a Referrer-Policy como `<meta>` nas duas páginas (o GitHub Pages não envia cabeçalhos); o servidor de desenvolvimento fica sem CSP porque o HMR usa scripts inline. As fontes são servidas pelo próprio site, a partir de `public/fonts`, compartilhadas pelas duas páginas. O service worker usa navegação network-first e cache de assets de mesma origem. A limpeza remove apenas caches com prefixo do Lumina. O fallback offline depende de os recursos terem sido carregados anteriormente; não se garante primeira visita offline nem disponibilidade de todos os chunks ainda não visitados.
 
 ## Verificação
 

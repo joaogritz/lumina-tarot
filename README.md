@@ -1,5 +1,12 @@
 # Lumina Tarot
 
+[![Test and Deploy](https://github.com/joaogritz/lumina-tarot/actions/workflows/deploy.yml/badge.svg)](https://github.com/joaogritz/lumina-tarot/actions/workflows/deploy.yml)
+[![Licença MIT](https://img.shields.io/badge/licen%C3%A7a-MIT-c9a45c)](LICENSE)
+
+**[Abrir o Lumina →](https://joaogritz.github.io/lumina-tarot/)**
+
+![Lumina Tarot: a carta A Estrela sobre o verso dourado do baralho](public/og-image.png)
+
 Uma mesa virtual de Tarot e Baralho Cigano para explorar cartas, fazer tiragens e registrar reflexões. A experiência está em português, com artes históricas dos baralhos, temas visuais, animações e trilha sonora.
 
 Desenvolvido com React, Vite e Tailwind CSS. O frontend é estático e pode ser publicado no GitHub Pages; as interpretações online usam um serviço separado em Cloudflare Workers.
@@ -32,6 +39,7 @@ Abra o endereço exibido pelo Vite, normalmente `http://localhost:5173`.
 | Comando | Função |
 | --- | --- |
 | `npm run dev` | Inicia o servidor de desenvolvimento. |
+| `npm run lint` | Verifica o código com ESLint. |
 | `npm test` | Executa os testes de dados, interpretação, histórico e Worker com o runner do Node.js. |
 | `npm run typecheck` | Verifica os tipos do código TypeScript da Mesa 3D. |
 | `npm run test:mesa` | Executa os testes das regras da Mesa 3D. |
@@ -39,11 +47,13 @@ Abra o endereço exibido pelo Vite, normalmente `http://localhost:5173`.
 | `npm run build` | Gera o site estático em `dist/`. |
 | `npm run preview` | Serve o build localmente para conferência. |
 
-## Interpretações e dados
+## Interpretações e privacidade
 
-Na versão atual, ao consultar uma tiragem ou o Sim ou Não, a aplicação tenta gerar uma interpretação online por meio de um Cloudflare Worker conectado ao Google Gemini. Se o serviço falhar ou não retornar uma resposta utilizável, o frontend recorre à interpretação local.
+Ao consultar uma tiragem ou o Sim ou Não, a aplicação gera uma interpretação online por meio de um Cloudflare Worker conectado ao Google Gemini. Se o serviço falhar ou não retornar uma resposta utilizável, o frontend recorre à interpretação local.
 
-O código inclui um endpoint padrão em `src/utils/aiOracle.js`. Para usar seu próprio serviço, copie [`.env.example`](.env.example) para `.env.local` na raiz do projeto e ajuste o endereço:
+Logo abaixo do campo de pergunta, um aviso explica que a pergunta e as cartas são enviadas ao servidor e ao Google Gemini. A opção **Interpretação online com IA** vem ligada; desmarcada, nenhuma pergunta sai do aparelho e a interpretação é montada localmente. Os detalhes estão na [política de privacidade](public/privacidade.html), publicada em `/privacidade.html`.
+
+O endereço padrão do Worker fica em [`src/config.js`](src/config.js). Para usar seu próprio serviço, copie [`.env.example`](.env.example) para `.env.local` na raiz do projeto e ajuste o endereço:
 
 ```dotenv
 VITE_ORACLE_API_URL=https://seu-worker.seu-subdominio.workers.dev
@@ -51,7 +61,7 @@ VITE_ORACLE_API_URL=https://seu-worker.seu-subdominio.workers.dev
 
 Reinicie o servidor de desenvolvimento após alterar a variável. Em produção, ela precisa estar definida durante o build. Sem essa variável, o navegador usa o endpoint padrão; deixá-la vazia não desativa as consultas online.
 
-Nas consultas online, a pergunta e os dados das cartas são enviados ao Worker e ao provedor de interpretação. O diário e as preferências ficam no `localStorage` do navegador, sem conta, sincronização ou criptografia. Limpar os dados do site pode apagar esses registros; bloquear o armazenamento pode impedir sua persistência.
+O diário e as preferências ficam no `localStorage` do navegador, sem conta, sincronização ou criptografia. Limpar os dados do site pode apagar esses registros; bloquear o armazenamento pode impedir sua persistência.
 
 Para guardar ou levar o diário a outro aparelho, use **Exportar** no Diário: o arquivo JSON contém todas as leituras, com perguntas e notas. **Importar** mescla um backup ao diário atual sem duplicar leituras e sem sobrescrever notas editadas depois do backup. O diário mantém as 100 leituras mais recentes.
 
@@ -59,25 +69,26 @@ O service worker permite reutilizar recursos já carregados quando não há cone
 
 ## Configurar seu próprio Worker
 
-O backend está no arquivo independente [`cloudflare_worker_code.js`](cloudflare_worker_code.js). Publique-o como um Cloudflare Worker e configure:
+O backend está no arquivo independente [`cloudflare_worker_code.js`](cloudflare_worker_code.js). Ele **recusa por padrão**: sem as configurações abaixo, responde 403 ou 503 e não chama o Gemini.
 
-| Configuração | Uso |
-| --- | --- |
-| `GEMINI_API_KEY` | Secret com a chave do provedor, mantida somente no Worker. |
-| `ALLOWED_ORIGINS` | Origens separadas por vírgula, como `https://usuario.github.io,http://localhost:5173`. |
-| `GEMINI_MODEL` | Modelo a tentar primeiro. O código também tenta uma lista de modelos alternativos. |
-| `ORACLE_RATE_LIMITER` | Binding opcional para limitar consultas por IP. |
+1. Copie [`wrangler.example.toml`](wrangler.example.toml) para `wrangler.toml` (ignorado pelo git) e ajuste `ALLOWED_ORIGINS`.
+2. Cadastre a chave como segredo: `npx wrangler secret put GEMINI_API_KEY`.
+3. Publique: `npx wrangler deploy`.
+4. Confira: `curl https://seu-worker.workers.dev/health` deve responder `{"status":"ok"}`.
+5. No Google Cloud, defina um orçamento com alerta para o projeto da chave da API.
 
-Exemplo de binding em uma configuração Wrangler:
+| Configuração | Obrigatória | Uso |
+| --- | --- | --- |
+| `GEMINI_API_KEY` | Sim | Segredo com a chave do provedor, mantido somente no Worker. |
+| `ALLOWED_ORIGINS` | Sim | Origens separadas por vírgula, como `https://usuario.github.io`. Aceita curinga de subdomínio (`https://*.exemplo.com`); `*` sozinho é ignorado. |
+| `ORACLE_RATE_LIMITER` | Sim | Binding de rate limit por IP. Se faltar ou falhar, o Worker responde 503. |
+| `GEMINI_MODEL` | Não | Modelo preferido. O Worker tenta no máximo dois modelos por consulta. |
+| `ALLOW_LOCALHOST` | Não | `true` libera `localhost` e `127.0.0.1`. Use só em desenvolvimento. |
+| `ALLOW_UNLIMITED` | Não | `true` dispensa o rate limiter. Use só em desenvolvimento. |
 
-```toml
-[[ratelimits]]
-name = "ORACLE_RATE_LIMITER"
-namespace_id = "1001"
-simple = { limit = 10, period = 60 }
-```
+O Worker responde apenas a `POST /` (consultas) e `GET /health`. CORS impede que outros sites o usem pelo navegador, mas não impede scripts que forjem o cabeçalho `Origin`: o rate limiter e o orçamento no Google Cloud são a defesa para esse caso. Veja o [SECURITY.md](SECURITY.md).
 
-Adapte o namespace à sua conta. Na implementação atual, a ausência do binding não impede consultas, e `ALLOWED_ORIGINS` vazio permite qualquer origem. O Worker também aceita localhost, requisições sem cabeçalho `Origin` e o painel do Cloudflare. CORS não substitui autenticação nem define um limite global de uso.
+> **Atualizando de uma versão anterior:** antes de publicar este Worker, confirme que `ALLOWED_ORIGINS` lista a origem do site e que o binding `ORACLE_RATE_LIMITER` existe. Versões anteriores aceitavam qualquer origem e funcionavam sem rate limiter; esta recusa as consultas nesses casos.
 
 Nunca coloque a chave do Gemini em variáveis `VITE_*`: elas ficam expostas no JavaScript entregue ao navegador.
 
@@ -85,7 +96,7 @@ Nunca coloque a chave do Gemini em variáveis `VITE_*`: elas ficam expostas no J
 
 O workflow em [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml) tem dois jobs:
 
-- **test** roda em todo pull request e em todo push na `main`: testes Node, typecheck e testes da Mesa 3D, build, conferência das duas páginas e testes de navegador. Se falhar, as evidências do Playwright (screenshots e traces) ficam disponíveis como artefato `mesa-browser-results`.
+- **test** roda em todo pull request e em todo push na `main`: lint, testes Node, typecheck e testes da Mesa 3D, build, conferência das duas páginas e testes de navegador. Se falhar, as evidências do Playwright (screenshots e traces) ficam disponíveis como artefato `mesa-browser-results`.
 - **deploy** roda só em push na `main` (ou execução manual na `main`) e só depois que **test** passa. Ele publica o `dist/` no GitHub Pages.
 
 O site publicado fica em <https://joaogritz.github.io/lumina-tarot/>.
@@ -110,6 +121,8 @@ src/data/                   Baralhos, artes e configurações das tiragens
 src/utils/                  Interpretação, histórico, temas e áudio
 public/tarot/               Artes dos baralhos e informações de origem
 public/sw.js                Cache para uso offline
+public/privacidade.html     Política de privacidade
+src/config.js               Endereço padrão do Worker
 cloudflare_worker_code.js   Serviço de interpretação online
 mesa-3d/                    Mesa Livre 3D (TypeScript + Babylon.js)
 tests/                      Testes Node, da Mesa 3D e de navegador
@@ -122,6 +135,12 @@ As imagens são servidas pelo próprio projeto. As fontes e condições de uso e
 - [Rider–Waite](public/tarot/rider-waite/LICENSE.md)
 - [Petit Lenormand](public/tarot/lenormand-hope/LICENSE.md)
 - [Verso das cartas](public/tarot/backs/LICENSE.md)
+
+## Segurança e contribuição
+
+- Vulnerabilidades: siga o [SECURITY.md](SECURITY.md); não abra issues públicas.
+- Contribuições: veja o [CONTRIBUTING.md](CONTRIBUTING.md).
+- Histórico de versões: [CHANGELOG.md](CHANGELOG.md).
 
 ## Licença
 
