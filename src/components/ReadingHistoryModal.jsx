@@ -1,7 +1,7 @@
 import { useModalAccessibility } from '../utils/useModalAccessibility';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Sparkles, BookOpen, Trash2, Calendar, Search, Edit3, Check, Feather, BarChart3, Flame, Droplets, Wind, Mountain, Layers, Star } from './icons/ArcaneIcons';
+import { X, Sparkles, BookOpen, Trash2, Calendar, Search, Edit3, Check, Feather, BarChart3, Flame, Droplets, Wind, Mountain, Layers, Star, Download, Upload } from './icons/ArcaneIcons';
 import { CardArt } from './CardArt';
 import { historyService } from '../utils/history';
 import { audio } from '../utils/audio';
@@ -18,6 +18,8 @@ export const ReadingHistoryModal = ({
   const [editingId, setEditingId] = useState(null);
   const [editingText, setEditingText] = useState('');
   const [selectedReading, setSelectedReading] = useState(null);
+  const [backupStatus, setBackupStatus] = useState(null); // { tone: 'ok' | 'error', text }
+  const importInputRef = useRef(null);
 
   // Synchronize readings dynamically on open and whenever a new reading is saved
   useEffect(() => {
@@ -60,6 +62,44 @@ export const ReadingHistoryModal = ({
     const updated = historyService.updateReadingNotes(id, editingText);
     setReadings(updated);
     setEditingId(null);
+  };
+
+  // The journal lives only in this browser; a JSON file is the user's way to keep or move it.
+  const handleExport = () => {
+    audio.playSelect();
+    const blob = new Blob([historyService.exportBackup()], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    const now = new Date();
+    const localDate = [now.getFullYear(), now.getMonth() + 1, now.getDate()].map(n => String(n).padStart(2, '0')).join('-');
+    link.download = `lumina-diario-${localDate}.json`;
+    document.body.append(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 0);
+    setBackupStatus({ tone: 'ok', text: `Backup com ${readings.length} leitura(s) baixado.` });
+  };
+
+  const handleImport = async (event) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      setBackupStatus({ tone: 'error', text: 'O arquivo é grande demais para um backup do diário (máx. 5 MB).' });
+      return;
+    }
+    try {
+      const result = historyService.importBackup(await file.text());
+      setReadings(historyService.getReadings());
+      audio.playSelect();
+      const parts = [`${result.added} leitura(s) restaurada(s)`];
+      if (result.ignored) parts.push(`${result.ignored} já existente(s) ou inválida(s) ignorada(s)`);
+      if (result.dropped) parts.push(`${result.dropped} mais antiga(s) ficou(aram) de fora pelo limite de 100`);
+      setBackupStatus({ tone: 'ok', text: `${parts.join(' · ')}.` });
+    } catch (error) {
+      setBackupStatus({ tone: 'error', text: error.message || 'Não foi possível ler o backup.' });
+    }
   };
 
   const filteredReadings = readings.filter(r => {
@@ -162,7 +202,36 @@ export const ReadingHistoryModal = ({
                   className="w-full pl-9 pr-4 py-2 rounded-sm bg-slate-950/70 border border-amber-500/30 focus:border-amber-400/70 text-xs sm:text-sm text-slate-200 placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-amber-400/30 transition-all"
                 />
               </div>
+              <div className="journal-backup-actions flex items-center gap-2 shrink-0">
+                <button
+                  type="button"
+                  onClick={handleExport}
+                  aria-label="Exportar diário"
+                  disabled={readings.length === 0}
+                  title="Baixar todas as leituras em um arquivo JSON"
+                  className="journal-backup-button"
+                >
+                  <Download aria-hidden="true" className="w-4 h-4" />
+                  <span>Exportar</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => importInputRef.current?.click()}
+                  aria-label="Importar backup do diário"
+                  title="Restaurar leituras de um backup JSON"
+                  className="journal-backup-button"
+                >
+                  <Upload aria-hidden="true" className="w-4 h-4" />
+                  <span>Importar</span>
+                </button>
+                <input ref={importInputRef} type="file" accept="application/json,.json" hidden onChange={handleImport} />
+              </div>
             </div>
+            <p className="journal-backup-note">
+              {backupStatus
+                ? <span role="status" data-tone={backupStatus.tone}>{backupStatus.text}</span>
+                : 'Suas leituras ficam só neste navegador. Exporte um backup para guardá-las ou levá-las a outro aparelho.'}
+            </p>
 
             {/* Main List */}
             <div className="flex-1 overflow-y-auto space-y-4 pr-1">

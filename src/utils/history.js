@@ -1,5 +1,14 @@
-// Oracle Reading History & Journal Service (LocalStorage with Full Backup & Stats Analytics)
+// Reading journal stored in localStorage, with JSON backup/restore and statistics.
 const STORAGE_KEY = 'lumina_tarot_history_v1';
+const MAX_READINGS = 100;
+const BACKUP_KIND = 'lumina-tarot-diary';
+const BACKUP_VERSION = 1;
+
+const isValidReading = (r) =>
+  r && typeof r.id === 'string' && Array.isArray(r.cards) &&
+  r.cards.every(c => c && typeof c.name === 'string' && typeof c.suit === 'string');
+
+const byNewest = (a, b) => String(b.date || '').localeCompare(String(a.date || ''));
 
 const notifyUpdate = () => {
   if (typeof window !== 'undefined') {
@@ -14,7 +23,7 @@ export const historyService = {
     try {
       const data = localStorage.getItem(STORAGE_KEY);
       const parsed = data ? JSON.parse(data) : [];
-      return Array.isArray(parsed) ? parsed.filter(r => r && typeof r.id === 'string' && Array.isArray(r.cards) && r.cards.every(c => c && typeof c.name === 'string' && typeof c.suit === 'string')).slice(0, 100) : [];
+      return Array.isArray(parsed) ? parsed.filter(isValidReading).slice(0, MAX_READINGS) : [];
     } catch (e) {
       console.error('Failed to load tarot history', e);
       return [];
@@ -27,7 +36,7 @@ export const historyService = {
     try {
       const current = this.getReadings();
       const newEntry = {
-        id: `reading_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`,
+        id: `reading_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
         date: new Date().toISOString(),
         formattedDate: new Date().toLocaleDateString('pt-BR', {
           day: '2-digit',
@@ -52,7 +61,7 @@ export const historyService = {
         notes: reading.notes || ''
       };
 
-      const updated = [newEntry, ...current].slice(0, 100); // Keep last 100 readings
+      const updated = [newEntry, ...current].slice(0, MAX_READINGS);
       localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
       notifyUpdate();
       return newEntry;
@@ -152,6 +161,44 @@ export const historyService = {
         swords: calcPct(elementalCounts.swords),
         pentacles: calcPct(elementalCounts.pentacles),
       }
+    };
+  },
+
+  // Serialize the whole journal so it can be saved outside the browser.
+  exportBackup() {
+    return JSON.stringify({
+      kind: BACKUP_KIND,
+      version: BACKUP_VERSION,
+      exportedAt: new Date().toISOString(),
+      readings: this.getReadings(),
+    }, null, 2);
+  },
+
+  // Merge a backup into the journal. Existing entries win on id collisions, so
+  // restoring an old file never overwrites notes edited since. Throws on files
+  // that are not Lumina diary backups.
+  importBackup(text) {
+    let data;
+    try { data = JSON.parse(text); } catch { throw new Error('O arquivo não é um JSON válido.'); }
+    const incoming = Array.isArray(data) ? data : data?.kind === BACKUP_KIND ? data.readings : null;
+    if (!Array.isArray(incoming)) throw new Error('Este arquivo não é um backup do diário do Lumina.');
+    if (typeof data?.version === 'number' && data.version > BACKUP_VERSION) {
+      throw new Error('Este backup foi criado por uma versão mais nova do Lumina.');
+    }
+    const valid = incoming.filter(isValidReading);
+    const current = this.getReadings();
+    const known = new Set(current.map(r => r.id));
+    const added = valid.filter(r => !known.has(r.id) && known.add(r.id));
+    const merged = [...current, ...added].sort(byNewest);
+    const kept = merged.slice(0, MAX_READINGS);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(kept));
+    notifyUpdate();
+    const keptIds = new Set(kept.map(r => r.id));
+    return {
+      added: added.filter(r => keptIds.has(r.id)).length,
+      ignored: incoming.length - valid.length + (valid.length - added.length),
+      dropped: merged.length - kept.length,
+      total: kept.length,
     };
   },
 

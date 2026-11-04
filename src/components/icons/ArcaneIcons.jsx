@@ -60,6 +60,8 @@ const drawings = {
   FastForward: 'M3 6l12 10L3 26ZM16 6l12 10-12 10ZM29 5v22',
   CheckCircle2: 'M27 17a11 11 0 1 1-7-11M10 15l6 6L29 5',
   Filter: 'M3 5h26L19 17v10l-6 3V17Z',
+  Download: 'M16 3v17M9 13l7 7 7-7M4 21v8h24v-8M10 25h12',
+  Upload: 'M16 20V3M9 10l7-7 7 7M4 21v8h24v-8M10 25h12',
 };
 
 export const ArcaneIcon = forwardRef(function ArcaneIcon({ name, size = 24, className = '', ...props }, ref) {
@@ -127,3 +129,5 @@ export const Home = icon('Home');
 export const FastForward = icon('FastForward');
 export const CheckCircle2 = icon('CheckCircle2');
 export const Filter = icon('Filter');
+export const Download = icon('Download');
+export const Upload = icon('Upload');
