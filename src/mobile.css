@@ -14,7 +14,7 @@
   .sanctuary-entry { min-height: 100svh; padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom); }
   .entry-nav, .entry-footer { margin-inline: var(--mobile-gutter); }
   .entry-nav { padding: 16px 0; }
-  .entry-nav > .micro-label { font-size: 9px; letter-spacing: .08em; max-width: 140px; text-align: right; }
+  .entry-nav > .micro-label { font-size: 10px; letter-spacing: .08em; max-width: 140px; text-align: right; }
   .entry-composition { width: 100%; min-height: 0; padding: 24px var(--mobile-gutter) 16px; gap: 20px; }
   .entry-art { grid-row: auto; height: 220px; }
   .entry-card { width: 112px; }
@@ -27,7 +27,7 @@
   .entry-status { font-size: 11px; margin-top: 12px; }
   .entry-progress { margin: 26px auto; }
   .entry-footer { padding: 16px 0; }
-  .instrument-note { font-size: 9px; bottom: 0; }
+  .instrument-note { font-size: 10px; bottom: 0; }
   .sanctuary-header { padding: calc(12px + env(safe-area-inset-top)) 0 20px; }
   .sanctuary-header > div:first-child { position: relative; gap: 8px; margin-bottom: 0; padding-bottom: 12px; justify-content: space-between; }
   .sanctuary-header > div:first-child > div:first-child { gap: 6px; }
@@ -108,8 +108,8 @@
   .deck-destiny-action svg, .deck-destiny-action > span { color: inherit; }
   .deck-controls input { font-size: 16px; min-height: 48px; }
   .deck-catalog { min-height: 0; }
-  .ritual-deck { grid-template-columns: repeat(4,minmax(0,1fr)); gap: 16px 12px; padding: 12px 4px 32px; }
-  .deck-card-cell { width: 100%; rotate: none; }
+  .ritual-deck { --deck-cols: 4; --deck-cell-scale: 1; column-gap: 12px; padding: 12px 4px calc(32px + 95% / var(--deck-cols)); }
+  .deck-card-cell { rotate: none; }
   .single-row-guidance, .single-row-status { font-size: 13px; line-height: 1.6; }
   .single-row-deck { --row-card-width: 112px; }
   .mobile-reading-dock { position: fixed; z-index: 40; bottom: 0; left: 0; right: 0; display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); padding: 8px 12px calc(8px + env(safe-area-inset-bottom)); border-top: 1px solid var(--border-lit); background: #080706f5; }

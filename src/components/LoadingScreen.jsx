@@ -50,7 +50,7 @@ export const LoadingScreen = ({ onLoaded }) => {
     if (progress < 30) return 'Sintonizando o Oráculo Sagrado...';
     if (progress < 65) return 'Preparando os baralhos...';
     if (progress < 95) return 'Alinhando as Constelações & Energias...';
-    return 'O Santuário dos Arcanos Está Aberto';
+    return 'O santuário dos arcanos está aberto';
   };
 
   return (

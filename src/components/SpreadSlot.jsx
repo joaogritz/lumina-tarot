@@ -95,7 +95,7 @@ export const SpreadSlot = React.memo(({
 
               {/* Crossing Tag if applicable */}
               {isCrossing && (
-                <div className="absolute -top-2 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded bg-red-950/95 border border-red-500/50 text-[9px] font-cinzel text-red-300 font-bold uppercase tracking-wider z-20 shadow-lg">
+                <div className="absolute -top-2 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded bg-red-950/95 border border-red-500/50 text-[11px] font-cinzel text-red-300 font-bold uppercase tracking-wider z-20 shadow-lg">
                   Cruzamento
                 </div>
               )}
@@ -157,10 +157,10 @@ export const SpreadSlot = React.memo(({
                 <Sparkles className={`w-4 h-4 ${isActive ? 'animate-spin' : ''}`} style={{ animationDuration: '6s' }} />
               </div>
 
-              <span className="font-cinzel text-[10px] sm:text-xs text-amber-200/90 font-semibold mb-0.5">
-                {isLarge ? 'Carta Focal' : `Slot ${slotIndex + 1}`}
+              <span className="font-cinzel text-[11px] sm:text-xs text-amber-200/90 font-semibold mb-0.5">
+                {isLarge ? 'Carta Focal' : `Posição ${slotIndex + 1}`}
               </span>
-              <span className="text-[9px] sm:text-[10px] text-slate-400 leading-tight px-1 truncate max-w-full">
+              <span className="text-[11px] sm:text-xs text-slate-400 leading-tight px-1 truncate max-w-full">
                 {isActive ? 'Escolha no baralho' : (positionInfo.name.split('.')[1] || positionInfo.name)}
               </span>
             </motion.div>

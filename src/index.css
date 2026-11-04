@@ -57,7 +57,7 @@
 
 /* A single stationary texture avoids continuous full-screen repainting. */
 body::after { content: ''; position: fixed; inset: 0; z-index: var(--z-texture); pointer-events: none; opacity: .035; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.88' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Cpath fill='%23fff' filter='url(%23n)' opacity='.55' d='M0 0h180v180H0z'/%3E%3C/svg%3E"); }
-.micro-label { font: 400 10px/1.7 var(--font-outfit); letter-spacing: .24em; text-transform: uppercase; color: var(--color-parchment); }
+.micro-label { font: 400 11px/1.7 var(--font-outfit); letter-spacing: .24em; text-transform: uppercase; color: var(--color-parchment); }
 .gold-rule { display: inline-block; width: 35px; height: 1px; background: var(--color-gold); vertical-align: middle; margin-right: 14px; }
 .gold-gradient-text,.shimmer-gold-text { color: var(--color-gold-bright); background: linear-gradient(115deg,var(--color-parchment),var(--color-gold) 55%,var(--color-ivory)); background-clip: text; -webkit-text-fill-color: transparent; }
 .silver-gradient-text { color: #c6d0d4; }
@@ -93,13 +93,13 @@ body::after { content: ''; position: fixed; inset: 0; z-index: var(--z-texture);
 .entry-action { min-height: 100px; }
 .ritual-button { display: inline-flex; justify-content: center; align-items: center; gap: 36px; padding: 18px 24px; min-height: 54px; color: var(--color-ivory); border: 1px solid var(--border-lit); background: var(--color-obsidian); font: 400 11px var(--font-outfit); letter-spacing: .13em; text-transform: uppercase; transition: color var(--duration-medium),background var(--duration-medium),box-shadow var(--duration-medium); }
 .ritual-button:hover { background: var(--color-gold); color: var(--color-void); box-shadow: 0 0 40px #c9a45c12; }
-.entry-status { font-size: 10px; color: var(--color-parchment); letter-spacing: .05em; margin-top: 16px; }
+.entry-status { font-size: 12px; color: var(--color-parchment); letter-spacing: .05em; margin-top: 16px; }
 .entry-progress { width: min(290px,100%); height: 1px; background: var(--border-quiet); margin-top: 30px; }
 .entry-progress span { display: block; height: 100%; width: 100%; background: var(--color-gold); transform-origin: left; }
 .entry-art { position: relative; min-width: 0; height: 560px; display: grid; place-items: center; perspective: 1200px; }
 .entry-art > .celestial-ring { position: absolute; width: min(680px,130%); opacity: .35; transform: rotate(-12deg); }
 .entry-card { width: clamp(210px,22vw,285px); aspect-ratio: 7/12; transform: rotate(-8deg); box-shadow: var(--shadow-card); }
-.instrument-caption { position: absolute; top: 0; right: 0; writing-mode: vertical-rl; font-size: 9px; }
+.instrument-caption { position: absolute; top: 0; right: 0; writing-mode: vertical-rl; font-size: 10px; }
 .instrument-note { position: absolute; bottom: 5px; letter-spacing: .35em; }
 .entry-footer { padding: 24px 0; border-top: 1px solid var(--border-quiet); color: var(--color-parchment); font: italic 17px var(--font-editorial); gap: 20px; }
 
@@ -125,7 +125,9 @@ body::after { content: ''; position: fixed; inset: 0; z-index: var(--z-texture);
 .altar-instrument { position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%); width: min(660px,95%); opacity: .11; pointer-events: none; z-index: -1; }
 .altar-surface { background: transparent; border: 0; box-shadow: none; overflow: visible; padding-bottom: 50px; }
 .reading-area h2 { color: var(--color-ivory); font-size: clamp(26px,3vw,36px); letter-spacing: -.02em; }
-.reading-area .border-dashed { border: 1px solid var(--border-quiet); background: #08070665; box-shadow: none; }
+/* Empty positions must read as places on the altar, not as missing content. */
+.reading-area .border-dashed { border: 1px solid rgb(214 182 107 / .34); background: linear-gradient(180deg,#14110cb3,#080706b3); box-shadow: inset 0 0 0 4px #0807068c, inset 0 0 0 5px rgb(214 182 107 / .12); }
+.reading-area .border-dashed:hover { border-color: var(--border-lit); }
 .reading-area .animate-gold-pulse { border-color: var(--border-lit); }
 .reading-area .spread-slot > div:first-child > div { background: transparent; border: 0; box-shadow: none; letter-spacing: .09em; }
 .reading-area .spread-slot > div:first-child { margin-bottom: 18px; }
@@ -137,8 +139,11 @@ body::after { content: ''; position: fixed; inset: 0; z-index: var(--z-texture);
 .deck-controls h3 { font-size: 27px; font-weight: 500; color: var(--color-ivory); }
 .deck-controls button { border-radius: 2px; box-shadow: none; min-height: 40px; }
 .deck-controls input { min-height: 40px; border: 0; border-bottom: 1px solid var(--border-quiet); background: transparent; }
-.ritual-deck { display: grid; grid-template-columns: repeat(13,minmax(0,1fr)); gap: 0; padding: 25px 16px 70px; row-gap: 38px; }
-.deck-card-cell { position: relative; width: 125%; aspect-ratio: 7/12; }
+/* Rows overlap like cards fanned on cloth: about half of each back stays visible and clickable.
+   Percent margins resolve against the column width, so the overlap scales with the grid.
+   The end/bottom padding absorbs the widened last column and the last row's negative margin. */
+.ritual-deck { --deck-cols: 13; --deck-cell-scale: 1.25; display: grid; grid-template-columns: repeat(var(--deck-cols),minmax(0,1fr)); gap: 0; padding: 25px calc(16px + (var(--deck-cell-scale) - 1) * 100% / var(--deck-cols)) calc(70px + 95% / var(--deck-cols)) 16px; }
+.deck-card-cell { position: relative; width: calc(var(--deck-cell-scale) * 100%); aspect-ratio: 7/12; margin-bottom: -95%; }
 .deck-card-cell:hover,.deck-card-cell:focus-within { z-index: 2; }
 .ritual-card-back { width: 100%; height: 100%; }
 .ritual-card-back { position: relative; border: 0; border-radius: 3px; padding: 0; background: transparent; transition: filter var(--duration-medium); }
@@ -174,10 +179,10 @@ body::after { content: ''; position: fixed; inset: 0; z-index: var(--z-texture);
 .celestial-cursor[data-active=true] span { width: 48px; height: 48px; border-color: var(--color-gold); }
 
 @media(max-width: 1100px) {
-  .ritual-deck { grid-template-columns: repeat(10,minmax(0,1fr)); }
+  .ritual-deck { --deck-cols: 10; }
   .entry-composition { min-height: 580px; }
   .entry-art { height: 480px; }
-  .entry-nav > .micro-label { font-size: 9px; letter-spacing: .1em; }
+  .entry-nav > .micro-label { font-size: 10px; letter-spacing: .1em; }
 }
 @media(max-width: 767px) {
   .entry-nav { padding: 22px 0; }
@@ -189,25 +194,24 @@ body::after { content: ''; position: fixed; inset: 0; z-index: var(--z-texture);
   .entry-card { width: 185px; }
   .entry-art > .celestial-ring { width: 390px; max-width: 115%; }
   .instrument-caption { display: none; }
-  .instrument-note { font-size: 8px; }
-  .entry-copy .micro-label { font-size: 8px; }
+  .instrument-note { font-size: 10px; }
+  .entry-copy .micro-label { font-size: 10px; }
   .entry-progress { margin: 30px auto; }
   .entry-footer { justify-content: center; text-align: center; font-size: 14px; padding: 20px 0; }
   .entry-footer > span:last-child { display: none; }
-  .entry-nav > .micro-label { font-size: 7px; }
+  .entry-nav > .micro-label { font-size: 10px; }
   .sanctuary-header { padding-top: 18px; }
   .table-introduction { padding-top: 30px; }
   .table-introduction > p:last-child { font-size: 12px; }
-  .ritual-deck { grid-template-columns: repeat(6,minmax(0,1fr)); row-gap: 30px; padding: 20px 12px 40px; }
-  .deck-card-cell { width: 118%; }
+  .ritual-deck { --deck-cols: 6; --deck-cell-scale: 1.18; }
   .altar-surface { padding: 10px 0 35px; }
-  .reading-area .spread-slot > div:first-child > div span { font-size: 9px; }
+  .reading-area .spread-slot > div:first-child > div span { font-size: 11px; }
   .reading-area .spread-slot[data-size="md"] > .spread-card-frame { width: clamp(86px,25vw,128px); }
   .reading-area .spread-slot[data-size="sm"] > .spread-card-frame { width: clamp(76px,23vw,96px); }
   nav[aria-label="Navegação Rápida Mobile"] { bottom: max(10px,env(safe-area-inset-bottom)); border-radius: 2px; background: #080706f5; }
   nav[aria-label="Navegação Rápida Mobile"] button { min-height: 44px; min-width: 40px; }
 }
-@media(max-width: 390px) { .ritual-deck { grid-template-columns: repeat(4,minmax(0,1fr)); } .sanctuary-header > div:first-child { justify-content: center; } .table-introduction h1 { font-size: 52px; } }
+@media(max-width: 390px) { .ritual-deck { --deck-cols: 4; } .sanctuary-header > div:first-child { justify-content: center; } .table-introduction h1 { font-size: 52px; } }
 @media(pointer: coarse) { .celestial-cursor { display: none; } .ritual-card-back:hover { z-index: auto; } }
 @media(prefers-reduced-motion: reduce) {
   *,*::before,*::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
@@ -216,7 +220,7 @@ body::after { content: ''; position: fixed; inset: 0; z-index: var(--z-texture);
 .destiny-ritual { position: fixed; inset: 0; z-index: 100; overflow-y: auto; display: flex; flex-direction: column; align-items: center; justify-content: safe center; gap: 32px; padding: 100px 24px 40px; background: #030303f8; }
 .destiny-instrument { position: fixed; width: min(680px,90vw); top: 50%; left: 50%; transform: translate(-50%,-50%); opacity: .15; pointer-events: none; }
 .destiny-controls { position: absolute; top: 24px; right: 24px; display: flex; gap: 10px; }
-.destiny-controls .ritual-button { padding: 12px; font-size: 9px; min-height: 42px; gap: 10px; }
+.destiny-controls .ritual-button { padding: 12px; font-size: 11px; min-height: 42px; gap: 10px; }
 .destiny-heading { position: relative; text-align: center; }
 .destiny-heading h2 { font-size: clamp(32px,5vw,64px); color: var(--color-ivory); margin: 10px 0; }
 .destiny-heading > p:last-child { font-size: 12px; color: var(--color-parchment); }
@@ -230,8 +234,8 @@ body::after { content: ''; position: fixed; inset: 0; z-index: var(--z-texture);
   .spread-timeline .spread-card-frame { width: 100%; }
   .spread-timeline .spread-slot > div:first-child { min-height: 70px; justify-content: flex-end; }
   .spread-timeline .spread-slot > div:first-child > div { padding-inline: 0; }
-  .spread-timeline .spread-slot > div:first-child > div span { font-size: 8px; }
-  .spread-timeline .spread-slot > div:first-child p { font-size: 9px; padding-inline: 0; }
+  .spread-timeline .spread-slot > div:first-child > div span { font-size: 10px; overflow-wrap: anywhere; }
+  .spread-timeline .spread-slot > div:first-child p { font-size: 11px; padding-inline: 0; }
 }
 @media(max-width:767px) {
   .celtic-cross-grid { width: 100%; grid-template-columns: repeat(3,minmax(0,1fr)); column-gap: 10px; }
@@ -239,7 +243,7 @@ body::after { content: ''; position: fixed; inset: 0; z-index: var(--z-texture);
   .celtic-cross-grid .spread-slot { min-width: 0; max-width: 100%; }
   .celtic-cross-grid .spread-slot > div:first-child { max-width: 100%; }
   .celtic-cross-grid .spread-slot > div:first-child > div { white-space: normal; padding-inline: 0; }
-  .celtic-cross-grid .spread-slot > div:first-child > div span { font-size: 8px; overflow-wrap: anywhere; }
+  .celtic-cross-grid .spread-slot > div:first-child > div span { font-size: 10px; overflow-wrap: anywhere; }
 }
 .card-inspect-action { position: relative; display: block; width: 100%; height: 100%; padding: 0; border: 0; background: transparent; color: inherit; text-align: inherit; }
 
@@ -269,3 +273,8 @@ body::after { content: ''; position: fixed; inset: 0; z-index: var(--z-texture);
 .spread-free-grid .spread-slot { min-width: 0; }
 .spread-free-grid .spread-card-frame { width: 100%; max-width: 208px; }
 @media(max-width: 767px) { .spread-free-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 26px 16px; } }
+
+/* Clipped tabs fade out at the edge that still has more to scroll, instead of cutting mid-word. */
+.spread-tab-scroller { --fade-l: 0px; --fade-r: 0px; mask-image: linear-gradient(90deg,transparent,#000 var(--fade-l),#000 calc(100% - var(--fade-r)),transparent); }
+.spread-tab-scroller[data-fade-left=true] { --fade-l: 48px; }
+.spread-tab-scroller[data-fade-right=true] { --fade-r: 48px; }

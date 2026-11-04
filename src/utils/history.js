@@ -44,7 +44,7 @@ export const historyService = {
         userQuestion: reading.userQuestion || '',
         cards: reading.chosenCards.map((card, idx) => ({
           ...card,
-          positionName: reading.spreadConfig.positions[idx]?.name || `Slot ${idx + 1}`,
+          positionName: reading.spreadConfig.positions[idx]?.name || `Posição ${idx + 1}`,
           positionSubtitle: reading.spreadConfig.positions[idx]?.subtitle || ''
         })),
         aiReading: reading.aiReading || null,

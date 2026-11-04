@@ -101,7 +101,7 @@ export const SpreadArea = ({
                   <CardArt card={card2} isMini={true} showKeywords={false} />
                   
                   {/* Crossing Marker Badge */}
-                  <div className="absolute -top-2 left-1/2 -translate-x-1/2 px-1.5 py-0.2 rounded bg-red-950/95 border border-red-400 text-[8px] font-cinzel text-red-200 font-bold uppercase tracking-wider shadow-md">
+                  <div className="absolute -top-2 left-1/2 -translate-x-1/2 px-1.5 py-0.2 rounded bg-red-950/95 border border-red-400 text-[10px] font-cinzel text-red-200 font-bold uppercase tracking-wider shadow-md">
                     Cruzada
                   </div>
 
@@ -127,7 +127,7 @@ export const SpreadArea = ({
                 /* Slot 2 Waiting for pick - Horizontal Pulsing Receptor */
                 <div className="w-24 sm:w-28 md:w-32 lg:w-36 aspect-[7/12] rounded-sm border-2 border-dashed border-amber-400 bg-amber-500/20 shadow-[0_0_25px_rgba(251,191,36,0.6)] animate-gold-pulse flex flex-col items-center justify-center p-1 text-center">
                   <Sparkles className="w-4 h-4 text-amber-300 animate-spin mb-1" style={{ animationDuration: '4s' }} />
-                  <span className="font-cinzel text-[9px] text-amber-200 font-bold">2. Cruzar</span>
+                  <span className="font-cinzel text-[11px] text-amber-200 font-bold">2. Cruzar</span>
                 </div>
               ) : (
                 /* Slot 2 Inactive Ghost receptor outline */

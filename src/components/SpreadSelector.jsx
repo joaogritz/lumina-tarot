@@ -82,7 +82,9 @@ export const SpreadSelector = ({
         <div 
           ref={scrollRef}
           onScroll={checkScroll}
-          className="flex-1 flex items-center gap-2 md:gap-3 overflow-x-auto py-2 px-1 scroll-smooth no-scrollbar snap-x"
+          data-fade-left={canScrollLeft}
+          data-fade-right={canScrollRight}
+          className="spread-tab-scroller flex-1 flex items-center gap-2 md:gap-3 overflow-x-auto py-2 px-1 scroll-smooth no-scrollbar snap-x"
           style={{
             scrollbarWidth: 'none',
             msOverflowStyle: 'none'
