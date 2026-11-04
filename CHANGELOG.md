@@ -3,6 +3,14 @@
 Mudanças relevantes do projeto. O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 e as versões seguem [SemVer](https://semver.org/lang/pt-BR/).
 
+## [1.1.1] - 2026-11-03
+
+### Alterado
+- A interpretação online é sempre usada; removida a opção de interpretar só no aparelho.
+- O site não menciona mais a IA em títulos, descrições, manifest e imagem de prévia. O envio
+  de dados ao Google Gemini continua descrito na política de privacidade, linkada no rodapé e
+  na janela da interpretação.
+
 ## [1.1.0] - 2026-11-03
 
 ### Segurança
@@ -45,6 +53,7 @@ e as versões seguem [SemVer](https://semver.org/lang/pt-BR/).
 ### Alterado
 - Cartas, grade do baralho, legibilidade, posições vazias e prévia em redes sociais.
 
-[1.1.0]: https://github.com/joaogritz/lumina-tarot/compare/20522f3...HEAD
+[1.1.1]: https://github.com/joaogritz/lumina-tarot/compare/107e9b3...HEAD
+[1.1.0]: https://github.com/joaogritz/lumina-tarot/pull/3
 [1.0.2]: https://github.com/joaogritz/lumina-tarot/pull/2
 [1.0.1]: https://github.com/joaogritz/lumina-tarot/pull/1

@@ -43,14 +43,14 @@
     <tbody>
       <tr><td>Diário de leituras: perguntas, cartas, interpretações e notas</td><td><code>localStorage</code> do navegador (até 100 leituras)</td></tr>
       <tr><td>Mesas salvas da Mesa Livre 3D</td><td>IndexedDB do navegador</td></tr>
-      <tr><td>Preferências: tema, baralho, som, modo de interpretação</td><td><code>localStorage</code> do navegador</td></tr>
+      <tr><td>Preferências: tema, baralho e som</td><td><code>localStorage</code> do navegador</td></tr>
       <tr><td>Arquivos do site para uso offline</td><td>Cache do service worker</td></tr>
     </tbody>
   </table>
   <p>Esses dados não são enviados a nenhum servidor e não são criptografados. Quem usa o mesmo navegador pode vê-los. Limpar os dados do site apaga tudo; para guardar o diário, use <strong>Exportar</strong> no Diário.</p>
 
-  <h2>O que é enviado na interpretação online</h2>
-  <p>Com a opção <strong>Interpretação online com IA</strong> ligada (o padrão), ao pedir uma interpretação o site envia:</p>
+  <h2>O que é enviado para gerar a interpretação</h2>
+  <p>As interpretações são geradas por inteligência artificial. Ao pedir uma interpretação (tiragem ou Sim ou Não), o site envia:</p>
   <ul>
     <li>a pergunta que você digitou, se houver;</li>
     <li>as cartas sorteadas, com posição, orientação e significados;</li>
@@ -58,7 +58,7 @@
   </ul>
   <p>Esses dados vão primeiro ao nosso servidor de interpretação, hospedado na <strong>Cloudflare</strong> (Cloudflare Workers), que os repassa à <strong>API Gemini do Google</strong> para gerar o texto. O servidor não grava a pergunta nem a resposta. A Cloudflare e o Google processam os dados conforme as próprias políticas; dependendo do plano da API, o Google pode reter o conteúdo e usá-lo para melhorar os seus serviços.</p>
   <p><strong>Evite incluir nomes completos, documentos, endereços ou detalhes de saúde nas perguntas.</strong></p>
-  <p>Para não enviar nada, <strong>desmarque a opção</strong> logo abaixo do campo de pergunta. No modo local, a interpretação é montada no próprio aparelho, a partir dos significados das cartas.</p>
+  <p>A pergunta é opcional: se o campo ficar vazio, apenas as cartas e a tiragem são enviadas. Se o serviço estiver indisponível, a interpretação é montada no próprio aparelho, a partir dos significados das cartas, sem enviar nada.</p>
 
   <h2>Hospedagem</h2>
   <p>O site é servido pelo GitHub Pages. Como qualquer servidor web, o GitHub registra dados técnicos de acesso, como o endereço IP, para operar e proteger o serviço. As fontes e as imagens das cartas são servidas pelo próprio site, sem chamadas a terceiros.</p>

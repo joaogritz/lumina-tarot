@@ -1,7 +1,7 @@
 {
-  "name": "Lumina Tarot • Santuário dos Arcanos & Oráculo IA",
+  "name": "Lumina Tarot • Santuário dos Arcanos",
   "short_name": "Lumina Tarot",
-  "description": "Mesa virtual de leitura de Tarot com 78 arcanos, interpretação por inteligência artificial em tempo real e atmosfera mística.",
+  "description": "Mesa virtual de Tarot e Baralho Cigano, com tiragens guiadas, interpretações personalizadas, diário de leituras e Mesa 3D.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

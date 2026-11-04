@@ -51,7 +51,7 @@ Abra o endereço exibido pelo Vite, normalmente `http://localhost:5173`.
 
 Ao consultar uma tiragem ou o Sim ou Não, a aplicação gera uma interpretação online por meio de um Cloudflare Worker conectado ao Google Gemini. Se o serviço falhar ou não retornar uma resposta utilizável, o frontend recorre à interpretação local.
 
-Logo abaixo do campo de pergunta, um aviso explica que a pergunta e as cartas são enviadas ao servidor e ao Google Gemini. A opção **Interpretação online com IA** vem ligada; desmarcada, nenhuma pergunta sai do aparelho e a interpretação é montada localmente. Os detalhes estão na [política de privacidade](public/privacidade.html), publicada em `/privacidade.html`.
+A interface não menciona a IA; a [política de privacidade](public/privacidade.html), publicada em `/privacidade.html` e linkada no rodapé e na janela da interpretação, explica que a pergunta e as cartas são enviadas ao Worker e ao Google Gemini. A interpretação online é sempre usada; o modo local entra só quando o serviço falha.
 
 O endereço padrão do Worker fica em [`src/config.js`](src/config.js). Para usar seu próprio serviço, copie [`.env.example`](.env.example) para `.env.local` na raiz do projeto e ajuste o endereço:
 
