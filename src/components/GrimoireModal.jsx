@@ -162,7 +162,7 @@ export const GrimoireModal = ({
                     <span className="text-[11px] font-cinzel text-amber-200 font-bold uppercase tracking-wider">
                       {card.name}
                     </span>
-                    <span className="text-[9px] text-amber-200 italic line-clamp-2">
+                    <span className="text-[11px] text-amber-200 italic line-clamp-2">
                       {card.archetype}
                     </span>
                     <span className="text-[8.5px] text-amber-400/90 mt-1 font-sans">

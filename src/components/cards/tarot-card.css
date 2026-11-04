@@ -59,3 +59,7 @@
 .tarot-card-size-lg { --card-numeral-size: 14px; --card-title-size: 18px; }
 .tarot-card-size-hero { --card-numeral-size: 15px; --card-title-size: 19px; }
 @media(max-width:767px) { .tarot-card-size-md { --card-numeral-size: 10px; --card-title-size: 11px; } }
+
+/* Printed scans carry their own numeral: give that row back to the artwork. */
+.tarot-card-frontface[data-printed-rank=true] > .tarot-card-numeral { display: none; }
+.tarot-card-frontface[data-printed-rank=true] { inset: 3.6% 4.6%; }

@@ -84,7 +84,8 @@ export const TarotCard = React.memo(function TarotCard({
             <img src={artworkUrl('tarot/backs/lumina-observatory.svg')} alt="" draggable={false} decoding="async" />
           </div>
         ) : (
-          <div className="tarot-card-frontface">
+          <div className="tarot-card-frontface" data-printed-rank={artwork?.collectionId === 'rider-waite'}>
+            {/* Rider–Waite scans already print the numeral; repeating it above the art reads as a typo. */}
             <div className="tarot-card-numeral">{rank}</div>
             <div className="tarot-card-picture" data-reversed={Boolean(card?.isReversed)}>
               {artwork ? <ArtworkImage key={artwork.src} artwork={artwork} name={card?.name || 'Carta'} priority={priority} size={size} /> : (

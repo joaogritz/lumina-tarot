@@ -230,7 +230,7 @@ export const ReadingHistoryModal = ({
                             onClick={() => onOpenCardDetail && onOpenCardDetail(card)}
                             className="p-2 rounded-sm bg-slate-900/90 border border-amber-500/30 hover:border-amber-400 cursor-pointer flex flex-col items-center text-center transition-all group"
                           >
-                            <span className="text-[9px] text-amber-400/80 font-cinzel truncate w-full mb-1">
+                            <span className="text-[11px] text-amber-400/80 font-cinzel truncate w-full mb-1">
                               {card.positionName}
                             </span>
                             <div className="w-16 aspect-[7/12] my-1 pointer-events-none group-hover:scale-105 transition-transform">
