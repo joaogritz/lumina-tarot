@@ -107,7 +107,7 @@ export const SpreadArea = ({
 
                   </button>
 
-                  {/* Remove Card Button - Enlarged & Hover-Expanded */}
+                  {/* Remove card: gold seal in the site palette, styled in index.css. */}
                   {onRemoveCard && (
                     <button
                       type="button"
@@ -116,10 +116,10 @@ export const SpreadArea = ({
                         audio.playRemoveCard();
                         onRemoveCard(1);
                       }}
-                      title="Remover carta cruzada"
-                      className="absolute -top-2.5 -right-2.5 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-slate-950 border-2 border-red-500/80 text-red-300 hover:text-white hover:bg-red-900 hover:border-red-400 hover:scale-125 hover:shadow-[0_0_16px_rgba(239,68,68,0.85)] flex items-center justify-center shadow-xl transition-all duration-200 ease-out z-30 cursor-pointer active:scale-95"
+                      aria-label="Remover carta cruzada" title="Remover carta cruzada"
+                      className="spread-remove-action"
                     >
-                      <X className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[2.5]" />
+                      <X aria-hidden="true" className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                     </button>
                   )}
                 </div>
