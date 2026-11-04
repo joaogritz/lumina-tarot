@@ -278,3 +278,11 @@ body::after { content: ''; position: fixed; inset: 0; z-index: var(--z-texture);
 .spread-tab-scroller { --fade-l: 0px; --fade-r: 0px; mask-image: linear-gradient(90deg,transparent,#000 var(--fade-l),#000 calc(100% - var(--fade-r)),transparent); }
 .spread-tab-scroller[data-fade-left=true] { --fade-l: 48px; }
 .spread-tab-scroller[data-fade-right=true] { --fade-r: 48px; }
+
+/* Journal backup: quiet secondary actions beside the search, with a one-line status. */
+.journal-backup-button { display: inline-flex; align-items: center; gap: 8px; min-height: 38px; padding: 8px 12px; border: 1px solid var(--border-quiet); border-radius: 2px; background: var(--color-obsidian); color: var(--color-parchment); font: 400 12px var(--font-outfit); letter-spacing: .04em; transition: color var(--duration-fast), border-color var(--duration-fast); }
+.journal-backup-button:hover:not(:disabled) { color: var(--color-gold-bright); border-color: var(--border-lit); }
+.journal-backup-note { margin: -4px 0 12px; font-size: 12px; line-height: 1.5; color: var(--color-slate-400); }
+.journal-backup-note [data-tone=ok] { color: var(--color-emerald-300); }
+.journal-backup-note [data-tone=error] { color: var(--color-red-300); }
+@media(max-width: 520px) { .journal-backup-button span { display: none; } .journal-backup-button { padding: 8px 10px; } }
