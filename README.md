@@ -49,7 +49,7 @@ Abra o endereço exibido pelo Vite, normalmente `http://localhost:5173`.
 
 ## Interpretações e privacidade
 
-Ao consultar uma tiragem ou o Sim ou Não, a aplicação gera uma interpretação online por meio de um Cloudflare Worker. O Worker tenta o Google Gemini e, se ele não responder a tempo, usa um modelo do Cloudflare Workers AI. Não há leitura gerada localmente: se nenhum dos dois responder, o site avisa que não foi possível consultar e oferece **Tentar novamente**, mantendo as cartas tiradas. As salvaguardas éticas (temas como autolesão) respondem localmente, sem consultar o serviço.
+Ao consultar uma tiragem ou o Sim ou Não, a aplicação gera uma interpretação online por meio de um Cloudflare Worker. O Worker consulta primeiro um modelo do Cloudflare Workers AI e, se ele falhar, o Google Gemini. Não há leitura gerada localmente: se nenhum dos dois responder, o site avisa que não foi possível consultar e oferece **Tentar novamente**, mantendo as cartas tiradas. As salvaguardas éticas (temas como autolesão) respondem localmente, sem consultar o serviço.
 
 A interface não menciona a IA; a [política de privacidade](public/privacidade.html), publicada em `/privacidade.html` e linkada no rodapé e na janela da interpretação, explica que a pergunta e as cartas são enviadas ao Worker, ao Google Gemini e, quando necessário, ao Workers AI.
 
@@ -80,11 +80,11 @@ O backend está no arquivo independente [`cloudflare_worker_code.js`](cloudflare
 | Configuração | Obrigatória | Uso |
 | --- | --- | --- |
 | `GEMINI_API_KEY` | Um dos dois | Segredo com a chave do Gemini, mantido somente no Worker. |
-| `AI` | Um dos dois | Binding do Workers AI, usado quando o Gemini falha ou não está configurado. Recomendado: o plano gratuito do Gemini fica lento ou indisponível em horários de pico. |
+| `AI` | Um dos dois | Binding do Workers AI, consultado primeiro; o Gemini fica como reserva. Recomendado: o plano gratuito do Gemini fica lento ou indisponível em horários de pico. |
 | `ALLOWED_ORIGINS` | Sim | Origens separadas por vírgula, como `https://luminatarot.app`. Aceita curinga de subdomínio (`https://*.exemplo.com`); `*` sozinho é ignorado. |
 | `ORACLE_RATE_LIMITER` | Sim | Binding de rate limit por IP. Se faltar ou falhar, o Worker responde 503. |
-| `GEMINI_MODEL` | Não | Modelo do Gemini (padrão `gemini-3.5-flash-lite`), tentado uma vez por consulta, por até 12 s. Prefira versões fixas a apelidos `-latest`. |
-| `WORKERS_AI_MODEL` | Não | Modelo do Workers AI (padrão `@cf/meta/llama-3.3-70b-instruct-fp8-fast`), com até 16 s. Precisa começar com `@cf/`. |
+| `GEMINI_MODEL` | Não | Modelo do Gemini (padrão `gemini-3.5-flash-lite`), tentado uma vez, por até 12 s, quando o Workers AI falha. Prefira versões fixas a apelidos `-latest`. |
+| `WORKERS_AI_MODEL` | Não | Modelo do Workers AI (padrão `@cf/google/gemma-4-26b-a4b-it`), com até 16 s. Precisa começar com `@cf/`. |
 | `ALLOW_LOCALHOST` | Não | `true` libera `localhost` e `127.0.0.1`. Use só em desenvolvimento. |
 | `ALLOW_UNLIMITED` | Não | `true` dispensa o rate limiter. Use só em desenvolvimento. |
 

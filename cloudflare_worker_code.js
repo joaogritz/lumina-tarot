@@ -147,12 +147,13 @@ const normalizeOrigin = (value) => value.trim().replace(/\/+$/, '').toLowerCase(
 const flag = (value) => String(value || '').trim().toLowerCase() === 'true';
 
 // Providers, in order. Gemini's free tier is deprioritised under load (frequent 503 "high demand"
-// and slow answers), so one Gemini attempt is followed by Cloudflare Workers AI, which runs on
-// Cloudflare's own network and needs no extra key. Both together fit the site's 32 s wait.
+// and slow answers), so Cloudflare Workers AI answers first and Gemini is the fallback. Gemma 4 26B
+// costs about a fifth of the neurons of Llama 3.3 70B, so the free daily allocation lasts ~5x longer.
+// Both attempts together fit the site's 32 s wait.
 // Pinned version: '-latest' aliases move silently, and Gemini 2.5 answers 404 for new keys.
 const GEMINI_DEFAULT_MODEL = 'gemini-3.5-flash-lite';
 const GEMINI_TIMEOUT_MS = 12000;
-const WORKERS_AI_DEFAULT_MODEL = '@cf/meta/llama-3.3-70b-instruct-fp8-fast';
+const WORKERS_AI_DEFAULT_MODEL = '@cf/google/gemma-4-26b-a4b-it';
 const WORKERS_AI_TIMEOUT_MS = 16000;
 // Short readings gain little from reasoning, which mostly adds latency: use each model's lowest level.
 function thinkingFor(model) {
@@ -276,9 +277,31 @@ export default {
     let generatedText = null;
     let modelUsed = null;
 
-    // 1. Gemini, one attempt.
+    // 1. Cloudflare Workers AI.
+    if (workersAi) {
+      const aiModel = /^@cf\/[\w./-]+$/.test(env.WORKERS_AI_MODEL || '') ? env.WORKERS_AI_MODEL : WORKERS_AI_DEFAULT_MODEL;
+      try {
+        const out = await withTimeout(workersAi.run(aiModel, {
+          messages: [
+            { role: 'system', content: prompt },
+            { role: 'user', content: consultation },
+          ],
+          max_tokens: isYesNo ? 400 : 1400,
+          temperature: 0.6,
+        }), WORKERS_AI_TIMEOUT_MS);
+        const text = (typeof out?.response === 'string' ? out.response : out?.choices?.[0]?.message?.content || '').slice(0, 12000);
+        if (text.trim()) {
+          generatedText = text;
+          modelUsed = aiModel;
+        } else console.error('Provider returned empty', aiModel);
+      } catch (e) {
+        console.error('Provider call failed:', aiModel, e?.message);
+      }
+    }
+
+    // 2. Gemini, one attempt, if Workers AI did not answer.
     const geminiModel = [env.GEMINI_MODEL, GEMINI_DEFAULT_MODEL].find(m => m && /^[a-zA-Z0-9.-]+$/.test(m));
-    if (geminiApiKey && geminiModel) {
+    if (!generatedText && geminiApiKey && geminiModel) {
       try {
         const upstream = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent`, {
           method: 'POST',
@@ -314,28 +337,6 @@ export default {
         }
       } catch (e) {
         console.error('Provider call failed:', geminiModel, e?.message);
-      }
-    }
-
-    // 2. Cloudflare Workers AI.
-    if (!generatedText && workersAi) {
-      const aiModel = /^@cf\/[\w./-]+$/.test(env.WORKERS_AI_MODEL || '') ? env.WORKERS_AI_MODEL : WORKERS_AI_DEFAULT_MODEL;
-      try {
-        const out = await withTimeout(workersAi.run(aiModel, {
-          messages: [
-            { role: 'system', content: prompt },
-            { role: 'user', content: consultation },
-          ],
-          max_tokens: isYesNo ? 400 : 1400,
-          temperature: 0.6,
-        }), WORKERS_AI_TIMEOUT_MS);
-        const text = (typeof out?.response === 'string' ? out.response : out?.choices?.[0]?.message?.content || '').slice(0, 12000);
-        if (text.trim()) {
-          generatedText = text;
-          modelUsed = aiModel;
-        } else console.error('Provider returned empty', aiModel);
-      } catch (e) {
-        console.error('Provider call failed:', aiModel, e?.message);
       }
     }
 

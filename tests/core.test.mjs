@@ -108,7 +108,7 @@ test('worker exige chave e rate limiter, falhando fechado sem vazar configuraç�
     assert.equal((await worker.fetch(req(),{...env,ORACLE_RATE_LIMITER:null,ALLOW_UNLIMITED:'true'})).status,200);
   } finally { globalThis.fetch = original; }
 });
-test('worker tenta o Gemini uma vez e depois o Workers AI', async () => {
+test('worker usa o Workers AI primeiro e o Gemini só se ele falhar', async () => {
   const original = globalThis.fetch;
   const models = [];
   const aiCalls = [];
@@ -118,9 +118,13 @@ test('worker tenta o Gemini uma vez e depois o Workers AI', async () => {
     const ok = await worker.fetch(req(), { ...env, AI: ai });
     assert.equal(ok.status, 200);
     const body = await ok.json();
-    assert.equal(body.modelUsed, '@cf/meta/llama-3.3-70b-instruct-fp8-fast');
+    assert.equal(body.modelUsed, '@cf/google/gemma-4-26b-a4b-it');
     assert.ok(body.text.includes('Workers AI'));
+    assert.deepEqual(models, []);
+    // Workers AI failing hands the consultation to Gemini, once.
+    await worker.fetch(req(), { ...env, AI: { run: async () => { throw new Error('down'); } } });
     assert.deepEqual(models, ['gemini-3.5-flash-lite']);
+    models.length = 0;
     assert.equal(aiCalls[0].input.messages[0].role, 'system');
     assert.ok(aiCalls[0].input.messages[0].content.includes('Petit Lenormand'));
     assert.equal(JSON.parse(aiCalls[0].input.messages[1].content).question, payload.userQuestion);
@@ -149,7 +153,7 @@ test('worker funciona só com o Workers AI e aceita outro modelo @cf', async () 
   assert.deepEqual(seen, ['@cf/mistralai/mistral-small-3.1-24b-instruct']);
   // Invalid overrides fall back to the default model instead of being passed through.
   await worker.fetch(req(), { ...onlyAi, WORKERS_AI_MODEL: 'http://evil' });
-  assert.equal(seen.at(-1), '@cf/meta/llama-3.3-70b-instruct-fp8-fast');
+  assert.equal(seen.at(-1), '@cf/google/gemma-4-26b-a4b-it');
   // A provider error is logged and turns into a generic 502.
   const broken = { ...onlyAi, AI: { run: async () => { throw new Error('boom'); } } };
   const failed = await worker.fetch(req(), broken);
