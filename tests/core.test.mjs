@@ -113,7 +113,7 @@ test('worker tenta no máximo dois modelos por consulta', async () => {
     globalThis.fetch = async (url) => { models.push(String(url).match(/models\/([^:]+)/)[1]); return new Response('{}', {status:500}); };
     const response = await worker.fetch(req(), {...env, GEMINI_MODEL:'gemini-custom'});
     assert.equal(response.status, 502);
-    assert.deepEqual(models, ['gemini-custom','gemini-2.5-flash-lite']);
+    assert.deepEqual(models, ['gemini-custom','gemini-3.5-flash-lite']);
   } finally { globalThis.fetch = original; }
 });
 test('worker separa instruções, protege chave e oculta erros do provedor', async () => {
@@ -201,7 +201,7 @@ test('parser preserva a dica online e trata salvaguardas sem aparência de SIM',
   }
   assert.deepEqual(parseYesNoAiResponse('VEREDITO: SIM\nRESPOSTA: Não avance.\nDICA: Aguarde.',fallback),fallback);
 });
-test('worker usa modelos com versão fixa e desliga o raciocínio nos modelos 2.5', async () => {
+test('worker usa modelos com versão fixa e o menor nível de raciocínio de cada um', async () => {
   const original = globalThis.fetch;
   const seen = [];
   try {
@@ -210,8 +210,12 @@ test('worker usa modelos com versão fixa e desliga o raciocínio nos modelos 2.
       return new Response('{}', { status: 503 });
     };
     assert.equal((await worker.fetch(req(), env)).status, 502);
-    assert.deepEqual(seen.map(s => s.model), ['gemini-2.5-flash-lite', 'gemini-2.5-flash']);
-    for (const { config } of seen) assert.deepEqual(config.thinkingConfig, { thinkingBudget: 0 });
+    assert.deepEqual(seen.map(s => s.model), ['gemini-3.5-flash-lite', 'gemini-3.8-flash']);
+    assert.deepEqual(seen[0].config.thinkingConfig, { thinkingLevel: 'minimal' });
+    assert.deepEqual(seen[1].config.thinkingConfig, { thinkingLevel: 'low' });
     assert.ok(!seen.some(s => s.model.endsWith('-latest')));
+    seen.length = 0;
+    await worker.fetch(req(), { ...env, GEMINI_MODEL: 'gemini-2.5-flash-lite' });
+    assert.deepEqual(seen[0].config.thinkingConfig, { thinkingBudget: 0 });
   } finally { globalThis.fetch = original; }
 });

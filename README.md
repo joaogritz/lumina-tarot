@@ -82,7 +82,7 @@ O backend está no arquivo independente [`cloudflare_worker_code.js`](cloudflare
 | `GEMINI_API_KEY` | Sim | Segredo com a chave do provedor, mantido somente no Worker. |
 | `ALLOWED_ORIGINS` | Sim | Origens separadas por vírgula, como `https://luminatarot.app`. Aceita curinga de subdomínio (`https://*.exemplo.com`); `*` sozinho é ignorado. |
 | `ORACLE_RATE_LIMITER` | Sim | Binding de rate limit por IP. Se faltar ou falhar, o Worker responde 503. |
-| `GEMINI_MODEL` | Não | Modelo preferido. O Worker tenta no máximo dois modelos por consulta. |
+| `GEMINI_MODEL` | Não | Modelo preferido, tentado antes dos padrões (`gemini-3.5-flash-lite` e `gemini-3.8-flash`). O Worker tenta no máximo dois modelos por consulta. Prefira versões fixas a apelidos `-latest`. |
 | `ALLOW_LOCALHOST` | Não | `true` libera `localhost` e `127.0.0.1`. Use só em desenvolvimento. |
 | `ALLOW_UNLIMITED` | Não | `true` dispensa o rate limiter. Use só em desenvolvimento. |
 

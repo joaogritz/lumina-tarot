@@ -4,6 +4,9 @@
 import { getYesNoEvaluation, generateOfflineYesNoReading } from './yesNoOracle.js';
 import { DEFAULT_ORACLE_URL } from '../config.js';
 
+// Must exceed the Worker's total model budget (18 s + 10 s) so its answer is not cut off.
+const ORACLE_TIMEOUT_MS = 32000;
+
 /* global process */
 // Cloudflare Worker Endpoint
 const DEFAULT_WORKER_URL = (typeof window === 'undefined')
@@ -182,7 +185,7 @@ export const aiOracleService = {
       try {
         const response = await fetch(workerUrl, {
           method: 'POST',
-          signal: AbortSignal.timeout(20000),
+          signal: AbortSignal.timeout(ORACLE_TIMEOUT_MS),
           headers: {
             'Content-Type': 'application/json'
           },
@@ -240,7 +243,7 @@ export const aiOracleService = {
       try {
         const response = await fetch(workerUrl, {
           method: 'POST',
-          signal: AbortSignal.timeout(20000),
+          signal: AbortSignal.timeout(ORACLE_TIMEOUT_MS),
           headers: {
             'Content-Type': 'application/json'
           },

@@ -148,10 +148,19 @@ const flag = (value) => String(value || '').trim().toLowerCase() === 'true';
 
 // One request may try at most this many models, so a single call never fans out into many paid calls.
 const MAX_MODEL_ATTEMPTS = 2;
-// Pinned versions: '-latest' aliases can silently move to a slower model.
-const FALLBACK_MODELS = ['gemini-2.5-flash-lite', 'gemini-2.5-flash'];
-// Two attempts must fit in the 20 s the site waits before falling back to a local reading.
-const ATTEMPT_TIMEOUT_MS = 9000;
+// Pinned versions: '-latest' aliases can silently move to a slower model, and Google retires
+// older families for new keys (Gemini 2.5 now answers 404 "no longer available to new users").
+const FALLBACK_MODELS = ['gemini-3.5-flash-lite', 'gemini-3.8-flash'];
+// Short readings gain little from reasoning, which mostly adds latency: use each model's lowest level.
+function thinkingFor(model) {
+  if (model.startsWith('gemini-2.5')) return { thinkingBudget: 0 };
+  if (model.includes('flash-lite')) return { thinkingLevel: 'minimal' };
+  if (model.startsWith('gemini-3')) return { thinkingLevel: 'low' };
+  return undefined;
+}
+// Per-attempt timeouts. Under heavy provider load the first model needs more time; both attempts
+// together stay inside the 32 s the site waits before falling back to a local reading.
+const ATTEMPT_TIMEOUTS_MS = [18000, 10000];
 
 // Only listed origins may call the Worker. A bare "*" is ignored on purpose: it would turn the
 // Worker back into an open proxy. Subdomain wildcards like https://*.example.com are supported.
@@ -264,11 +273,11 @@ export default {
     let generatedText = null;
     let modelUsed = null;
 
-    for (const model of modelsToTry) {
+    for (const [attempt, model] of modelsToTry.entries()) {
       try {
         const upstream = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
           method: 'POST',
-          signal: AbortSignal.timeout(ATTEMPT_TIMEOUT_MS),
+          signal: AbortSignal.timeout(ATTEMPT_TIMEOUTS_MS[attempt] ?? 10000),
           headers: {
             'Content-Type': 'application/json',
             'x-goog-api-key': geminiApiKey
@@ -279,8 +288,7 @@ export default {
             generationConfig: {
               temperature: 0.6,
               maxOutputTokens: isYesNo ? 1000 : 3000,
-              // Short readings do not need a reasoning pass, which mostly adds latency.
-              ...(model.startsWith('gemini-2.5') ? { thinkingConfig: { thinkingBudget: 0 } } : {}),
+              ...(thinkingFor(model) ? { thinkingConfig: thinkingFor(model) } : {}),
             },
           }),
         });
