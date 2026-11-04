@@ -147,14 +147,27 @@ const normalizeOrigin = (value) => value.trim().replace(/\/+$/, '').toLowerCase(
 const flag = (value) => String(value || '').trim().toLowerCase() === 'true';
 
 // Providers, in order. Gemini's free tier is deprioritised under load (frequent 503 "high demand"
-// and slow answers), so Cloudflare Workers AI answers first and Gemini is the fallback.
-// Gemma 4 26B was tried (cheaper) but answered empty or timed out through this call shape.
-// Both attempts together fit the site's 32 s wait.
-// Pinned version: '-latest' aliases move silently, and Gemini 2.5 answers 404 for new keys.
+// and slow answers), so Cloudflare Workers AI answers first and Gemini is the last resort.
+// Measured with the real prompt (Nov 2026): Gemma 4 26B without thinking answers a 10-card spread in
+// ~9 s for ~35 neurons (the free 10,000/day covers ~280 readings); gpt-oss-120b takes 4-12 s for
+// ~100 neurons; Llama 3.3 70B took 11 s for ~160. Gemma with thinking on timed out or came back empty.
+// Every attempt shares one deadline so the site (32 s wait) always gets an answer or a clean 502.
+// Pinned versions: '-latest' aliases move silently, and Gemini 2.5 answers 404 for new keys.
+const WORKERS_AI_MODELS = [
+  { model: '@cf/google/gemma-4-26b-a4b-it', timeout: 15000 },
+  { model: '@cf/openai/gpt-oss-120b', timeout: 12000 },
+];
 const GEMINI_DEFAULT_MODEL = 'gemini-3.5-flash-lite';
 const GEMINI_TIMEOUT_MS = 12000;
-const WORKERS_AI_DEFAULT_MODEL = '@cf/meta/llama-3.3-70b-instruct-fp8-fast';
-const WORKERS_AI_TIMEOUT_MS = 16000;
+const TOTAL_BUDGET_MS = 29000;
+// An attempt with less time than this left is skipped: it would only delay the 502.
+const MIN_ATTEMPT_MS = 3000;
+// Workers AI models that reason by default are switched to their fastest mode.
+function workersAiOptions(model) {
+  if (model.includes('gpt-oss')) return { reasoning_effort: 'low' };
+  if (/gemma-4|qwen3|glm-/.test(model)) return { chat_template_kwargs: { enable_thinking: false } };
+  return {};
+}
 // Short readings gain little from reasoning, which mostly adds latency: use each model's lowest level.
 function thinkingFor(model) {
   if (model.startsWith('gemini-2.5')) return { thinkingBudget: 0 };
@@ -277,9 +290,16 @@ export default {
     let generatedText = null;
     let modelUsed = null;
 
-    // 1. Cloudflare Workers AI.
-    if (workersAi) {
-      const aiModel = /^@cf\/[\w./-]+$/.test(env.WORKERS_AI_MODEL || '') ? env.WORKERS_AI_MODEL : WORKERS_AI_DEFAULT_MODEL;
+    const deadline = Date.now() + TOTAL_BUDGET_MS;
+    const timeLeft = (limit) => Math.min(limit, deadline - Date.now());
+
+    // 1. Cloudflare Workers AI, each model once. WORKERS_AI_MODEL, if set, is tried first.
+    const override = /^@cf\/[\w./-]+$/.test(env.WORKERS_AI_MODEL || '') ? [{ model: env.WORKERS_AI_MODEL, timeout: 15000 }] : [];
+    const aiChain = [...override, ...WORKERS_AI_MODELS.filter(m => m.model !== env.WORKERS_AI_MODEL)];
+    for (const { model: aiModel, timeout } of workersAi ? aiChain : []) {
+      if (generatedText) break;
+      const ms = timeLeft(timeout);
+      if (ms < MIN_ATTEMPT_MS) break;
       try {
         const out = await withTimeout(workersAi.run(aiModel, {
           messages: [
@@ -288,9 +308,12 @@ export default {
           ],
           max_tokens: isYesNo ? 400 : 1400,
           temperature: 0.6,
-        }), WORKERS_AI_TIMEOUT_MS);
-        const text = (typeof out?.response === 'string' ? out.response : out?.choices?.[0]?.message?.content || '').slice(0, 12000);
-        if (text.trim()) {
+          ...workersAiOptions(aiModel),
+        }), ms);
+        const choice = out?.choices?.[0];
+        const text = (typeof out?.response === 'string' && out.response ? out.response : choice?.message?.content || '').slice(0, 12000);
+        if (choice?.finish_reason === 'length') console.error('Provider truncated', aiModel);
+        else if (text.trim()) {
           generatedText = text;
           modelUsed = aiModel;
         } else console.error('Provider returned empty', aiModel);
@@ -299,13 +322,13 @@ export default {
       }
     }
 
-    // 2. Gemini, one attempt, if Workers AI did not answer.
+    // 2. Gemini, one attempt, if Workers AI did not answer and time remains.
     const geminiModel = [env.GEMINI_MODEL, GEMINI_DEFAULT_MODEL].find(m => m && /^[a-zA-Z0-9.-]+$/.test(m));
-    if (!generatedText && geminiApiKey && geminiModel) {
+    if (!generatedText && geminiApiKey && geminiModel && timeLeft(GEMINI_TIMEOUT_MS) >= MIN_ATTEMPT_MS) {
       try {
         const upstream = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent`, {
           method: 'POST',
-          signal: AbortSignal.timeout(GEMINI_TIMEOUT_MS),
+          signal: AbortSignal.timeout(timeLeft(GEMINI_TIMEOUT_MS)),
           headers: {
             'Content-Type': 'application/json',
             'x-goog-api-key': geminiApiKey

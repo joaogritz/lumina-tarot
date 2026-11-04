@@ -10,7 +10,7 @@ compatibility_date = "2026-11-01"
 ALLOWED_ORIGINS = "https://luminatarot.app"
 # Opcionais: modelos usados. O Workers AI responde primeiro; o Gemini é a reserva.
 # GEMINI_MODEL = "gemini-3.5-flash-lite"
-# WORKERS_AI_MODEL = "@cf/meta/llama-3.3-70b-instruct-fp8-fast"
+# WORKERS_AI_MODEL = "@cf/google/gemma-4-26b-a4b-it"
 # Somente para desenvolvimento local (wrangler dev):
 # ALLOW_LOCALHOST = "true"
 

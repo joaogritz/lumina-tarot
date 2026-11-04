@@ -118,11 +118,15 @@ test('worker usa o Workers AI primeiro e o Gemini só se ele falhar', async () =
     const ok = await worker.fetch(req(), { ...env, AI: ai });
     assert.equal(ok.status, 200);
     const body = await ok.json();
-    assert.equal(body.modelUsed, '@cf/meta/llama-3.3-70b-instruct-fp8-fast');
+    assert.equal(body.modelUsed, '@cf/google/gemma-4-26b-a4b-it');
     assert.ok(body.text.includes('Workers AI'));
     assert.deepEqual(models, []);
-    // Workers AI failing hands the consultation to Gemini, once.
-    await worker.fetch(req(), { ...env, AI: { run: async () => { throw new Error('down'); } } });
+    // Gemma runs without thinking; the request carries the fast-mode option.
+    assert.deepEqual(aiCalls[0].input.chat_template_kwargs, { enable_thinking: false });
+    // Every Workers AI model failing hands the consultation to Gemini, once.
+    const tried = [];
+    await worker.fetch(req(), { ...env, AI: { run: async (m, input) => { tried.push([m, input.reasoning_effort]); throw new Error('down'); } } });
+    assert.deepEqual(tried, [['@cf/google/gemma-4-26b-a4b-it', undefined], ['@cf/openai/gpt-oss-120b', 'low']]);
     assert.deepEqual(models, ['gemini-3.5-flash-lite']);
     models.length = 0;
     assert.equal(aiCalls[0].input.messages[0].role, 'system');
@@ -132,6 +136,16 @@ test('worker usa o Workers AI primeiro e o Gemini só se ele falhar', async () =
     assert.equal((await worker.fetch(req(), env)).status, 502);
     assert.deepEqual(models, ['gemini-3.5-flash-lite']);
   } finally { globalThis.fetch = original; }
+});
+test('worker passa ao próximo modelo quando o Workers AI responde vazio ou truncado', async () => {
+  const replies = [{ choices: [{ finish_reason: 'length', message: { content: 'Texto cortado' } }] }, { choices: [{ message: { content: 'Leitura do gpt-oss' } }] }];
+  const ai = { run: async () => replies.shift() };
+  const response = await worker.fetch(req(), { ...env, GEMINI_API_KEY: '', AI: ai });
+  const body = await response.json();
+  assert.equal(body.text, 'Leitura do gpt-oss');
+  assert.equal(body.modelUsed, '@cf/openai/gpt-oss-120b');
+  const empty = await worker.fetch(req(), { ...env, GEMINI_API_KEY: '', AI: { run: async () => ({ response: '', choices: [{ message: { content: '' } }] }) } });
+  assert.equal(empty.status, 502);
 });
 test('worker não entrega leitura truncada e usa o Workers AI no lugar', async () => {
   const original = globalThis.fetch;
@@ -151,9 +165,9 @@ test('worker funciona só com o Workers AI e aceita outro modelo @cf', async () 
   assert.equal(response.status, 200);
   assert.equal((await response.json()).text, 'Resposta em formato OpenAI');
   assert.deepEqual(seen, ['@cf/mistralai/mistral-small-3.1-24b-instruct']);
-  // Invalid overrides fall back to the default model instead of being passed through.
+  // Invalid overrides are ignored and the default chain is used instead.
   await worker.fetch(req(), { ...onlyAi, WORKERS_AI_MODEL: 'http://evil' });
-  assert.equal(seen.at(-1), '@cf/meta/llama-3.3-70b-instruct-fp8-fast');
+  assert.equal(seen.at(-1), '@cf/google/gemma-4-26b-a4b-it');
   // A provider error is logged and turns into a generic 502.
   const broken = { ...onlyAi, AI: { run: async () => { throw new Error('boom'); } } };
   const failed = await worker.fetch(req(), broken);

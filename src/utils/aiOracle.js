@@ -5,7 +5,7 @@
 import { getYesNoEvaluation, generateOfflineYesNoReading } from './yesNoOracle.js';
 import { DEFAULT_ORACLE_URL } from '../config.js';
 
-// Must exceed the Worker's total provider budget (Gemini 12 s + Workers AI 16 s) so its answer is not cut off.
+// Must exceed the Worker's shared provider deadline (29 s) so its answer is not cut off.
 const ORACLE_TIMEOUT_MS = 32000;
 
 /* global process */
