@@ -3,6 +3,17 @@
 Mudanças relevantes do projeto. O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 e as versões seguem [SemVer](https://semver.org/lang/pt-BR/).
 
+## [1.2.0] - 2026-11-04
+
+### Alterado
+- Mesa 3D: cartas, monte e descartes com espessura, cantos arredondados e bordas douradas; notas como
+  fichas de pergaminho; castiçais torneados, velas de cera translúcida com escorridos, chamas em gota,
+  aglomerado de cristais facetados, esfera armilar completa e couro com pesponto.
+- Mesa 3D: luz principal mais inclinada, foco de leitura, poço de luz no tecido e sombras de contato em
+  todos os perfis; pós-processamento (MSAA, FXAA, bloom, nitidez) no perfil médio e oclusão ambiente no alto.
+- Mesa 3D: animações de voo, virada pela borda, deslize em comandos e ao soltar, inclinação no arrasto,
+  embaralhamento riffle, chamas tremulando e esfera armilar girando (perfis médio e alto).
+
 ## [1.1.1] - 2026-11-03
 
 ### Alterado
@@ -53,7 +64,8 @@ e as versões seguem [SemVer](https://semver.org/lang/pt-BR/).
 ### Alterado
 - Cartas, grade do baralho, legibilidade, posições vazias e prévia em redes sociais.
 
-[1.1.1]: https://github.com/joaogritz/lumina-tarot/compare/107e9b3...HEAD
+[1.2.0]: https://github.com/joaogritz/lumina-tarot/compare/e8ca17a...HEAD
+[1.1.1]: https://github.com/joaogritz/lumina-tarot/pull/11
 [1.1.0]: https://github.com/joaogritz/lumina-tarot/pull/3
 [1.0.2]: https://github.com/joaogritz/lumina-tarot/pull/2
 [1.0.1]: https://github.com/joaogritz/lumina-tarot/pull/1

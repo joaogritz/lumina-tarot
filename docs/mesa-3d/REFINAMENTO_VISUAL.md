@@ -14,6 +14,35 @@ A mesa usa a mesma linguagem do Lumina: obsidiana, marfim, dourado envelhecido, 
 
 Os materiais PBR têm tratamento de exposição e tone mapping próprio. As ilustrações ficam sem iluminação, neblina ou gradação global, preservando suas cores e proporções. O brilho é seletivo nas chamas, sem desfocar a área de leitura.
 
+## Revisão de modelagem, luz e animação (novembro de 2026)
+
+A mesa é uma experiência de desktop, então os perfis médio e alto passaram a usar recursos mais pesados do Babylon.js.
+
+### Modelagem
+- **Cartas** com 1,72 × 3 de espessura real, cantos arredondados (raio 0,1) e borda dourada, como num baralho impresso. O corpo usa `roundedSlab` (`scene/geometry.ts`), com dois sub-meshes (faces de papel e borda) e um `MultiMaterial`. A face da arte é um `roundedPlane` com o mesmo arredondamento.
+- **Monte e pilha de descartes** com a mesma geometria. A lateral do monte usa folhas douradas listradas, que se comprimem conforme as cartas saem.
+- **Notas** como fichas de pergaminho com cantos arredondados e borda tingida.
+- **Castiçais torneados** por `CreateLathe` (pé, molduras, haste e aparador) e **velas** com borda derretida e escorridos de cera, num único mesh mesclado.
+- **Chamas** em gota com núcleo mais claro, as duas giradas a partir do mesmo perfil.
+- **Cristais de quartzo** em aglomerado: prismas hexagonais com ponta piramidal, sombreamento facetado e índice de refração do quartzo.
+- **Esfera armilar** com anéis de meridiano, eclíptica inclinada, eixo e globo central.
+- **Couro** da bandeja e da caixa com granulação e pesponto dourado.
+
+### Luz e materiais
+- Luz principal mais baixa e quente, para que cartas e objetos projetem sombras legíveis. Luz ambiente reduzida para dar contraste.
+- Foco de leitura (`SpotLight`) e um poço de luz pintado no tecido, mais claro sob a área de leitura e mais escuro na borda.
+- Cera com translucidez (`PBRMaterial.subSurface`) e o mesmo tone mapping ACES dos demais materiais PBR.
+- Sombra de contato suave em todos os perfis, deslocada no sentido da luz principal e mais difusa quando a carta é levantada.
+
+### Animação
+O controlador fica em `cards/motion.ts` e roda dentro do ciclo de renderização da mesa, com curvas de easing próprias.
+- **Voo** (puxar, devolver, descartar): aceleração suave, arco proporcional à distância, inclinação no sentido do voo e giro até o ângulo final.
+- **Virar**: a carta gira apoiada na borda longa, como ao virar uma carta à mão, e troca de face no momento em que fica de perfil.
+- **Deslize**: mover, girar, selecionar, desfazer, refazer e soltar uma carta arrastada deslizam em vez de saltar. Cancelar um arrasto devolve a carta na hora, para que um novo clique imediato a encontre.
+- **Arrastar**: a carta sobe um pouco mais e inclina na direção do movimento.
+- **Embaralhar**: duas metades do monte se afastam, curvam e se intercalam (riffle), depois se acertam.
+- **Ambiente**: chamas tremulando com ruído em camadas, a luz das velas oscilando junto e a esfera armilar girando devagar.
+
 ## Retirar uma carta
 
 Segure o topo do monte e arraste para a área de leitura. A representação acompanha o ponto tocado, elevada sobre a mesa. Durante o gesto não há retirada do baralho, escrita em disco nem entrada no histórico. Ao soltar fora do monte, um único comando registra a carta e sua posição. Ela se acomoda suavemente no lugar.
@@ -44,11 +73,19 @@ Campos, áreas editáveis e diálogos mantêm o comportamento convencional de te
 
 ## Perfis e ciclo de renderização
 
-Média é a escolha inicial quando não existe preferência salva. Baixa mantém a mesma composição, usa sombras de contato e resolução reduzida; média acrescenta sombras PCF e brilho seletivo; alta aumenta resolução e qualidade das sombras. Movimento reduzido aplica os estados finais sem os voos e giros.
+Média é a escolha inicial quando não existe preferência salva.
+
+| Perfil | O que acrescenta |
+| --- | --- |
+| Baixa | Mesma composição, sombras de contato e resolução reduzida. Cena ociosa não desenha nenhum quadro. |
+| Média | Sombras PCF, brilho das chamas, `DefaultRenderingPipeline` (MSAA 2×, FXAA, bloom só acima de 1, nitidez leve) e modo ambiente: cerca de 20 quadros por segundo com a mesa parada, para as chamas e a esfera armilar. |
+| Alta | Resolução e sombras maiores, MSAA 4× e oclusão ambiente (`SSAO2RenderingPipeline`, quando WebGL2 está disponível). |
+
+O processamento de imagem continua por material: o pós-processamento não aplica gradação global, e as artes mantêm as cores originais. Movimento reduzido aplica os estados finais sem voos, giros, embaralhamento nem modo ambiente.
 
 `engine/framePacer.ts` usa um fence WebGL2 com consulta de tempo zero para limitar a um o número de quadros pendentes na GPU. A interface não é bloqueada esperando a GPU. Em WebGL1, o caminho segue sem fences. A medição inclui o número de quadros adiados por pressão da GPU. Isso impede que uma animação curta gere uma longa fila de quadros em renderizadores lentos; não certifica uma taxa de FPS em aparelhos físicos.
 
-O carregamento espera materiais, imagens e a conclusão de um quadro visível, em vez de esconder o carregador antes da primeira apresentação. Trocas de perfil e resize invalidam a apresentação até haver um novo quadro completo. A aba oculta continua pausada e a cena ociosa não envia novos quadros.
+O carregamento espera materiais, imagens e a conclusão de um quadro visível, em vez de esconder o carregador antes da primeira apresentação. Trocas de perfil e resize invalidam a apresentação até haver um novo quadro completo. A aba oculta continua pausada. No perfil baixo, a cena ociosa não envia novos quadros; nos perfis média e alta, o modo ambiente limita a cerca de 20 quadros por segundo.
 
 Em desenvolvimento, a mesa não registra service worker. Uma limpeza limitada ao registro antigo de desenvolvimento libera o controle da página, sem tocar nas mesas do IndexedDB. Em produção, o service worker preserva os shells separados e não guarda o grafo de módulos do Vite.
 
@@ -81,3 +118,8 @@ A barra principal expõe Devolver (B) e Embaralhar (S). Soltar uma carta sobre o
 ### Carta que salta, giro lateral e áudio
 
 Cada embaralhamento pela interface ou pelo atalho S sorteia uma chance de 1 em 50 de uma carta saltar fechada para a mesa, com arco mais alto. A saída e o embaralhamento formam uma única ação no histórico; refazer preserva o resultado sorteado. O botão De lado, o atalho L e a ação Girar 90° no inspetor giram a carta sem alterar sua inversão no Tarot. O embaralhamento acompanha um som de papel sintetizado localmente com Web Audio, sem assets externos. Configurações permite desativar o som, com preferência persistida no navegador.
+- [Babylon — Default Rendering Pipeline](https://doc.babylonjs.com/features/featuresDeepDive/postProcesses/defaultRenderingPipeline): MSAA, FXAA, bloom e nitidez; bloom com limiar acima de 1 para afetar só as chamas em HDR.
+- [Babylon — SSAO Rendering Pipeline](https://doc.babylonjs.com/features/featuresDeepDive/postProcesses/SSAORenderPipeline): oclusão ambiente com razão abaixo de 1 para controlar o custo.
+- [Babylon — Lights](https://doc.babylonjs.com/features/featuresDeepDive/lights/lights_introduction): spot e área; a luz de área com textura do Babylon 9 foi avaliada, mas o foco com queda padrão atende ao poço de luz com menos custo.
+- [Babylon.js 9.0](https://blogs.windows.com/windowsdeveloper/2026/03/26/announcing-babylon-js-9-0/): luz volumétrica, sombras dinâmicas de IBL e iluminação em clusters foram avaliadas e ficaram de fora por exigirem WebGPU/compute ou não trazerem ganho visível numa cena deste tamanho.
+

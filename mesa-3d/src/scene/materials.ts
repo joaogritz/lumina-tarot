@@ -1,5 +1,7 @@
 import { PBRMaterial } from "@babylonjs/core/Materials/PBR/pbrMaterial";
 import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
+import { MultiMaterial } from "@babylonjs/core/Materials/multiMaterial";
+import type { Material } from "@babylonjs/core/Materials/material";
 import { DynamicTexture } from "@babylonjs/core/Materials/Textures/dynamicTexture";
 import { Texture } from "@babylonjs/core/Materials/Textures/texture";
 import { ImageProcessingConfiguration } from "@babylonjs/core/Materials/imageProcessingConfiguration";
@@ -31,7 +33,8 @@ export function painted(
 }
 export const assetUrl = (path: string) =>
   new URL(`../mesa-3d/${path}`, document.baseURI).href;
-function finish(m: PBRMaterial) {
+/** Shared tone mapping and exposure, so every PBR material sits in the same light. */
+export function finish(m: PBRMaterial) {
   const look = new ImageProcessingConfiguration();
   look.toneMappingEnabled = true;
   look.toneMappingType = ImageProcessingConfiguration.TONEMAPPING_ACES;
@@ -88,6 +91,12 @@ export function cloth(scene: Scene) {
     c.scale(2048 / 1536, 1536 / 1024);
     c.fillStyle = "#101d30";
     c.fillRect(0, 0, 2048, 1536);
+    const pool = c.createRadialGradient(768, 560, 60, 768, 560, 860);
+    pool.addColorStop(0, "#1c304c");
+    pool.addColorStop(0.55, "#132239");
+    pool.addColorStop(1, "#0a1220");
+    c.fillStyle = pool;
+    c.fillRect(0, 0, 1536, 1024);
     for (let i = 0; i < 1536; i += 3) {
       c.fillStyle = i % 2 ? "#ffffff05" : "#0000000c";
       c.fillRect(i, 0, 1, 1024);
@@ -185,5 +194,67 @@ export function cardBack(scene: Scene) {
   m.fogEnabled = false;
   m.disableLighting = true;
   m.emissiveColor = Color3.White();
+  return m;
+}
+
+/** Gilded card edge, like the gold-leaf edges of a printed tarot deck. */
+export function gilt(scene: Scene, name = "Bordas douradas") {
+  const m = metal(scene, name, "#c9a45c", 0.32);
+  m.metallic = 0.95;
+  return m;
+}
+
+/** Edge of a stack of cards: thin gilded leaves separated by darker gaps. */
+export function pageEdges(scene: Scene) {
+  const m = gilt(scene, "Folhas douradas do monte");
+  const leaves = painted(scene, "Folhas empilhadas", 16, 256, (c) => {
+    c.fillStyle = "#d8b878";
+    c.fillRect(0, 0, 16, 256);
+    for (let y = 0; y < 256; y += 4) {
+      c.fillStyle = y % 12 ? "#6b54307a" : "#4a3a2299";
+      c.fillRect(0, y, 16, 1);
+    }
+  });
+  leaves.uScale = 6;
+  m.albedoColor = Color3.White();
+  m.albedoTexture = leaves;
+  m.roughness = 0.42;
+  return m;
+}
+
+/** Card body: paper faces (sub-mesh 0) and gilded edges (sub-mesh 1). */
+export function cardBody(scene: Scene, paper: Material, edge: Material, name = "Carta de papel e ouro") {
+  const m = new MultiMaterial(name, scene);
+  m.subMaterials.push(paper, edge);
+  return m;
+}
+
+/** Leather with a fine grain and a saddle-stitched border, sized to the piece it covers. */
+export function leather(scene: Scene, name: string, hex: string, width: number, depth: number) {
+  const m = finish(new PBRMaterial(name, scene));
+  m.metallic = 0;
+  m.roughness = 0.62;
+  m.albedoColor = Color3.White();
+  const w = 512,
+    h = Math.round((512 * depth) / width);
+  m.albedoTexture = painted(scene, `${name} · costura`, w, h, (c) => {
+    c.fillStyle = hex;
+    c.fillRect(0, 0, w, h);
+    // Grain: thousands of faint specks, deterministic so every load looks the same.
+    for (let i = 0; i < 9000; i++) {
+      const x = (Math.sin(i * 12.9898) * 43758.5453) % 1,
+        y = (Math.sin(i * 78.233) * 12345.678) % 1;
+      c.fillStyle = i % 2 ? "#ffffff06" : "#00000014";
+      c.fillRect(Math.abs(x) * w, Math.abs(y) * h, 2, 2);
+    }
+    const inset = 18;
+    c.strokeStyle = "#00000055";
+    c.lineWidth = 3;
+    c.strokeRect(inset - 6, inset - 6, w - (inset - 6) * 2, h - (inset - 6) * 2);
+    c.setLineDash([9, 7]);
+    c.strokeStyle = "#c9a45ccc";
+    c.lineWidth = 2.4;
+    c.strokeRect(inset, inset, w - inset * 2, h - inset * 2);
+  });
   return m;
 }
