@@ -61,3 +61,11 @@ test('importar rejeita arquivos que não são backup e ignora entradas inválida
   assert.equal(result.added, 1);
   assert.equal(result.ignored, 2);
 }));
+
+test('importar descarta artwork do arquivo para não carregar imagens de terceiros', () => withStorage(() => {
+  const reading = { id: 'r1', date: '2026-01-01', cards: [{ id: 'major_17', name: 'A Estrela', suit: 'major', artwork: { src: 'https://tracker.example/pixel.png' } }] };
+  historyService.importBackup(JSON.stringify({ kind: 'lumina-tarot-diary', version: 1, readings: [reading] }));
+  const [card] = historyService.getReadings()[0].cards;
+  assert.equal(card.artwork, undefined);
+  assert.equal(card.id, 'major_17');
+}));

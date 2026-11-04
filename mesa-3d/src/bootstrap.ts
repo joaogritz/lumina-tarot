@@ -77,11 +77,13 @@ function scheduleSave() {
   dirty = true;
   changeNumber++;
   status("Salvando…");
-  clearTimeout(timer);
-  timer = setTimeout(() => void flush(), 450);
+  // Throttle rather than debounce: continuous changes (camera inertia, drags) must not keep
+  // postponing the write, or a closing tab could lose them. Saves land at most 450 ms later.
+  if (timer === undefined) timer = setTimeout(() => void flush(), 450);
 }
 function flush(): Promise<void> {
   clearTimeout(timer);
+  timer = undefined;
   saveQueue = saveQueue.then(async () => {
     if (!history || !dirty || conflicted) return;
     const data = clone(session()),

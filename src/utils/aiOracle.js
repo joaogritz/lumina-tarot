@@ -2,11 +2,14 @@
 // With Full Archetypal Fallback Engine, Bulletproof Section Parser & Direct Yes/No AI Engine
 
 import { getYesNoEvaluation, generateOfflineYesNoReading } from './yesNoOracle.js';
+import { isOnlineEnabled } from './privacy.js';
+import { DEFAULT_ORACLE_URL } from '../config.js';
 
+/* global process */
 // Cloudflare Worker Endpoint
 const DEFAULT_WORKER_URL = (typeof window === 'undefined')
   ? (typeof process !== 'undefined' ? process.env?.VITE_ORACLE_API_URL || '' : '')
-  : (import.meta.env?.VITE_ORACLE_API_URL || 'https://lumina-oracle.jpedrooliveiragritz.workers.dev');
+  : (import.meta.env?.VITE_ORACLE_API_URL || DEFAULT_ORACLE_URL);
 
 const cleanHeader = (str) => {
   if (!str) return '';
@@ -80,15 +83,15 @@ export const parseYesNoAiResponse = (text, fallbackData) => {
   const tipMatch = text.match(/(?:DICA|CONSELHO|ORIENTAÇÃO)\s*:\s*([\s\S]*?)$/i);
 
   if (verdictMatch && verdictMatch[1]) {
-    verdict = verdictMatch[1].replace(/[*_#\[\]]/g, '').trim();
+    verdict = verdictMatch[1].replace(/[*_#[\]]/g, '').trim();
   }
 
   if (answerMatch && answerMatch[1]) {
-    answer = answerMatch[1].replace(/[*_#\[\]]/g, '').trim();
+    answer = answerMatch[1].replace(/[*_#[\]]/g, '').trim();
   }
 
   if (tipMatch && tipMatch[1]) {
-    tip = tipMatch[1].replace(/[*_#\[\]]/g, '').trim();
+    tip = tipMatch[1].replace(/[*_#[\]]/g, '').trim();
   }
 
   // Handle older 3-section format if received from older worker versions
@@ -173,7 +176,8 @@ export const aiOracleService = {
     if (validCards.length === 0) return null;
 
     const fallback = this.generateOfflineFallback({ spreadConfig, chosenCards, userQuestion });
-    const workerUrl = DEFAULT_WORKER_URL;
+    // Local mode never sends the question or the cards over the network.
+    const workerUrl = isOnlineEnabled() ? DEFAULT_WORKER_URL : '';
 
     if (fallback.source === 'ethical_safeguard') return fallback;
     if (workerUrl) {
@@ -231,7 +235,8 @@ export const aiOracleService = {
 
     const evalData = getYesNoEvaluation(card, card.isReversed);
     const fallback = generateOfflineYesNoReading({ card, userQuestion, evaluation: evalData });
-    const workerUrl = DEFAULT_WORKER_URL;
+    // Local mode never sends the question or the cards over the network.
+    const workerUrl = isOnlineEnabled() ? DEFAULT_WORKER_URL : '';
 
     if (fallback.source === 'ethical_safeguard') return fallback;
     if (workerUrl) {
@@ -285,7 +290,7 @@ export const aiOracleService = {
   },
 
   // Realistic, Direct & Honest Local Fallback for Spreads (Grammatically Flawless & Natural)
-  generateOfflineFallback({ spreadConfig, chosenCards, userQuestion }) {
+  generateOfflineFallback({ chosenCards, userQuestion }) {
     const validCards = chosenCards.filter(Boolean);
     const first = validCards[0] || {};
     const middle = validCards[Math.floor(validCards.length / 2)] || first;
@@ -327,7 +332,6 @@ export const aiOracleService = {
     const firstLight = cleanAttr(first.light || first.keywords?.slice(0, 2).join(', ') || 'recomeço e clareza');
     const firstShadow = cleanAttr(first.shadow || 'dúvidas e bloqueios');
     const middleLight = cleanAttr(middle.light || middle.keywords?.slice(0, 2).join(', ') || 'estabilidade e ação');
-    const middleShadow = cleanAttr(middle.shadow || 'desgaste e indefinição');
 
     // Identify shadow or warning cards
     const shadowCard = validCards.find(c => 

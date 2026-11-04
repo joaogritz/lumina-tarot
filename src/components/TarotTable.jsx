@@ -147,7 +147,7 @@ export const TarotTable = () => {
 
   // Shuffle Deck Handler
   const handleShuffleDeck = useCallback(() => {
-    setDeck(prevDeck => {
+    setDeck(() => {
       // Re-shuffle while maintaining unchosen state
       const refreshed = activeDeck.cards.map(card => {
         const alreadyChosen = chosenCards.some(c => c && c.id === card.id);
@@ -441,6 +441,10 @@ export const TarotTable = () => {
         <CelestialRing className="footer-instrument" />
         <p className="font-cinzel tracking-wider text-amber-200/60">
           Lumina Tarot • Sabedoria Ancestral & Arcanos do Destino
+        </p>
+        <p className="footer-disclaimer">
+          As leituras são reflexões simbólicas e não substituem orientação médica, psicológica, jurídica ou financeira.
+          {' '}<a href="./privacidade.html" target="_blank" rel="noopener">Privacidade</a>
         </p>
         <p className="text-[11px] text-slate-600 mt-1">
           Atalhos: [Espaço] Embaralhar • [D] Destino • [G] Grimório • [H] Diário • [T] Temas • [Z] Zen • [Esc] Fechar

@@ -1,11 +1,45 @@
 import { resolve } from "node:path";
-import { defineConfig } from "vite";
+import { defineConfig, loadEnv } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
+import { DEFAULT_ORACLE_URL } from "./src/config.js";
 
-export default defineConfig({
+// GitHub Pages cannot send security headers, so the policy ships as a <meta> tag.
+// It is added only to production builds: the dev server relies on inline scripts for HMR.
+function contentSecurityPolicy(oracleUrl) {
+  const oracleOrigin = new URL(oracleUrl).origin;
+  const policy = [
+    "default-src 'self'",
+    "script-src 'self'",
+    // React and Framer Motion set inline style attributes.
+    "style-src 'self' 'unsafe-inline'",
+    "img-src 'self' data: blob:",
+    "font-src 'self'",
+    "media-src 'self' blob:",
+    `connect-src 'self' ${oracleOrigin}`,
+    "worker-src 'self' blob:",
+    "manifest-src 'self'",
+    "object-src 'none'",
+    "base-uri 'self'",
+    "form-action 'none'",
+  ].join("; ");
+  return {
+    name: "lumina-csp",
+    apply: "build",
+    transformIndexHtml: () => [
+      { tag: "meta", attrs: { "http-equiv": "Content-Security-Policy", content: policy }, injectTo: "head-prepend" },
+      { tag: "meta", attrs: { name: "referrer", content: "strict-origin-when-cross-origin" }, injectTo: "head-prepend" },
+    ],
+  };
+}
+
+export default defineConfig(({ mode }) => ({
   base: "./",
-  plugins: [react(), tailwindcss()],
+  plugins: [
+    react(),
+    tailwindcss(),
+    contentSecurityPolicy(loadEnv(mode, process.cwd(), "VITE_").VITE_ORACLE_API_URL || DEFAULT_ORACLE_URL),
+  ],
   build: {
     target: "esnext",
     cssCodeSplit: true,
@@ -28,4 +62,4 @@ export default defineConfig({
     port: 5173,
     open: false,
   },
-});
+}));

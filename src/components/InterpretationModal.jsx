@@ -375,6 +375,9 @@ export const InterpretationModal = ({
             </div>
           </div>}
 
+          <p className="reading-disclaimer">
+            Leitura simbólica para reflexão. Não substitui orientação médica, psicológica, jurídica ou financeira.
+          </p>
         </div>
 
         {/* Bottom Actions Bar - Full Mobile Width */}

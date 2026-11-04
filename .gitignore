@@ -40,3 +40,7 @@ Thumbs.db
 # Browser verification artifacts
 /test-results/
 /playwright-report/
+
+# Cloudflare Worker local config
+wrangler.toml
+.wrangler/

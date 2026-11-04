@@ -1,5 +1,5 @@
 import { useModalAccessibility } from '../utils/useModalAccessibility';
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { X, Sun, Flame, Bell, Check } from './icons/ArcaneIcons';
 import { CardArt } from './CardArt';

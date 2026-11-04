@@ -53,6 +53,10 @@ export type TableCallbacks = {
   message: (m: string) => void;
   context: (lost: boolean) => void;
 };
+// Inertia keeps nudging the camera by imperceptible amounts for many frames. Comparing at 1e-4
+// precision stops those from counting as changes, so the scene can go idle and saves can settle.
+const cameraKey = (c: CameraState) =>
+  [c.alpha, c.beta, c.radius, c.x, c.z].map((v) => Math.round(v * 1e4)).join(",");
 export class Table {
   engine: Engine;
   scene: Scene;
@@ -564,7 +568,7 @@ export class Table {
       this.renderCount++;
       this.frames--;
       const camera = this.getCamera(),
-        key = JSON.stringify(camera);
+        key = cameraKey(camera);
       if (key !== this.lastCamera) {
         this.lastCamera = key;
         this.callbacks.camera(camera);
@@ -1131,7 +1135,7 @@ export class Table {
     this.camera.beta = c.beta;
     this.camera.radius = c.radius;
     this.camera.target.set(c.x, 0, c.z);
-    this.lastCamera = JSON.stringify(c);
+    this.lastCamera = cameraKey(c);
     this.invalidate();
     this.wake();
   }

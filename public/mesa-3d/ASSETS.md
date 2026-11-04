@@ -7,8 +7,8 @@ Os arquivos são servidos localmente. Nenhum recurso exige conta, chave de API o
 | Wood Table 001 | https://polyhaven.com/a/wood_table_001 | CC0 | Cor, normal OpenGL e rugosidade da nogueira; JPG 1K. |
 | Fabric Pattern 07 | https://polyhaven.com/a/fabric_pattern_07 | CC0 | Normal map 1K da microestrutura do tecido. Cor, desenho e bordado celeste são originais. |
 | Studio Small 09 | https://polyhaven.com/a/studio_small_09 | CC0 | Iluminação e reflexos, convertidos para `observatory.env`, cubemap 128 com mipmaps pré-filtrados e harmônicos. |
-| Cormorant Garamond | https://fonts.google.com/specimen/Cormorant+Garamond | SIL Open Font License 1.1 | Fonte editorial, normal e itálico; WOFF2 latino. Licença integral em `fonts/cormorantgaramond-OFL.txt`. |
-| Outfit | https://fonts.google.com/specimen/Outfit | SIL Open Font License 1.1 | Controles e textos; WOFF2 latino. Licença integral em `fonts/outfit-OFL.txt`. |
+| Cormorant Garamond | https://fonts.google.com/specimen/Cormorant+Garamond | SIL Open Font License 1.1 | Fonte editorial, normal e itálico; WOFF2 latino. Licença integral em `../fonts/cormorantgaramond-OFL.txt`. |
+| Outfit | https://fonts.google.com/specimen/Outfit | SIL Open Font License 1.1 | Controles e textos; WOFF2 latino. Licença integral em `../fonts/outfit-OFL.txt`. |
 | Verso Lumina Observatory | `public/tarot/backs/lumina-observatory.svg` | MIT do repositório | Mesmo desenho do santuário; dimensões explícitas permitem carregamento por WebGL. |
 | Modelagem, bordado, Lua, ícones e interfaces | Código TypeScript/CSS/SVG do repositório | MIT | Geometria e desenhos originais. |
 

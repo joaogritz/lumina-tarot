@@ -1,0 +1,19 @@
+version: 2
+updates:
+  # Weekly dependency PRs; minor and patch updates are grouped to keep the queue short.
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      minor-and-patch:
+        update-types: [minor, patch]
+  # Keeps the SHA-pinned GitHub Actions current.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      actions:
+        patterns: ["*"]

@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self'; base-uri 'self'; form-action 'none'" />
+  <meta name="referrer" content="strict-origin-when-cross-origin" />
+  <meta name="color-scheme" content="dark" />
+  <title>Privacidade · Lumina Tarot</title>
+  <link rel="icon" type="image/svg+xml" href="./icon.svg" />
+  <style>
+    @font-face { font-family: "Cormorant Garamond"; font-weight: 400 600; font-display: swap; src: url(./fonts/cormorant.woff2) format("woff2"); }
+    @font-face { font-family: "Outfit"; font-weight: 300 600; font-display: swap; src: url(./fonts/outfit.woff2) format("woff2"); }
+    :root { color-scheme: dark; --gold: #c9a45c; --ivory: #e9e3d6; --parchment: #beb5a3; --line: rgb(214 182 107 / .22); }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #030303; color: var(--ivory); font: 300 16px/1.75 Outfit, Arial, sans-serif; }
+    main { max-width: 760px; margin: 0 auto; padding: 56px 24px 80px; }
+    a { color: var(--gold); text-underline-offset: 3px; }
+    .back { font-size: 14px; letter-spacing: .08em; }
+    h1, h2 { font-family: "Cormorant Garamond", Georgia, serif; font-weight: 500; letter-spacing: -.01em; }
+    h1 { font-size: clamp(40px, 7vw, 60px); line-height: 1.05; margin: 28px 0 8px; }
+    h2 { font-size: 28px; margin: 44px 0 8px; padding-top: 20px; border-top: 1px solid var(--line); }
+    .updated { color: var(--parchment); font-size: 14px; }
+    p, li { color: var(--parchment); }
+    strong { color: var(--ivory); font-weight: 500; }
+    table { width: 100%; border-collapse: collapse; font-size: 15px; margin-top: 12px; }
+    th, td { text-align: left; vertical-align: top; padding: 10px 8px; border-bottom: 1px solid var(--line); }
+    th { color: var(--ivory); font-weight: 500; }
+    td { color: var(--parchment); }
+  </style>
+</head>
+<body>
+<main>
+  <a class="back" href="./">← Voltar ao Lumina</a>
+  <h1>Privacidade</h1>
+  <p class="updated">Última atualização: 3 de novembro de 2026</p>
+
+  <p>O Lumina Tarot é um projeto pessoal e de código aberto. Ele não tem contas, não usa cookies de rastreamento e não tem ferramentas de análise ou anúncios. Esta página explica quais dados passam pelo site, para onde vão e como controlá-los.</p>
+
+  <h2>O que fica só no seu aparelho</h2>
+  <table>
+    <thead><tr><th>Dado</th><th>Onde</th></tr></thead>
+    <tbody>
+      <tr><td>Diário de leituras: perguntas, cartas, interpretações e notas</td><td><code>localStorage</code> do navegador (até 100 leituras)</td></tr>
+      <tr><td>Mesas salvas da Mesa Livre 3D</td><td>IndexedDB do navegador</td></tr>
+      <tr><td>Preferências: tema, baralho, som, modo de interpretação</td><td><code>localStorage</code> do navegador</td></tr>
+      <tr><td>Arquivos do site para uso offline</td><td>Cache do service worker</td></tr>
+    </tbody>
+  </table>
+  <p>Esses dados não são enviados a nenhum servidor e não são criptografados. Quem usa o mesmo navegador pode vê-los. Limpar os dados do site apaga tudo; para guardar o diário, use <strong>Exportar</strong> no Diário.</p>
+
+  <h2>O que é enviado na interpretação online</h2>
+  <p>Com a opção <strong>Interpretação online com IA</strong> ligada (o padrão), ao pedir uma interpretação o site envia:</p>
+  <ul>
+    <li>a pergunta que você digitou, se houver;</li>
+    <li>as cartas sorteadas, com posição, orientação e significados;</li>
+    <li>o nome e as posições da tiragem.</li>
+  </ul>
+  <p>Esses dados vão primeiro ao nosso servidor de interpretação, hospedado na <strong>Cloudflare</strong> (Cloudflare Workers), que os repassa à <strong>API Gemini do Google</strong> para gerar o texto. O servidor não grava a pergunta nem a resposta. A Cloudflare e o Google processam os dados conforme as próprias políticas; dependendo do plano da API, o Google pode reter o conteúdo e usá-lo para melhorar os seus serviços.</p>
+  <p><strong>Evite incluir nomes completos, documentos, endereços ou detalhes de saúde nas perguntas.</strong></p>
+  <p>Para não enviar nada, <strong>desmarque a opção</strong> logo abaixo do campo de pergunta. No modo local, a interpretação é montada no próprio aparelho, a partir dos significados das cartas.</p>
+
+  <h2>Hospedagem</h2>
+  <p>O site é servido pelo GitHub Pages. Como qualquer servidor web, o GitHub registra dados técnicos de acesso, como o endereço IP, para operar e proteger o serviço. As fontes e as imagens das cartas são servidas pelo próprio site, sem chamadas a terceiros.</p>
+
+  <h2>Sobre as leituras</h2>
+  <p>As leituras são reflexões simbólicas, não previsões. Elas não substituem orientação médica, psicológica, jurídica ou financeira. Se você estiver em sofrimento ou pensando em se machucar, procure alguém de confiança ou o CVV pelo telefone 188; em perigo imediato, ligue 192 (SAMU) ou 190.</p>
+
+  <h2>Seus direitos</h2>
+  <p>Como o projeto não mantém dados pessoais em servidores próprios, você controla os dados guardados no aparelho: pode exportá-los, apagá-los no Diário ou limpar os dados do site no navegador. Para dúvidas sobre esta política, abra uma issue no <a href="https://github.com/joaogritz/lumina-tarot/issues">repositório do projeto</a>.</p>
+
+  <h2>Mudanças</h2>
+  <p>Alterações nesta página ficam registradas no histórico do repositório.</p>
+</main>
+</body>
+</html>
