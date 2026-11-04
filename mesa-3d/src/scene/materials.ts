@@ -92,9 +92,9 @@ export function cloth(scene: Scene) {
     c.fillStyle = "#101d30";
     c.fillRect(0, 0, 2048, 1536);
     const pool = c.createRadialGradient(768, 560, 60, 768, 560, 860);
-    pool.addColorStop(0, "#1c304c");
-    pool.addColorStop(0.55, "#132239");
-    pool.addColorStop(1, "#0a1220");
+    pool.addColorStop(0, "#22395a");
+    pool.addColorStop(0.45, "#152640");
+    pool.addColorStop(1, "#060b16");
     c.fillStyle = pool;
     c.fillRect(0, 0, 1536, 1024);
     for (let i = 0; i < 1536; i += 3) {

@@ -8,6 +8,7 @@ import { CubeTexture } from "@babylonjs/core/Materials/Textures/cubeTexture";
 import { GlowLayer } from "@babylonjs/core/Layers/glowLayer";
 import { DefaultRenderingPipeline } from "@babylonjs/core/PostProcesses/RenderPipeline/Pipelines/defaultRenderingPipeline";
 import { SSAO2RenderingPipeline } from "@babylonjs/core/PostProcesses/RenderPipeline/Pipelines/ssao2RenderingPipeline";
+import { FxaaPostProcess } from "@babylonjs/core/PostProcesses/fxaaPostProcess";
 import "@babylonjs/core/PostProcesses/RenderPipeline/postProcessRenderPipelineManagerSceneComponent";
 import { CreateTube } from "@babylonjs/core/Meshes/Builders/tubeBuilder";
 import { Color3, Color4 } from "@babylonjs/core/Maths/math.color";
@@ -97,6 +98,7 @@ export class Table {
   private glow: GlowLayer;
   private pipeline?: DefaultRenderingPipeline;
   private ssao?: SSAO2RenderingPipeline;
+  private lowFxaa?: FxaaPostProcess;
   private flames: { outer: Mesh; core: Mesh; baseY: number; seed: number }[] = [];
   private armillary?: Mesh;
   private lastAmbient = 0;
@@ -174,15 +176,15 @@ export class Table {
       assetUrl("environments/observatory.env"),
       this.scene,
     );
-    this.scene.environmentIntensity = 0.62;
+    this.scene.environmentIntensity = 0.3;
     this.scene.fogMode = Scene.FOGMODE_EXP2;
-    this.scene.fogDensity = 0.006;
-    this.scene.fogColor = new Color3(0.065, 0.05, 0.09);
+    this.scene.fogDensity = 0.012;
+    this.scene.fogColor = new Color3(0.03, 0.022, 0.045);
     this.glow = new GlowLayer("Luz das velas", this.scene, {
       blurKernelSize: 32,
       mainTextureRatio: 0.35,
     });
-    this.glow.intensity = 0.42;
+    this.glow.intensity = 0.7;
     this.scene.skipPointerMovePicking = true;
     this.camera = new ArcRotateCamera(
       "Observatório",
@@ -209,9 +211,10 @@ export class Table {
       new Vector3(0, 1, 0),
       this.scene,
     );
-    fill.intensity = 0.3;
-    fill.diffuse = new Color3(0.65, 0.72, 1);
-    fill.groundColor = new Color3(0.12, 0.08, 0.15);
+    // Faint cold moonlight in the shadows; the warm light comes from the candles and the pool.
+    fill.intensity = 0.12;
+    fill.diffuse = new Color3(0.55, 0.64, 1);
+    fill.groundColor = new Color3(0.05, 0.03, 0.07);
     const key = new DirectionalLight(
       "Luz dourada",
       new Vector3(0.62, -1, 0.5),
@@ -219,8 +222,8 @@ export class Table {
     );
     // A lower, warmer key light so cards and props cast readable shadows on the cloth.
     key.position = new Vector3(-12, 17, -10);
-    key.intensity = 1.85;
-    key.diffuse = new Color3(1, 0.86, 0.66);
+    key.intensity = 1.05;
+    key.diffuse = new Color3(1, 0.8, 0.58);
     key.shadowMinZ = 1;
     key.shadowMaxZ = 50;
     key.shadowFrustumSize = 34;
@@ -235,14 +238,14 @@ export class Table {
       "Luz de leitura",
       new Vector3(0, 13, 1.2),
       new Vector3(0, -1, -0.09),
-      1.2,
-      4,
+      0.92,
+      7,
       this.scene,
     );
     pool.falloffType = Light.FALLOFF_STANDARD;
     pool.range = 30;
-    pool.intensity = 0.75;
-    pool.diffuse = new Color3(1, 0.9, 0.76);
+    pool.intensity = 1.55;
+    pool.diffuse = new Color3(1, 0.86, 0.68);
     pool.specular = new Color3(0.3, 0.27, 0.22);
     this.paper = material(this.scene, "Papel marfim", "#ded1b4", 0.09);
     this.notePaper = material(this.scene, "Papel das notas", "#c6b38d");
@@ -356,12 +359,15 @@ export class Table {
     }
     this.lamp = new PointLight(
       "Luz das velas",
-      new Vector3(-10, 3.3, 4.8),
+      new Vector3(-9.3, 2.35, 4.2),
       this.scene,
     );
-    this.lamp.diffuse = new Color3(1, 0.55, 0.23);
-    this.lamp.intensity = 1.3;
-    this.lamp.range = 11;
+    // Candle light: a strong warm source that reaches across the left of the table and fades out.
+    this.lamp.falloffType = Light.FALLOFF_STANDARD;
+    this.lamp.diffuse = new Color3(1, 0.5, 0.18);
+    this.lamp.specular = new Color3(0.9, 0.5, 0.2);
+    this.lamp.intensity = 3.1;
+    this.lamp.range = 15;
     const box = roundedBox("Caixa de couro", 2.2, 3.65, 0.7, 0.14, this.scene);
     box.position.set(9.7, 0.3, 4.7);
     box.rotation.y = -0.15;
@@ -719,7 +725,7 @@ export class Table {
       f.outer.rotation.x = still ? 0 : Math.sin(t * 1.7 + 0.6) * 0.05;
       glow += n;
     }
-    this.lamp.intensity = 1.3 + (glow / Math.max(1, this.flames.length)) * 0.12;
+    this.lamp.intensity = 3.1 + (glow / Math.max(1, this.flames.length)) * 0.32;
     if (this.armillary && !still) this.armillary.rotation.y = time * 0.00012;
   }
   wake(frames = 2) {
@@ -1290,27 +1296,36 @@ export class Table {
     this.invalidate();
     this.scene.executeWhenReady(() => this.wake());
   }
-  // Desktop profiles add a post-processing stack. Low stays a plain forward render.
+  // Desktop profiles add a post-processing stack; low only adds an FXAA pass.
   // Image processing remains per material so the card art keeps its original colours.
   private configurePostProcessing(q: Quality) {
     if (q === "low") {
       this.pipeline?.dispose();
       this.pipeline = undefined;
+      // Cheap edge smoothing for the low profile, which renders below native resolution.
+      this.lowFxaa ??= new FxaaPostProcess("Suavização de bordas", 1, this.camera);
     } else {
+      this.lowFxaa?.dispose(this.camera);
+      this.lowFxaa = undefined;
       if (!this.pipeline) {
         this.pipeline = new DefaultRenderingPipeline("Acabamento da mesa", true, this.scene, [this.camera]);
+        // Image processing stays in each material: applying it here would gamma-correct twice.
+        // The vignette is drawn in CSS over the canvas instead.
         this.pipeline.imageProcessingEnabled = false;
         // Only HDR highlights above 1 (the flames) bloom; paper and art stay crisp.
         this.pipeline.bloomEnabled = true;
         this.pipeline.bloomThreshold = 1.05;
-        this.pipeline.bloomWeight = 0.32;
+        this.pipeline.bloomWeight = 0.55;
         this.pipeline.bloomKernel = 96;
         this.pipeline.bloomScale = 0.5;
-        this.pipeline.sharpenEnabled = true;
-        this.pipeline.sharpen.edgeAmount = 0.18;
+        // No sharpening: it re-accentuates the stair-steps that MSAA and FXAA remove.
+        this.pipeline.sharpenEnabled = false;
         this.pipeline.fxaaEnabled = true;
       }
-      this.pipeline.samples = q === "high" ? 4 : 2;
+      // MSAA on the off-screen target (the canvas' own antialiasing no longer applies once
+      // post-processing is on), capped by what the GPU supports.
+      const maxSamples = Math.max(1, this.engine.getCaps().maxMSAASamples || 4);
+      this.pipeline.samples = Math.min(maxSamples, q === "high" ? 8 : 4);
     }
     const wantsSsao = q === "high" && SSAO2RenderingPipeline.IsSupported;
     if (!wantsSsao) {
@@ -1338,11 +1353,12 @@ export class Table {
       this.objects.forEach((o) => (o.signature = ""));
       if (this.session) this.sync(this.session, this.selected);
     }
-    const ratio = Math.min(
-      devicePixelRatio || 1,
-      q === "high" ? 2 : q === "medium" ? 1.35 : 1,
-    );
-    this.engine.setHardwareScalingLevel((q === "low" ? 1.35 : 1) / ratio);
+    // Render scale. High supersamples on standard displays (at least 1.5×, up to 2×), which is
+    // the most effective cure for shimmering on thin brass inlays and card edges.
+    const dpr = devicePixelRatio || 1;
+    const ratio =
+      q === "high" ? Math.min(2, Math.max(dpr, 1.5)) : q === "medium" ? Math.min(dpr, 1.5) : Math.min(dpr, 1);
+    this.engine.setHardwareScalingLevel((q === "low" ? 1.15 : 1) / ratio);
     this.scene.shadowsEnabled = q !== "low";
     this.glow.isEnabled = q !== "low";
     this.lamp.setEnabled(true);

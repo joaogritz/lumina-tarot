@@ -143,9 +143,9 @@ button.primary:hover {
 }
 #viewport {
   background:
-    radial-gradient(ellipse at 16% 18%, #37234288, transparent 46%),
-    radial-gradient(ellipse at 86% 57%, #262c4d88, transparent 52%),
-    radial-gradient(ellipse at 50% 85%, #49332166, transparent 55%), #100e19;
+    radial-gradient(ellipse at 16% 18%, #2a1a3266, transparent 46%),
+    radial-gradient(ellipse at 86% 57%, #1b203a66, transparent 52%),
+    radial-gradient(ellipse at 50% 85%, #36261a55, transparent 55%), #08070d;
   border-radius: 0 0 10px 10px;
 }
 #viewport:before {
@@ -161,11 +161,12 @@ button.primary:hover {
   position: absolute;
   inset: 0;
   pointer-events: none;
+  /* Candle-lit night: the frame falls into darkness around the reading area. */
   background: radial-gradient(
-    ellipse at center,
-    transparent 42%,
-    #0c08133b 78%,
-    #0b070f8c
+    ellipse 75% 70% at 50% 52%,
+    transparent 38%,
+    #07040a70 72%,
+    #040205e0
   );
   z-index: 1;
 }

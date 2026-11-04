@@ -11,6 +11,9 @@ e as versões seguem [SemVer](https://semver.org/lang/pt-BR/).
   aglomerado de cristais facetados, esfera armilar completa e couro com pesponto.
 - Mesa 3D: luz principal mais inclinada, foco de leitura, poço de luz no tecido e sombras de contato em
   todos os perfis; pós-processamento (MSAA, FXAA, bloom, nitidez) no perfil médio e oclusão ambiente no alto.
+- Mesa 3D: clima de luz de velas, com ambiente escuro, foco de leitura forte, velas aquecendo o canto da
+  mesa e vinheta; antisserrilhamento em todos os perfis (FXAA no baixo, MSAA 4× no médio, supersampling
+  e MSAA 8× no alto) e nitidez desligada.
 - Mesa 3D: animações de voo, virada pela borda, deslize em comandos e ao soltar, inclinação no arrasto,
   embaralhamento riffle, chamas tremulando e esfera armilar girando (perfis médio e alto).
 

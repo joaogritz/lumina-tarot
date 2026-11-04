@@ -29,8 +29,11 @@ A mesa é uma experiência de desktop, então os perfis médio e alto passaram a
 - **Couro** da bandeja e da caixa com granulação e pesponto dourado.
 
 ### Luz e materiais
-- Luz principal mais baixa e quente, para que cartas e objetos projetem sombras legíveis. Luz ambiente reduzida para dar contraste.
-- Foco de leitura (`SpotLight`) e um poço de luz pintado no tecido, mais claro sob a área de leitura e mais escuro na borda.
+- Clima de luz de velas: luz ambiente e de ambiente HDR bem reduzidas, um luar frio e fraco nas sombras e névoa mais densa ao fundo.
+- Luz principal mais baixa, quente e discreta, para que cartas e objetos projetem sombras legíveis.
+- Foco de leitura (`SpotLight`) forte e concentrado, somado a um poço de luz pintado no tecido: a área de leitura brilha e a borda cai no escuro.
+- Luz das velas baixa e quente, com alcance controlado (queda padrão), aquecendo latão, cera e madeira ao redor; brilho mais intenso nas chamas.
+- Vinheta em CSS sobre o canvas, em vez de na imagem processada, para não aplicar a correção de gama duas vezes.
 - Cera com translucidez (`PBRMaterial.subSurface`) e o mesmo tone mapping ACES dos demais materiais PBR.
 - Sombra de contato suave em todos os perfis, deslocada no sentido da luz principal e mais difusa quando a carta é levantada.
 
@@ -77,9 +80,11 @@ Média é a escolha inicial quando não existe preferência salva.
 
 | Perfil | O que acrescenta |
 | --- | --- |
-| Baixa | Mesma composição, sombras de contato e resolução reduzida. Cena ociosa não desenha nenhum quadro. |
-| Média | Sombras PCF, brilho das chamas, `DefaultRenderingPipeline` (MSAA 2×, FXAA, bloom só acima de 1, nitidez leve) e modo ambiente: cerca de 20 quadros por segundo com a mesa parada, para as chamas e a esfera armilar. |
-| Alta | Resolução e sombras maiores, MSAA 4× e oclusão ambiente (`SSAO2RenderingPipeline`, quando WebGL2 está disponível). |
+| Baixa | Mesma composição, sombras de contato, resolução levemente reduzida e FXAA. Cena ociosa não desenha nenhum quadro. |
+| Média | Sombras PCF, brilho das chamas, `DefaultRenderingPipeline` (MSAA 4×, FXAA, bloom só acima de 1) e modo ambiente: cerca de 20 quadros por segundo com a mesa parada, para as chamas e a esfera armilar. |
+| Alta | Supersampling (renderiza a pelo menos 1,5× a resolução da tela, até 2×), MSAA 8× ou o máximo da GPU, FXAA, sombras maiores e oclusão ambiente (`SSAO2RenderingPipeline`, quando WebGL2 está disponível). |
+
+A nitidez (sharpen) do pipeline fica desligada, porque realça as bordas serrilhadas que o antisserrilhamento remove. Com pós-processamento ativo, o antisserrilhamento do próprio canvas deixa de valer; por isso o MSAA é configurado no pipeline.
 
 O processamento de imagem continua por material: o pós-processamento não aplica gradação global, e as artes mantêm as cores originais. Movimento reduzido aplica os estados finais sem voos, giros, embaralhamento nem modo ambiente.
 
