@@ -676,6 +676,12 @@ export class Table {
         }
         if (e.button !== 0) return;
         const r = this.canvas.getBoundingClientRect();
+        // Picking reuses world matrices cached for the last rendered frame. A cancelled drag or
+        // undo moves meshes between frames, so refresh them or a quick press misses the card.
+        for (const { mesh } of this.objects.values()) {
+          mesh.computeWorldMatrix(true);
+          for (const child of mesh.getChildMeshes()) child.computeWorldMatrix(true);
+        }
         const hit = this.scene.pick(
           e.clientX - r.left,
           e.clientY - r.top,
