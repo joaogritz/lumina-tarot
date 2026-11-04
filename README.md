@@ -1,15 +1,15 @@
 # Lumina Tarot
 
-[![Test and Deploy](https://github.com/joaogritz/lumina-tarot/actions/workflows/deploy.yml/badge.svg)](https://github.com/joaogritz/lumina-tarot/actions/workflows/deploy.yml)
+[![CI](https://github.com/joaogritz/lumina-tarot/actions/workflows/ci.yml/badge.svg)](https://github.com/joaogritz/lumina-tarot/actions/workflows/ci.yml)
 [![Licença MIT](https://img.shields.io/badge/licen%C3%A7a-MIT-c9a45c)](LICENSE)
 
-**[Abrir o Lumina →](https://joaogritz.github.io/lumina-tarot/)**
+**[Abrir o Lumina →](https://lumina-tarot-amber.vercel.app/)**
 
 ![Lumina Tarot: a carta A Estrela sobre o verso dourado do baralho](public/og-image.png)
 
 Uma mesa virtual de Tarot e Baralho Cigano para explorar cartas, fazer tiragens e registrar reflexões. A experiência está em português, com artes históricas dos baralhos, temas visuais, animações e trilha sonora.
 
-Desenvolvido com React, Vite e Tailwind CSS. O frontend é estático e pode ser publicado no GitHub Pages; as interpretações online usam um serviço separado em Cloudflare Workers.
+Desenvolvido com React, Vite e Tailwind CSS. O frontend é estático e é publicado na Vercel; as interpretações online usam um serviço separado em Cloudflare Workers.
 
 ## Recursos
 
@@ -80,7 +80,7 @@ O backend está no arquivo independente [`cloudflare_worker_code.js`](cloudflare
 | Configuração | Obrigatória | Uso |
 | --- | --- | --- |
 | `GEMINI_API_KEY` | Sim | Segredo com a chave do provedor, mantido somente no Worker. |
-| `ALLOWED_ORIGINS` | Sim | Origens separadas por vírgula, como `https://usuario.github.io`. Aceita curinga de subdomínio (`https://*.exemplo.com`); `*` sozinho é ignorado. |
+| `ALLOWED_ORIGINS` | Sim | Origens separadas por vírgula, como `https://lumina-tarot-amber.vercel.app`. Aceita curinga de subdomínio (`https://*.exemplo.com`); `*` sozinho é ignorado. |
 | `ORACLE_RATE_LIMITER` | Sim | Binding de rate limit por IP. Se faltar ou falhar, o Worker responde 503. |
 | `GEMINI_MODEL` | Não | Modelo preferido. O Worker tenta no máximo dois modelos por consulta. |
 | `ALLOW_LOCALHOST` | Não | `true` libera `localhost` e `127.0.0.1`. Use só em desenvolvimento. |
@@ -92,16 +92,17 @@ O Worker responde apenas a `POST /` (consultas) e `GET /health`. CORS impede que
 
 Nunca coloque a chave do Gemini em variáveis `VITE_*`: elas ficam expostas no JavaScript entregue ao navegador.
 
-## Publicar no GitHub Pages
+## Publicação
 
-O workflow em [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml) tem dois jobs:
+O site oficial fica na Vercel: <https://lumina-tarot-amber.vercel.app/>.
 
-- **test** roda em todo pull request e em todo push na `main`: lint, testes Node, typecheck e testes da Mesa 3D, build, conferência das duas páginas e testes de navegador. Se falhar, as evidências do Playwright (screenshots e traces) ficam disponíveis como artefato `mesa-browser-results`.
-- **deploy** roda só em push na `main` (ou execução manual na `main`) e só depois que **test** passa. Ele publica o `dist/` no GitHub Pages.
+- **Vercel** publica pela integração com o GitHub: cada push na `main` gera a produção, e cada pull request gera uma prévia. O comando de build é `npm run build` e a pasta publicada é `dist/`.
+- **[`vercel.json`](vercel.json)** envia cabeçalhos de segurança (proteção contra o site ser embutido em outro, `nosniff`, `Referrer-Policy`, `Permissions-Policy`), cache longo para os arquivos com hash em `/assets/` e `no-cache` para o service worker. A CSP completa continua na tag `<meta>` gerada no build.
+- **CI** ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) roda em todo pull request e push na `main`: lint, testes Node, typecheck e testes da Mesa 3D, build, conferência das duas páginas e testes de navegador. Se falhar, as evidências do Playwright ficam no artefato `mesa-browser-results`. A `main` exige que o job `test` passe.
 
-O site publicado fica em <https://joaogritz.github.io/lumina-tarot/>.
+Para usar um Worker próprio, defina `VITE_ORACLE_API_URL` nas variáveis de ambiente do projeto na Vercel e inclua a origem do site em `ALLOWED_ORIGINS`. As prévias de pull request usam endereços próprios da Vercel; como o Worker só aceita origens listadas, nelas a interpretação cai no modo local. Não use curinga como `https://lumina-tarot-*.vercel.app`, porque qualquer pessoa pode criar um projeto com esse prefixo.
 
-Nas configurações do repositório, selecione **GitHub Actions** como origem do GitHub Pages. Para usar um Worker próprio no build automatizado, adicione `VITE_ORACLE_API_URL` ao ambiente da etapa de build; o workflow atual não injeta essa variável.
+O GitHub Pages foi descontinuado: ele limita requisições por endereço IP e bloqueava o site em redes com IP compartilhado.
 
 A publicação do frontend não publica nem configura o Cloudflare Worker.
 

@@ -4,8 +4,9 @@ import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import { DEFAULT_ORACLE_URL } from "./src/config.js";
 
-// GitHub Pages cannot send security headers, so the policy ships as a <meta> tag.
-// It is added only to production builds: the dev server relies on inline scripts for HMR.
+// The full policy ships as a <meta> tag so it travels with the build to any static host;
+// vercel.json adds the header-only directives (frame-ancestors). Production builds only:
+// the dev server relies on inline scripts for HMR.
 function contentSecurityPolicy(oracleUrl) {
   const oracleOrigin = new URL(oracleUrl).origin;
   const policy = [

@@ -13,7 +13,7 @@ na `main` e registradas no [CHANGELOG](CHANGELOG.md).
 
 | Componente | No escopo |
 | --- | --- |
-| Site publicado em `joaogritz.github.io/lumina-tarot` (React e Mesa 3D) | Sim |
+| Site publicado em `lumina-tarot-amber.vercel.app` (React e Mesa 3D) | Sim |
 | Worker de interpretação (`cloudflare_worker_code.js`) | Sim |
 | Workflow de CI/CD (`.github/workflows`) | Sim |
 | Contas e infraestrutura da Cloudflare, do Google ou do GitHub | Não: reporte aos respectivos fornecedores |
@@ -30,8 +30,10 @@ na `main` e registradas no [CHANGELOG](CHANGELOG.md).
   limita o tamanho do corpo e valida cada campo. Não expõe rotas além de `POST /` e `GET /health`.
 - **A pergunta é tratada como dado**, nunca como instrução: as diretrizes ficam em
   `systemInstruction` e o Worker recusa `customPrompt`.
-- **O site publica uma Content-Security-Policy** (via `<meta>`, porque o GitHub Pages não envia
-  cabeçalhos) que só permite scripts, fontes e imagens do próprio site e conexões ao Worker.
+- **O site publica uma Content-Security-Policy** (via `<meta>`, gerada no build) que só permite
+  scripts, fontes e imagens do próprio site e conexões ao Worker. A Vercel envia cabeçalhos
+  complementares (`vercel.json`): `frame-ancestors 'none'`, `X-Frame-Options`, `nosniff`,
+  `Referrer-Policy`, `Permissions-Policy` e `Cross-Origin-Opener-Policy`.
 - **Arquivos importados são validados** antes de entrar no armazenamento: backups do diário e
   mesas da Mesa 3D passam por checagem de estrutura, tipos e tamanhos.
 - **Dependências e actions** são acompanhadas pelo Dependabot; as actions ficam fixadas por SHA.
@@ -41,4 +43,3 @@ na `main` e registradas no [CHANGELOG](CHANGELOG.md).
 - CORS impede que outros sites usem o Worker pelo navegador, mas não impede scripts que forjem o
   cabeçalho `Origin`. Para esse caso, a defesa é o rate limiter por IP e o limite de gasto no
   Google Cloud. Recomenda-se também configurar um orçamento com alerta para a chave da API.
-- O GitHub Pages não permite `frame-ancestors`; a proteção contra clickjacking depende do navegador.

@@ -28,7 +28,7 @@ O seletor usa botões com estado `aria-pressed`; a confirmação usa `dialog.sho
 
 ## Build e offline
 
-Vite divide o código em chunks. No build, um plugin em `vite.config.js` adiciona a Content-Security-Policy e a Referrer-Policy como `<meta>` nas duas páginas (o GitHub Pages não envia cabeçalhos); o servidor de desenvolvimento fica sem CSP porque o HMR usa scripts inline. As fontes são servidas pelo próprio site, a partir de `public/fonts`, compartilhadas pelas duas páginas. O service worker usa navegação network-first e cache de assets de mesma origem. A limpeza remove apenas caches com prefixo do Lumina. O fallback offline depende de os recursos terem sido carregados anteriormente; não se garante primeira visita offline nem disponibilidade de todos os chunks ainda não visitados.
+Vite divide o código em chunks. No build, um plugin em `vite.config.js` adiciona a Content-Security-Policy e a Referrer-Policy como `<meta>` nas duas páginas, e `vercel.json` complementa com cabeçalhos HTTP (`frame-ancestors`, `nosniff`, cache dos assets); o servidor de desenvolvimento fica sem CSP porque o HMR usa scripts inline. As fontes são servidas pelo próprio site, a partir de `public/fonts`, compartilhadas pelas duas páginas. O service worker usa navegação network-first e cache de assets de mesma origem. A limpeza remove apenas caches com prefixo do Lumina. O fallback offline depende de os recursos terem sido carregados anteriormente; não se garante primeira visita offline nem disponibilidade de todos os chunks ainda não visitados.
 
 ## Verificação
 
