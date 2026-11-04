@@ -19,11 +19,13 @@ test('Lenormand não usa inversões nem polaridade de arcanos do Tarot', () => {
   for (const card of DECKS.lenormand.cards) assert.deepEqual(getYesNoEvaluation(card), getYesNoEvaluation(card,true));
   assert.equal(getYesNoEvaluation(DECKS.lenormand.cards[18]).type, 'maybe');
 });
-test('leituras locais usam combinações de Lenormand e preservam salvaguardas', async () => {
+test('sem o Worker não há leitura local, mas as salvaguardas continuam', async () => {
   const chosenCards = DECKS.lenormand.cards.slice(0,3);
   const result = await aiOracleService.generateRealAiReading({chosenCards,spreadConfig:{},userQuestion:'Como refletir sobre uma mudança?'});
-  assert.equal(result.source,'local_fallback');
-  assert.ok(result.dynamics.includes('O Cavaleiro + O Trevo'));
+  assert.deepEqual(result,{source:'unavailable'});
+  assert.deepEqual(await aiOracleService.generateYesNoAiReading({card:chosenCards[0],userQuestion:'Devo mudar?'}),{source:'unavailable'});
+  assert.equal((await aiOracleService.generateRealAiReading({chosenCards,spreadConfig:{},userQuestion:'quero morrer'})).source,'ethical_safeguard');
+  assert.equal((await aiOracleService.generateYesNoAiReading({card:chosenCards[0],userQuestion:'devo me matar?'})).source,'ethical_safeguard');
   for (const userQuestion of ['devo me matar?', 'suicídio', 'automutilação']) {
     const safeguard = generateOfflineYesNoReading({card:chosenCards[0],userQuestion});
     assert.equal(safeguard.source,'ethical_safeguard');
@@ -106,15 +108,53 @@ test('worker exige chave e rate limiter, falhando fechado sem vazar configuraç�
     assert.equal((await worker.fetch(req(),{...env,ORACLE_RATE_LIMITER:null,ALLOW_UNLIMITED:'true'})).status,200);
   } finally { globalThis.fetch = original; }
 });
-test('worker tenta no máximo dois modelos por consulta', async () => {
+test('worker tenta o Gemini uma vez e depois o Workers AI', async () => {
   const original = globalThis.fetch;
   const models = [];
+  const aiCalls = [];
+  const ai = { run: async (model, input) => { aiCalls.push({ model, input }); return { response: 'VEREDITO: SIM\nRESPOSTA: Leitura do Workers AI.\nDICA: Siga.' }; } };
   try {
-    globalThis.fetch = async (url) => { models.push(String(url).match(/models\/([^:]+)/)[1]); return new Response('{}', {status:500}); };
-    const response = await worker.fetch(req(), {...env, GEMINI_MODEL:'gemini-custom'});
-    assert.equal(response.status, 502);
-    assert.deepEqual(models, ['gemini-custom','gemini-3.5-flash-lite']);
+    globalThis.fetch = async (url) => { models.push(String(url).match(/models\/([^:]+)/)[1]); return new Response('{"error":{"code":503}}', { status: 503 }); };
+    const ok = await worker.fetch(req(), { ...env, AI: ai });
+    assert.equal(ok.status, 200);
+    const body = await ok.json();
+    assert.equal(body.modelUsed, '@cf/meta/llama-3.3-70b-instruct-fp8-fast');
+    assert.ok(body.text.includes('Workers AI'));
+    assert.deepEqual(models, ['gemini-3.5-flash-lite']);
+    assert.equal(aiCalls[0].input.messages[0].role, 'system');
+    assert.ok(aiCalls[0].input.messages[0].content.includes('Petit Lenormand'));
+    assert.equal(JSON.parse(aiCalls[0].input.messages[1].content).question, payload.userQuestion);
+    models.length = 0;
+    assert.equal((await worker.fetch(req(), env)).status, 502);
+    assert.deepEqual(models, ['gemini-3.5-flash-lite']);
   } finally { globalThis.fetch = original; }
+});
+test('worker não entrega leitura truncada e usa o Workers AI no lugar', async () => {
+  const original = globalThis.fetch;
+  try {
+    globalThis.fetch = async () => Response.json({ candidates: [{ finishReason: 'MAX_TOKENS', content: { parts: [{ text: 'Texto interrompido' }] } }] });
+    const ai = { run: async () => ({ response: 'Leitura completa do Workers AI' }) };
+    const response = await worker.fetch(req(), { ...env, AI: ai });
+    assert.equal(response.status, 200);
+    assert.ok(!(await response.text()).includes('Texto interrompido'));
+  } finally { globalThis.fetch = original; }
+});
+test('worker funciona só com o Workers AI e aceita outro modelo @cf', async () => {
+  const seen = [];
+  const ai = { run: async (model) => { seen.push(model); return { choices: [{ message: { content: 'Resposta em formato OpenAI' } }] }; } };
+  const onlyAi = { ...env, GEMINI_API_KEY: '', AI: ai, WORKERS_AI_MODEL: '@cf/mistralai/mistral-small-3.1-24b-instruct' };
+  const response = await worker.fetch(req(), onlyAi);
+  assert.equal(response.status, 200);
+  assert.equal((await response.json()).text, 'Resposta em formato OpenAI');
+  assert.deepEqual(seen, ['@cf/mistralai/mistral-small-3.1-24b-instruct']);
+  // Invalid overrides fall back to the default model instead of being passed through.
+  await worker.fetch(req(), { ...onlyAi, WORKERS_AI_MODEL: 'http://evil' });
+  assert.equal(seen.at(-1), '@cf/meta/llama-3.3-70b-instruct-fp8-fast');
+  // A provider error is logged and turns into a generic 502.
+  const broken = { ...onlyAi, AI: { run: async () => { throw new Error('boom'); } } };
+  const failed = await worker.fetch(req(), broken);
+  assert.equal(failed.status, 502);
+  assert.ok(!(await failed.text()).includes('boom'));
 });
 test('worker separa instruções, protege chave e oculta erros do provedor', async () => {
   const original = globalThis.fetch;
@@ -199,9 +239,12 @@ test('parser preserva a dica online e trata salvaguardas sem aparência de SIM',
     assert.equal(result.type,'maybe');
     assert.equal(result.tip,'Procure apoio.');
   }
-  assert.deepEqual(parseYesNoAiResponse('VEREDITO: SIM\nRESPOSTA: Não avance.\nDICA: Aguarde.',fallback),fallback);
+  const contradicted = parseYesNoAiResponse('VEREDITO: SIM\nRESPOSTA: Não avance.\nDICA: Aguarde.',fallback);
+  assert.equal(contradicted.verdict,'NÃO');
+  assert.equal(contradicted.answer,'Não avance.');
+  assert.equal(contradicted.type,'no');
 });
-test('worker usa modelos com versão fixa e o menor nível de raciocínio de cada um', async () => {
+test('worker usa versão fixa do Gemini e o menor nível de raciocínio', async () => {
   const original = globalThis.fetch;
   const seen = [];
   try {
@@ -209,13 +252,13 @@ test('worker usa modelos com versão fixa e o menor nível de raciocínio de cad
       seen.push({ model: String(url).match(/models\/([^:]+)/)[1], config: JSON.parse(options.body).generationConfig });
       return new Response('{}', { status: 503 });
     };
-    assert.equal((await worker.fetch(req(), env)).status, 502);
-    assert.deepEqual(seen.map(s => s.model), ['gemini-3.5-flash-lite', 'gemini-3.8-flash']);
+    await worker.fetch(req(), env);
+    assert.equal(seen[0].model, 'gemini-3.5-flash-lite');
     assert.deepEqual(seen[0].config.thinkingConfig, { thinkingLevel: 'minimal' });
-    assert.deepEqual(seen[1].config.thinkingConfig, { thinkingLevel: 'low' });
-    assert.ok(!seen.some(s => s.model.endsWith('-latest')));
-    seen.length = 0;
+    await worker.fetch(req(), { ...env, GEMINI_MODEL: 'gemini-3.8-flash' });
+    assert.deepEqual(seen.at(-1).config.thinkingConfig, { thinkingLevel: 'low' });
     await worker.fetch(req(), { ...env, GEMINI_MODEL: 'gemini-2.5-flash-lite' });
-    assert.deepEqual(seen[0].config.thinkingConfig, { thinkingBudget: 0 });
+    assert.deepEqual(seen.at(-1).config.thinkingConfig, { thinkingBudget: 0 });
+    assert.ok(!seen.some(s => s.model.endsWith('-latest')));
   } finally { globalThis.fetch = original; }
 });

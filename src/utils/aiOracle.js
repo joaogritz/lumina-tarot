@@ -1,10 +1,11 @@
-// Real AI Oracle Integration via Serverless Cloudflare Worker Proxy (100% Free, Zero Login, Zero User Keys)
-// With Full Archetypal Fallback Engine, Bulletproof Section Parser & Direct Yes/No AI Engine
+// AI readings through the Cloudflare Worker proxy (no login, no user keys).
+// When the Worker cannot answer, the result is { source: 'unavailable' } and the UI offers a retry:
+// readings are never replaced by locally generated text. Ethical safeguards still answer locally.
 
 import { getYesNoEvaluation, generateOfflineYesNoReading } from './yesNoOracle.js';
 import { DEFAULT_ORACLE_URL } from '../config.js';
 
-// Must exceed the Worker's total model budget (18 s + 10 s) so its answer is not cut off.
+// Must exceed the Worker's total provider budget (Gemini 12 s + Workers AI 16 s) so its answer is not cut off.
 const ORACLE_TIMEOUT_MS = 32000;
 
 /* global process */
@@ -126,13 +127,13 @@ export const parseYesNoAiResponse = (text, fallbackData) => {
   const lowerAnswer = answer.toLowerCase().trim();
   let vUpper = verdict.toUpperCase();
 
-  // If answer explicitly starts with a negative but verdict is positive, align verdict
+  // If the answer explicitly opens against the verdict, the answer wins: align the verdict.
   if ((lowerAnswer.startsWith('não') || lowerAnswer.startsWith('nao')) && (vUpper.includes('SIM') && !vUpper.includes('NÃO'))) {
-    if (fallbackData) return fallbackData;
-  }
-  // If answer explicitly starts with affirmative but verdict is strictly negative, align verdict
-  else if ((lowerAnswer.startsWith('sim') || lowerAnswer.startsWith('com certeza')) && (vUpper.includes('NÃO') || vUpper.includes('NAO'))) {
-    if (fallbackData) return fallbackData;
+    verdict = 'NÃO';
+    vUpper = verdict;
+  } else if ((lowerAnswer.startsWith('sim') || lowerAnswer.startsWith('com certeza')) && (vUpper.includes('NÃO') || vUpper.includes('NAO'))) {
+    verdict = 'SIM';
+    vUpper = verdict;
   }
 
   // Determine styling based on final verified verdict text
@@ -170,6 +171,9 @@ export const parseYesNoAiResponse = (text, fallbackData) => {
     rawText: text.trim()
   };
 };
+
+/** Returned when the Worker could not produce a reading; the UI shows a retry instead. */
+export const UNAVAILABLE = Object.freeze({ source: 'unavailable' });
 
 export const aiOracleService = {
   // Call Cloudflare Worker AI Proxy for Standard Multi-Card Spreads
@@ -222,12 +226,11 @@ export const aiOracleService = {
           }
         }
       } catch (err) {
-        console.warn('Worker proxy unavailable, using clear fallback engine:', err);
+        console.warn('Oracle unavailable:', err);
       }
     }
 
-    // Seamless Local Fallback
-    return fallback;
+    return UNAVAILABLE;
   },
 
   // Direct, Concise & Objective Yes/No AI Reading with Actionable Practical Tips
@@ -282,14 +285,14 @@ export const aiOracleService = {
           }
         }
       } catch (err) {
-        console.warn('Worker proxy for Yes/No unavailable, using resilient fallback:', err);
+        console.warn('Oracle unavailable:', err);
       }
     }
 
-    return fallback;
+    return UNAVAILABLE;
   },
 
-  // Realistic, Direct & Honest Local Fallback for Spreads (Grammatically Flawless & Natural)
+  // Local text: used for the ethical safeguards and to fill sections the AI left empty.
   generateOfflineFallback({ chosenCards, userQuestion }) {
     const validCards = chosenCards.filter(Boolean);
     const first = validCards[0] || {};

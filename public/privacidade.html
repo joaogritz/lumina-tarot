@@ -33,7 +33,7 @@
 <main>
   <a class="back" href="./">← Voltar ao Lumina</a>
   <h1>Privacidade</h1>
-  <p class="updated">Última atualização: 3 de novembro de 2026</p>
+  <p class="updated">Última atualização: 4 de novembro de 2026</p>
 
   <p>O Lumina Tarot é um projeto pessoal e de código aberto. Ele não tem contas, não usa cookies de rastreamento e não tem ferramentas de análise ou anúncios. Esta página explica quais dados passam pelo site, para onde vão e como controlá-los.</p>
 
@@ -56,7 +56,7 @@
     <li>as cartas sorteadas, com posição, orientação e significados;</li>
     <li>o nome e as posições da tiragem.</li>
   </ul>
-  <p>Esses dados vão primeiro ao nosso servidor de interpretação, hospedado na <strong>Cloudflare</strong> (Cloudflare Workers), que os repassa à <strong>API Gemini do Google</strong> para gerar o texto. O servidor não grava a pergunta nem a resposta. A Cloudflare e o Google processam os dados conforme as próprias políticas; dependendo do plano da API, o Google pode reter o conteúdo e usá-lo para melhorar os seus serviços.</p>
+  <p>Esses dados vão primeiro ao nosso servidor de interpretação, hospedado na <strong>Cloudflare</strong> (Cloudflare Workers), que os repassa à <strong>API Gemini do Google</strong> para gerar o texto. Se o Gemini não responder a tempo, o texto é gerado pelo <strong>Cloudflare Workers AI</strong>, na própria Cloudflare, com um modelo de linguagem aberto. O servidor não grava a pergunta nem a resposta. A Cloudflare e o Google processam os dados conforme as próprias políticas; dependendo do plano da API, o Google pode reter o conteúdo e usá-lo para melhorar os seus serviços.</p>
   <p><strong>Evite incluir nomes completos, documentos, endereços ou detalhes de saúde nas perguntas.</strong></p>
   <p>A pergunta é opcional: se o campo ficar vazio, apenas as cartas e a tiragem são enviadas. Se o serviço estiver indisponível, a interpretação é montada no próprio aparelho, a partir dos significados das cartas, sem enviar nada.</p>
 

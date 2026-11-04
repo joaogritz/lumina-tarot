@@ -6,7 +6,6 @@ import { CardArt } from './CardArt';
 import { TarotCard } from './cards/TarotCard.jsx';
 import { CardDetailModal } from './CardDetailModal';
 import { TAROT_DECK } from '../data/tarotDeck';
-import { getYesNoEvaluation, generateOfflineYesNoReading } from '../utils/yesNoOracle';
 import { aiOracleService } from '../utils/aiOracle';
 import { audio } from '../utils/audio';
 
@@ -30,6 +29,7 @@ export const YesNoOracleModal = ({
   const [isDrawing, setIsDrawing] = useState(false);
   const [isLoadingAi, setIsLoadingAi] = useState(false);
   const [aiReading, setAiReading] = useState(null);
+  const [askedQuestion, setAskedQuestion] = useState('');
   const [copied, setCopied] = useState(false);
   const [selectedCardDetail, setSelectedCardDetail] = useState(null);
 
@@ -38,6 +38,25 @@ export const YesNoOracleModal = ({
   const handleClose = () => {
     audio.playCloseModal();
     onClose();
+  };
+
+  // The answer comes only from the oracle; on failure the same card and question can be retried.
+  const consult = async (card, chosenQuestion) => {
+    setIsLoadingAi(true);
+    setAiReading(null);
+    let result;
+    try {
+      result = await aiOracleService.generateYesNoAiReading({
+        card,
+        userQuestion: chosenQuestion
+      });
+    } catch (err) {
+      console.error('Failed to get Yes/No AI reading:', err);
+      result = { source: 'unavailable' };
+    }
+    setAiReading(result);
+    setIsLoadingAi(false);
+    if (result?.source !== 'unavailable') audio.playGrandReveal();
   };
 
   const handleDraw = async (chosenQuestion = question) => {
@@ -55,24 +74,16 @@ export const YesNoOracleModal = ({
     };
 
     setDrawnCard(card);
+    setAskedQuestion(chosenQuestion);
     setIsDrawing(false);
-    setIsLoadingAi(true);
     audio.playFlip();
+    await consult(card, chosenQuestion);
+  };
 
-    try {
-      const result = await aiOracleService.generateYesNoAiReading({
-        card,
-        userQuestion: chosenQuestion
-      });
-      setAiReading(result);
-      audio.playGrandReveal();
-    } catch (err) {
-      console.error('Failed to get Yes/No AI reading:', err);
-      const fallback = generateOfflineYesNoReading({ card, userQuestion: chosenQuestion });
-      setAiReading(fallback);
-    } finally {
-      setIsLoadingAi(false);
-    }
+  const handleRetry = () => {
+    if (!drawnCard || isLoadingAi) return;
+    audio.playSelect();
+    consult(drawnCard, askedQuestion);
   };
 
   const handleReset = () => {
@@ -91,7 +102,8 @@ export const YesNoOracleModal = ({
     setTimeout(() => setCopied(false), 2500);
   };
 
-  const evaluation = drawnCard ? (aiReading || getYesNoEvaluation(drawnCard, drawnCard.isReversed)) : null;
+  const unavailable = !!drawnCard && aiReading?.source === 'unavailable';
+  const evaluation = drawnCard && aiReading && !unavailable ? aiReading : null;
 
   return (
     <div className="mobile-modal-layer fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4">
@@ -223,6 +235,38 @@ export const YesNoOracleModal = ({
               <p className="text-xs text-slate-400">
                 Interpretando o arcano <span className="text-slate-200 font-semibold">{drawnCard.name}</span> para a sua dúvida
               </p>
+            </div>
+          </motion.div>
+        )}
+
+        {/* Oracle unavailable: keep the card and question, offer a retry */}
+        {!isLoadingAi && unavailable && (
+          <motion.div
+            role="alert"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="py-8 flex flex-col items-center justify-center gap-3 text-center"
+          >
+            <p className="font-cinzel text-sm text-amber-200">Não foi possível consultar o oráculo agora.</p>
+            <p className="text-xs text-slate-400 max-w-sm">
+              O arcano <span className="text-slate-200 font-semibold">{drawnCard.name}</span> continua reservado para a sua pergunta. Tente de novo em alguns instantes.
+            </p>
+            <div className="flex flex-wrap justify-center gap-2 mt-1">
+              <button
+                type="button"
+                onClick={handleRetry}
+                className="py-2.5 px-4 rounded-sm bg-amber-500/15 hover:bg-amber-500/25 border border-amber-400/60 text-amber-200 text-xs font-semibold flex items-center gap-1.5 cursor-pointer transition-all active:scale-95"
+              >
+                <RotateCcw className="w-4 h-4" aria-hidden="true" />
+                <span>Tentar novamente</span>
+              </button>
+              <button
+                type="button"
+                onClick={handleReset}
+                className="py-2.5 px-4 rounded-sm bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300 hover:text-amber-300 text-xs font-semibold cursor-pointer transition-all active:scale-95"
+              >
+                Outra Pergunta
+              </button>
             </div>
           </motion.div>
         )}
