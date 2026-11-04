@@ -6,12 +6,21 @@ import "@babylonjs/core/Cameras/Inputs/arcRotateCameraMouseWheelInput";
 import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { CubeTexture } from "@babylonjs/core/Materials/Textures/cubeTexture";
 import { GlowLayer } from "@babylonjs/core/Layers/glowLayer";
+import { DefaultRenderingPipeline } from "@babylonjs/core/PostProcesses/RenderPipeline/Pipelines/defaultRenderingPipeline";
+import { SSAO2RenderingPipeline } from "@babylonjs/core/PostProcesses/RenderPipeline/Pipelines/ssao2RenderingPipeline";
+import { FxaaPostProcess } from "@babylonjs/core/PostProcesses/fxaaPostProcess";
+import "@babylonjs/core/PostProcesses/RenderPipeline/postProcessRenderPipelineManagerSceneComponent";
 import { CreateTube } from "@babylonjs/core/Meshes/Builders/tubeBuilder";
 import { Color3, Color4 } from "@babylonjs/core/Maths/math.color";
 import { readingPoint } from "../interaction/readingPlane";
 import { HemisphericLight } from "@babylonjs/core/Lights/hemisphericLight";
 import { DirectionalLight } from "@babylonjs/core/Lights/directionalLight";
 import { PointLight } from "@babylonjs/core/Lights/pointLight";
+import { SpotLight } from "@babylonjs/core/Lights/spotLight";
+import { Light } from "@babylonjs/core/Lights/light";
+import { CreateLathe } from "@babylonjs/core/Meshes/Builders/latheBuilder";
+import { Mesh as MeshClass } from "@babylonjs/core/Meshes/mesh";
+import { PBRMaterial } from "@babylonjs/core/Materials/PBR/pbrMaterial";
 import { ShadowGenerator } from "@babylonjs/core/Lights/Shadows/shadowGenerator";
 import "@babylonjs/core/Lights/Shadows/shadowGeneratorSceneComponent";
 import { CreateBox } from "@babylonjs/core/Meshes/Builders/boxBuilder";
@@ -28,8 +37,14 @@ import {
   painted,
   metal,
   assetUrl,
+  gilt,
+  pageEdges,
+  cardBody,
+  leather,
+  finish,
 } from "../scene/materials";
-import { roundedBox, outline, ring } from "../scene/geometry";
+import { roundedBox, outline, ring, roundedPlane, roundedSlab } from "../scene/geometry";
+import type { MultiMaterial } from "@babylonjs/core/Materials/multiMaterial";
 import { atmosphere } from "../scene/atmosphere";
 import { FramePacer } from "./framePacer";
 import { CardMotion } from "../cards/motion";
@@ -53,6 +68,8 @@ export type TableCallbacks = {
   message: (m: string) => void;
   context: (lost: boolean) => void;
 };
+/** Corner radius of every card, deck and discard pile (about 6% of the card width). */
+const CARD_RADIUS = 0.1;
 // Inertia keeps nudging the camera by imperceptible amounts for many frames. Comparing at 1e-4
 // precision stops those from counting as changes, so the scene can go idle and saves can settle.
 const cameraKey = (c: CameraState) =>
@@ -79,7 +96,12 @@ export class Table {
   prepareJumper() { this.jumperArrival = true; }
   private exits = new Map<string, Mesh>();
   private glow: GlowLayer;
-  private flames: Mesh[] = [];
+  private pipeline?: DefaultRenderingPipeline;
+  private ssao?: SSAO2RenderingPipeline;
+  private lowFxaa?: FxaaPostProcess;
+  private flames: { outer: Mesh; core: Mesh; baseY: number; seed: number }[] = [];
+  private armillary?: Mesh;
+  private lastAmbient = 0;
   private deckDrag?: {
     pointerId: number;
     mesh: Mesh;
@@ -92,7 +114,11 @@ export class Table {
     .matches;
   private back: StandardMaterial;
   private paper: StandardMaterial;
+  private cardMaterial: MultiMaterial;
   private notePaper: StandardMaterial;
+  private noteMaterial!: MultiMaterial;
+  private noteTemplate!: Mesh;
+  private noteFaceTemplate!: Mesh;
   private selectionMat: StandardMaterial;
   private cardTemplate: Mesh;
   private faceTemplate: Mesh;
@@ -150,15 +176,15 @@ export class Table {
       assetUrl("environments/observatory.env"),
       this.scene,
     );
-    this.scene.environmentIntensity = 0.62;
+    this.scene.environmentIntensity = 0.3;
     this.scene.fogMode = Scene.FOGMODE_EXP2;
-    this.scene.fogDensity = 0.006;
-    this.scene.fogColor = new Color3(0.065, 0.05, 0.09);
+    this.scene.fogDensity = 0.012;
+    this.scene.fogColor = new Color3(0.03, 0.022, 0.045);
     this.glow = new GlowLayer("Luz das velas", this.scene, {
       blurKernelSize: 32,
       mainTextureRatio: 0.35,
     });
-    this.glow.intensity = 0.42;
+    this.glow.intensity = 0.7;
     this.scene.skipPointerMovePicking = true;
     this.camera = new ArcRotateCamera(
       "Observatório",
@@ -185,17 +211,19 @@ export class Table {
       new Vector3(0, 1, 0),
       this.scene,
     );
-    fill.intensity = 0.45;
-    fill.diffuse = new Color3(0.65, 0.72, 1);
-    fill.groundColor = new Color3(0.12, 0.08, 0.15);
+    // Faint cold moonlight in the shadows; the warm light comes from the candles and the pool.
+    fill.intensity = 0.12;
+    fill.diffuse = new Color3(0.55, 0.64, 1);
+    fill.groundColor = new Color3(0.05, 0.03, 0.07);
     const key = new DirectionalLight(
       "Luz dourada",
-      new Vector3(0.45, -1, 0.35),
+      new Vector3(0.62, -1, 0.5),
       this.scene,
     );
-    key.position = new Vector3(-10, 17, -8);
-    key.intensity = 1.65;
-    key.diffuse = new Color3(1, 0.86, 0.66);
+    // A lower, warmer key light so cards and props cast readable shadows on the cloth.
+    key.position = new Vector3(-12, 17, -10);
+    key.intensity = 1.05;
+    key.diffuse = new Color3(1, 0.8, 0.58);
     key.shadowMinZ = 1;
     key.shadowMaxZ = 50;
     key.shadowFrustumSize = 34;
@@ -204,7 +232,21 @@ export class Table {
     this.shadow.filteringQuality = ShadowGenerator.QUALITY_MEDIUM;
     this.shadow.bias = 0.0004;
     this.shadow.normalBias = 0.015;
-    this.shadow.darkness = 0.32;
+    this.shadow.darkness = 0.2;
+    // A soft pool of reading light over the centre of the cloth, falling off towards the rim.
+    const pool = new SpotLight(
+      "Luz de leitura",
+      new Vector3(0, 13, 1.2),
+      new Vector3(0, -1, -0.09),
+      0.92,
+      7,
+      this.scene,
+    );
+    pool.falloffType = Light.FALLOFF_STANDARD;
+    pool.range = 30;
+    pool.intensity = 1.55;
+    pool.diffuse = new Color3(1, 0.86, 0.68);
+    pool.specular = new Color3(0.3, 0.27, 0.22);
     this.paper = material(this.scene, "Papel marfim", "#ded1b4", 0.09);
     this.notePaper = material(this.scene, "Papel das notas", "#c6b38d");
     const table = roundedBox("Mesa de nogueira", 23, 17, 0.7, 0.7, this.scene);
@@ -237,65 +279,99 @@ export class Table {
       inlay.material = brass;
       inlay.isPickable = false;
     }
-    const wax = material(this.scene, "Cera de abelha", "#e2cda6", 0.16);
+    const wax = finish(new PBRMaterial("Cera de abelha", this.scene));
+    wax.albedoColor = Color3.FromHexString("#dcc092");
+    wax.metallic = 0;
+    wax.roughness = 0.5;
+    // Light scattering through the wax makes the candles glow softly near the flame.
+    wax.subSurface.isTranslucencyEnabled = true;
+    wax.subSurface.translucencyIntensity = 0.35;
+    wax.subSurface.tintColor = new Color3(0.95, 0.66, 0.36);
+    const char = material(this.scene, "Carvão", "#2a201a");
+    const fireOuter = material(this.scene, "Chama de âmbar", "#ffdaa0");
+    fireOuter.disableLighting = true;
+    fireOuter.emissiveColor = new Color3(2.5, 0.78, 0.12);
+    fireOuter.alpha = 0.86;
+    const fireCore = material(this.scene, "Coração da chama", "#fff4d8");
+    fireCore.disableLighting = true;
+    fireCore.emissiveColor = new Color3(3, 2.15, 1.05);
+    // Turned brass candlestick: foot, mouldings, stem and a drip pan, revolved from one profile.
+    const stickProfile = [
+      [0, -0.06], [0.5, -0.06], [0.51, -0.035], [0.47, -0.005], [0.38, 0.02], [0.31, 0.05],
+      [0.17, 0.08], [0.13, 0.11], [0.17, 0.14], [0.12, 0.17], [0.095, 0.22], [0.09, 0.31],
+      [0.13, 0.34], [0.11, 0.37], [0.29, 0.395], [0.34, 0.425], [0.31, 0.445], [0.25, 0.44], [0, 0.44],
+    ].map(([x, y]) => new Vector3(x, y, 0));
+    const flameProfile = [
+      [0, 0], [0.034, 0.02], [0.058, 0.07], [0.062, 0.12], [0.048, 0.2], [0.024, 0.29], [0, 0.37],
+    ].map(([x, y]) => new Vector3(x, y, 0));
     for (const [i, height] of [1.5, 2.15, 0.95].entries()) {
       const x = -10 + (i === 1 ? -0.15 : i === 2 ? 0.6 : 0),
         z = 4.4 + (i === 1 ? 1.25 : i === 2 ? 0.6 : 0);
-      const base = CreateCylinder(
-        "Castiçal torneado",
-        { diameter: 0.98, height: 0.14, tessellation: 40 },
-        this.scene,
-      );
-      base.position.set(x, 0, z);
-      base.material = brass;
-      base.isPickable = false;
-      const lip = ring("Borda do castiçal", 0.91, 0.065, this.scene, 32);
-      lip.position.set(x, 0.09, z);
-      lip.material = brass;
-      lip.isPickable = false;
-      const candle = CreateCylinder(
-        "Vela de cera",
-        { diameter: 0.48, height, tessellation: 32 },
-        this.scene,
-      );
-      candle.position.set(x, height / 2 + 0.1, z);
+      const stick = CreateLathe("Castiçal torneado", { shape: stickProfile, tessellation: 48, cap: MeshClass.NO_CAP }, this.scene);
+      stick.position.set(x, 0, z);
+      stick.material = brass;
+      stick.isPickable = false;
+      stick.receiveShadows = true;
+      this.shadow.addShadowCaster(stick);
+      // Candle with a softened, melted rim and a shallow pool around the wick.
+      const candleProfile = [
+        [0, 0], [0.24, 0], [0.246, height * 0.45], [0.238, height - 0.05], [0.222, height - 0.012],
+        [0.19, height - 0.006], [0.15, height - 0.022], [0.05, height - 0.036], [0, height - 0.036],
+      ].map(([px, py]) => new Vector3(px, py, 0));
+      const body = CreateLathe("Vela de cera", { shape: candleProfile, tessellation: 40 }, this.scene);
+      const drips: Mesh[] = [];
+      for (let d = 0; d < 4; d++) {
+        const angle = (d * 2.1 + i * 1.3) % (Math.PI * 2),
+          length = 0.12 + ((d * 37 + i * 11) % 9) * 0.03;
+        const drip = CreateSphere("Escorrido", { diameter: 0.075, segments: 10 }, this.scene);
+        drip.scaling.set(1, length / 0.075, 0.8);
+        drip.position.set(Math.cos(angle) * 0.236, height - 0.02 - length / 2, Math.sin(angle) * 0.236);
+        drip.rotation.y = -angle;
+        drips.push(drip);
+      }
+      const candle = MeshClass.MergeMeshes([body, ...drips], true, true)!;
+      candle.name = "Vela de cera";
+      candle.position.set(x, 0.44, z);
       candle.material = wax;
       candle.isPickable = false;
+      candle.receiveShadows = true;
       this.shadow.addShadowCaster(candle);
-      const wick = CreateCylinder(
-        "Pavio",
-        { diameter: 0.035, height: 0.16, tessellation: 8 },
-        this.scene,
-      );
-      wick.position.set(x, height + 0.16, z);
-      wick.material = material(this.scene, "Carvão", "#30251d");
+      const wick = CreateCylinder("Pavio", { diameter: 0.032, height: 0.15, tessellation: 8 }, this.scene);
+      wick.position.set(x, 0.44 + height + 0.035, z);
+      wick.rotation.z = 0.12;
+      wick.material = char;
       wick.isPickable = false;
-      const flame = CreateSphere(
-        "Chama",
-        { diameter: 0.16, segments: 16 },
-        this.scene,
-      );
-      flame.position.set(x, height + 0.33, z);
-      flame.scaling.set(1, 2.8, 1);
-      flame.isPickable = false;
-      const fire = material(this.scene, "Chama de âmbar", "#ffdaa0");
-      fire.emissiveColor = new Color3(2.8, 1.15, 0.26);
-      flame.material = fire;
-      this.glow.addIncludedOnlyMesh(flame);
-      this.flames.push(flame);
+      const outer = CreateLathe("Chama", { shape: flameProfile, tessellation: 24 }, this.scene);
+      outer.material = fireOuter;
+      outer.isPickable = false;
+      const core = CreateLathe("Coração da chama", { shape: flameProfile, tessellation: 16 }, this.scene);
+      core.parent = outer;
+      core.scaling.set(0.48, 0.55, 0.48);
+      core.position.y = 0.012;
+      core.material = fireCore;
+      core.isPickable = false;
+      const baseY = 0.44 + height + 0.07;
+      outer.position.set(x, baseY, z);
+      outer.scaling.setAll(1.15);
+      this.glow.addIncludedOnlyMesh(outer);
+      this.glow.addIncludedOnlyMesh(core);
+      this.flames.push({ outer, core, baseY, seed: i * 17.3 + 4.1 });
     }
     this.lamp = new PointLight(
       "Luz das velas",
-      new Vector3(-10, 3.1, 4.8),
+      new Vector3(-9.3, 2.35, 4.2),
       this.scene,
     );
-    this.lamp.diffuse = new Color3(1, 0.55, 0.23);
-    this.lamp.intensity = 1.3;
-    this.lamp.range = 11;
+    // Candle light: a strong warm source that reaches across the left of the table and fades out.
+    this.lamp.falloffType = Light.FALLOFF_STANDARD;
+    this.lamp.diffuse = new Color3(1, 0.5, 0.18);
+    this.lamp.specular = new Color3(0.9, 0.5, 0.2);
+    this.lamp.intensity = 3.1;
+    this.lamp.range = 15;
     const box = roundedBox("Caixa de couro", 2.2, 3.65, 0.7, 0.14, this.scene);
     box.position.set(9.7, 0.3, 4.7);
     box.rotation.y = -0.15;
-    box.material = material(this.scene, "Couro obsidiana", "#17141c", 0.16);
+    box.material = leather(this.scene, "Couro obsidiana", "#1b1720", 2.2, 3.65);
     box.isPickable = false;
     this.shadow.addShadowCaster(box);
     const boxLabel = CreateGround(
@@ -307,13 +383,26 @@ export class Table {
     boxLabel.position.y = 0.357;
     boxLabel.material = cardBack(this.scene);
     boxLabel.isPickable = false;
-    for (let i = 0; i < 3; i++) {
-      const orbit = ring("Esfera armilar", 1.35, 0.035, this.scene, 48);
-      orbit.position.set(10, 0.8, -4.9);
-      orbit.rotation.set(i * 0.7, 0, i * 0.9);
+    const armillary = new MeshClass("Esfera armilar", this.scene);
+    armillary.position.set(10, 0.95, -4.9);
+    armillary.rotation.z = 0.41; // The axis leans like the Earth's.
+    for (const [i, [d, t]] of [[1.42, 0.04], [1.36, 0.032], [1.36, 0.032], [1.36, 0.032], [1.1, 0.026]].entries()) {
+      const orbit = ring("Anel da esfera armilar", d, t, this.scene, 64);
+      orbit.parent = armillary;
+      orbit.rotation.set(i === 0 ? 0 : i === 4 ? Math.PI / 2 : Math.PI / 2, i === 1 ? 0 : i === 2 ? Math.PI / 3 : i === 3 ? -Math.PI / 3 : 0, i === 4 ? 0.41 : 0);
       orbit.material = brass;
       orbit.isPickable = false;
+      this.shadow.addShadowCaster(orbit);
     }
+    const axis = CreateCylinder("Eixo da esfera", { diameter: 0.035, height: 1.7, tessellation: 10 }, this.scene);
+    axis.parent = armillary;
+    axis.material = brass;
+    axis.isPickable = false;
+    const globe = CreateSphere("Globo central", { diameter: 0.32, segments: 24 }, this.scene);
+    globe.parent = armillary;
+    globe.material = metal(this.scene, "Globo de lápis-lazúli", "#24406e", 0.28);
+    globe.isPickable = false;
+    this.armillary = armillary;
     const pedestal = CreateCylinder(
       "Pé da esfera",
       { diameter: 1.1, height: 0.14, tessellation: 40 },
@@ -324,48 +413,66 @@ export class Table {
     pedestal.isPickable = false;
     const stem = CreateCylinder(
       "Haste da esfera",
-      { diameter: 0.08, height: 0.8, tessellation: 12 },
+      { diameter: 0.08, height: 0.62, tessellation: 12 },
       this.scene,
     );
-    stem.position.set(10, 0.4, -4.9);
+    stem.position.set(10, 0.33, -4.9);
     stem.material = brass;
     stem.isPickable = false;
-    const crystalMat = metal(this.scene, "Quartzo azul", "#497f9b", 0.13);
-    crystalMat.metallic = 0.12;
-    crystalMat.alpha = 0.83;
-    crystalMat.emissiveColor = new Color3(0.025, 0.07, 0.11);
+    const crystalMat = finish(new PBRMaterial("Quartzo azul", this.scene));
+    crystalMat.albedoColor = Color3.FromHexString("#7fb2cc");
+    crystalMat.metallic = 0;
+    crystalMat.roughness = 0.08;
+    crystalMat.alpha = 0.78;
+    crystalMat.indexOfRefraction = 1.54;
+    crystalMat.emissiveColor = new Color3(0.02, 0.06, 0.1);
     crystalMat.backFaceCulling = false;
-    for (let i = 0; i < 3; i++) {
-      const crystal = CreateCylinder(
-        "Cristal de quartzo",
-        {
-          diameterTop: 0,
-          diameterBottom: 0.55,
-          height: 1.2 - i * 0.2,
-          tessellation: 6,
-        },
-        this.scene,
-      );
-      crystal.position.set(9.8 + (i - 1) * 0.4, 0.5, -2.6 + (i % 2) * 0.3);
-      crystal.rotation.z = (i - 1) * 0.22;
+    crystalMat.enableSpecularAntiAliasing = true;
+    // Hexagonal prism with a six-sided pyramid tip, revolved from a sharp profile.
+    const crystalProfile = (h: number, r: number) =>
+      [[0, 0], [r, 0], [r, h * 0.72], [r * 0.06, h], [0, h]].map(([px, py]) => new Vector3(px, py, 0));
+    const cluster: [number, number, number, number, number][] = [
+      // x, z, height, radius, lean
+      [9.75, -2.6, 1.15, 0.2, 0.05], [10.15, -2.35, 0.8, 0.15, 0.42], [9.45, -2.35, 0.7, 0.14, -0.48],
+      [9.95, -2.95, 0.55, 0.12, 0.3], [9.55, -2.85, 0.42, 0.1, -0.25],
+    ];
+    for (const [cx, cz, h, r, lean] of cluster) {
+      const crystal = CreateLathe("Cristal de quartzo", { shape: crystalProfile(h, r), tessellation: 6 }, this.scene);
+      crystal.convertToFlatShadedMesh();
+      crystal.position.set(cx, -0.06, cz);
+      crystal.rotation.set(lean * 0.5, lean * 3, lean);
       crystal.material = crystalMat;
       crystal.isPickable = false;
       this.shadow.addShadowCaster(crystal);
     }
     atmosphere(this.scene);
     this.back = cardBack(this.scene);
-    this.cardTemplate = CreateBox(
+    // Printed cards: 1.72 × 3 with corners rounded like a real deck, a paper core and gilded edges.
+    const edgeGilt = gilt(this.scene);
+    this.cardMaterial = cardBody(this.scene, this.paper, edgeGilt);
+    this.cardTemplate = roundedSlab(
       "Geometria compartilhada das cartas",
-      { width: 1.72, depth: 3, height: 0.035 },
+      1.72,
+      3,
+      0.035,
+      CARD_RADIUS,
       this.scene,
     );
     this.cardTemplate.setEnabled(false);
-    this.faceTemplate = CreateGround(
+    this.faceTemplate = roundedPlane(
       "Geometria compartilhada das artes",
-      { width: 1.69, height: 2.97 },
+      1.69,
+      2.97,
+      CARD_RADIUS - 0.015,
       this.scene,
     );
     this.faceTemplate.setEnabled(false);
+    const ink = material(this.scene, "Borda tingida das notas", "#6d5634", 0.05);
+    this.noteMaterial = cardBody(this.scene, this.notePaper, ink, "Nota de pergaminho");
+    this.noteTemplate = roundedSlab("Geometria das notas", 2.4, 1.05, 0.035, 0.08, this.scene);
+    this.noteTemplate.setEnabled(false);
+    this.noteFaceTemplate = roundedPlane("Geometria do texto das notas", 2.35, 1, 0.065, this.scene);
+    this.noteFaceTemplate.setEnabled(false);
     const contactMat = material(this.scene, "Sombra de contato", "#ffffff", 0);
     contactMat.disableLighting = true;
     contactMat.emissiveColor = Color3.White();
@@ -376,10 +483,18 @@ export class Table {
       128,
       256,
       (c) => {
+        // Two layers: a tight dark core under the card and a wide soft penumbra.
         c.clearRect(0, 0, 128, 256);
-        c.filter = "blur(9px)";
-        c.fillStyle = "#00000080";
-        c.fillRect(14, 18, 100, 220);
+        c.filter = "blur(12px)";
+        c.fillStyle = "#00000059";
+        c.beginPath();
+        c.roundRect(12, 16, 104, 224, 10);
+        c.fill();
+        c.filter = "blur(5px)";
+        c.fillStyle = "#0000008c";
+        c.beginPath();
+        c.roundRect(20, 24, 88, 208, 8);
+        c.fill();
       },
     );
     contactMat.diffuseTexture.hasAlpha = true;
@@ -392,36 +507,24 @@ export class Table {
     this.contactTemplate.material = contactMat;
     this.contactTemplate.isPickable = false;
     this.contactTemplate.setEnabled(false);
-    this.deck = CreateBox(
+    this.deck = roundedSlab(
       "Monte · puxar carta",
-      { width: 1.7, depth: 2.95, height: 0.28 },
+      1.72,
+      3,
+      0.28,
+      CARD_RADIUS,
       this.scene,
     );
     this.deck.position.set(-8, 0.12, -4.4);
-    this.deck.material = this.paper;
+    this.deck.material = cardBody(this.scene, this.paper, pageEdges(this.scene), "Monte de papel e ouro");
     this.deck.metadata = { deck: true };
+    this.deck.receiveShadows = true;
     this.shadow.addShadowCaster(this.deck);
-    const top = CreateGround(
-      "Verso do monte",
-      { width: 1.68, height: 2.93 },
-      this.scene,
-    );
-    top.parent = this.deck;
-    top.position.y = 0.147;
+    const top = this.faceTemplate.clone("Verso do monte", this.deck, true);
+    top.setEnabled(true);
+    top.position.y = 0.1415;
     top.material = this.back;
     top.metadata = { deck: true };
-    for (let i = 0; i < 5; i++) {
-      const layer = CreateBox(
-        "Folhas do monte",
-        { width: 1.71, depth: 2.96, height: 0.009 },
-        this.scene,
-      );
-      layer.parent = this.deck;
-      layer.position.y = -0.1 + i * 0.048;
-      layer.material =
-        i % 2 ? this.paper : material(this.scene, `Borda ${i}`, "#b29c76");
-      layer.metadata = { deck: true };
-    }
     const tray = roundedBox(
       "Bandeja dos descartes",
       2.15,
@@ -431,7 +534,7 @@ export class Table {
       this.scene,
     );
     tray.position.set(8, -0.032, -4.4);
-    tray.material = material(this.scene, "Couro da bandeja", "#201b1d", 0.1);
+    tray.material = leather(this.scene, "Couro da bandeja", "#241c1d", 2.15, 3.5);
     tray.isPickable = false;
     const trayEdge = outline(2, 3.35, 0.12, 0.0);
     trayEdge.push(trayEdge[0]);
@@ -443,13 +546,16 @@ export class Table {
     trim.position.set(8, 0, -4.4);
     trim.material = brass;
     trim.isPickable = false;
-    this.discardedTop = CreateBox(
+    this.discardedTop = roundedSlab(
       "Pilha de descartes",
-      { width: 1.72, depth: 3, height: 0.04 },
+      1.72,
+      3,
+      0.04,
+      CARD_RADIUS,
       this.scene,
     );
     this.discardedTop.position.set(8, 0.02, -4.4);
-    this.discardedTop.material = this.paper;
+    this.discardedTop.material = this.cardMaterial;
     this.discardedTop.isPickable = false;
     this.discardedTop.setEnabled(false);
     const discardedFace = this.faceTemplate.clone(
@@ -513,8 +619,12 @@ export class Table {
         });
       }
       if (this.frames <= 0) {
-        this.idleSkips++;
-        return;
+        const now = performance.now();
+        if (!this.ambientEnabled() || now - this.lastAmbient < 50) {
+          this.idleSkips++;
+          return;
+        }
+        this.lastAmbient = now;
       }
       const start = performance.now();
       const t = this.camera.target;
@@ -523,14 +633,12 @@ export class Table {
       t.y = 0;
       let shuffling = false;
       if (this.shuffleStarted) {
-        const progress = Math.min(1, (start - this.shuffleStarted) / 850);
-        const envelope = Math.sin(progress * Math.PI);
-        this.deck.rotation.y = Math.sin(progress * Math.PI * 8) * envelope * 0.16;
-        this.deck.rotation.z = Math.sin(progress * Math.PI * 6) * envelope * 0.06;
+        const progress = Math.min(1, (start - this.shuffleStarted) / 980);
         shuffling = progress < 1;
+        this.animateRiffle(progress);
         if (!shuffling) {
           this.shuffleStarted = 0;
-          this.deck.rotation.setAll(0);
+          this.endRiffle();
         }
       }
       const moving = this.motion.update(start) || shuffling;
@@ -540,19 +648,18 @@ export class Table {
         this.canvas.dataset.motion = motionState;
       for (const item of this.objects.values())
         if (item.contact) {
+          // Offset along the key light so the card reads as resting on the cloth.
+          const lift = Math.max(0, item.mesh.position.y);
           item.contact.position.set(
-            item.mesh.position.x,
+            item.mesh.position.x + 0.07 + lift * 0.45,
             -0.045,
-            item.mesh.position.z,
+            item.mesh.position.z + 0.055 + lift * 0.36,
           );
           item.contact.rotation.y = item.mesh.rotation.y;
           item.contact.visibility =
             0.8 / (1 + Math.max(0, item.mesh.position.y) * 2);
         }
-      for (const [i, flame] of this.flames.entries())
-        flame.scaling.y =
-          2.8 +
-          (this.reducedMotion ? 0 : Math.sin(start * 0.009 + i * 2) * 0.22);
+      this.animateAmbient(start);
       const chosen = this.selected
         ? this.objects.get(this.selected)?.mesh
         : undefined;
@@ -566,7 +673,7 @@ export class Table {
       this.pacer.submitted();
       this.lastDrawCalls = this.engine._drawCalls.current - callsBefore;
       this.renderCount++;
-      this.frames--;
+      this.frames = Math.max(0, this.frames - 1);
       const camera = this.getCamera(),
         key = cameraKey(camera);
       if (key !== this.lastCamera) {
@@ -592,9 +699,34 @@ export class Table {
     this.canvas.dataset.render = "preparing";
   }
   private shuffleStarted = 0;
+  private riffle?: { halves: Mesh[]; height: number };
+  /** Set by cancelDrag: the next sync snaps instead of gliding, so a quick re-grab finds the card. */
+  private snapNextSync = false;
   shuffleDeck() {
+    this.endRiffle();
     this.shuffleStarted = this.reducedMotion ? 0 : performance.now();
+    if (this.shuffleStarted && this.deck.isEnabled()) this.beginRiffle();
     this.wake(2);
+  }
+  // Candle flicker and the armillary sphere only run on desktop profiles and without reduced motion.
+  private ambientEnabled() {
+    return this.quality !== "low" && !this.reducedMotion && !this.hidden;
+  }
+  private animateAmbient(time: number) {
+    const still = !this.ambientEnabled();
+    let glow = 0;
+    for (const f of this.flames) {
+      const t = time * 0.001 + f.seed;
+      // Layered sines give an irregular, non-repeating flicker.
+      const n = still ? 0 : Math.sin(t * 7.3) * 0.5 + Math.sin(t * 13.1 + 1.7) * 0.3 + Math.sin(t * 23.7) * 0.2;
+      f.outer.scaling.set(1.15 - n * 0.05, 1.15 + n * 0.16, 1.15 - n * 0.05);
+      f.outer.position.y = f.baseY + n * 0.006;
+      f.outer.rotation.z = still ? 0 : Math.sin(t * 2.3) * 0.06;
+      f.outer.rotation.x = still ? 0 : Math.sin(t * 1.7 + 0.6) * 0.05;
+      glow += n;
+    }
+    this.lamp.intensity = 3.1 + (glow / Math.max(1, this.flames.length)) * 0.32;
+    if (this.armillary && !still) this.armillary.rotation.y = time * 0.00012;
   }
   wake(frames = 2) {
     this.frames = Math.max(this.frames, frames);
@@ -618,7 +750,7 @@ export class Table {
     if (!point) return;
     const mesh = this.cardTemplate.clone("Carta retirada do monte", null, true);
     mesh.setEnabled(true);
-    mesh.material = this.paper;
+    mesh.material = this.cardMaterial;
     mesh.isPickable = false;
     mesh.position.copyFrom(this.deckOrigin());
     const face = this.faceTemplate.clone("Verso da carta retirada", mesh, true);
@@ -694,7 +826,7 @@ export class Table {
             m.isEnabled() &&
             m.isVisible &&
             m.isPickable &&
-            (!m.metadata.id || !this.motion.has(m.metadata.id)),
+            (!m.metadata.id || !this.exits.has(m.metadata.id)),
         );
         const metadata = hit?.pickedMesh?.metadata;
         if (metadata?.deck) {
@@ -783,8 +915,15 @@ export class Table {
         });
         const item = this.objects.get(d.id);
         if (item) {
-          item.mesh.position.set(p.x, 0.35, p.z);
-          this.updateRing(item.mesh);
+          const mesh = item.mesh,
+            dx = p.x - mesh.position.x,
+            dz = p.z - mesh.position.z;
+          mesh.position.set(p.x, 0.42, p.z);
+          // Lean into the drag like a card held at one point, easing back when it slows.
+          const clamp = (v: number) => Math.max(-0.26, Math.min(0.26, v));
+          mesh.rotation.z = mesh.rotation.z * 0.55 + clamp(-dx * 1.6) * 0.45;
+          mesh.rotation.x = mesh.rotation.x * 0.55 + clamp(dz * 1.6) * 0.45;
+          this.updateRing(mesh);
         }
         e.stopPropagation();
       }) as EventListener,
@@ -858,6 +997,7 @@ export class Table {
     const d = this.drag;
     if (!d) return;
     this.drag = undefined;
+    this.snapNextSync = true;
     delete this.canvas.dataset.interaction;
     if (!preserveCamera) {
       if (this.canvas.hasPointerCapture(d.pointerId))
@@ -882,6 +1022,59 @@ export class Table {
     this.fronts.set(card.cardId, front.material);
     return front.material;
   }
+  // Two half-stacks stand in for the deck while it is riffled; the real deck is hidden meanwhile.
+  private beginRiffle() {
+    const height = 0.28 * this.deck.scaling.y * 0.5;
+    const halves = [0, 1].map((i) => {
+      const half = roundedSlab(`Metade do monte ${i + 1}`, 1.72, 3, height, CARD_RADIUS, this.scene);
+      half.material = this.deck.material;
+      half.isPickable = false;
+      const top = this.faceTemplate.clone(`Verso da metade ${i + 1}`, half, true);
+      top.setEnabled(true);
+      top.position.y = height / 2 + 0.0015;
+      top.material = this.back;
+      top.isPickable = false;
+      this.shadow.addShadowCaster(half);
+      return half;
+    });
+    this.riffle = { halves, height };
+    this.deck.visibility = 0;
+    this.deck.getChildMeshes().forEach((m) => (m.visibility = 0));
+    this.animateRiffle(0);
+  }
+  private animateRiffle(progress: number) {
+    if (!this.riffle) return;
+    const { halves, height } = this.riffle;
+    const origin = this.deck.position,
+      base = origin.y - 0.14 * this.deck.scaling.y + height / 2;
+    // 0–0.3 split apart · 0.3–0.75 bend and riffle together · 0.75–1 square up.
+    const split = Math.min(1, progress / 0.3),
+      merge = Math.max(0, Math.min(1, (progress - 0.3) / 0.45)),
+      square = Math.max(0, (progress - 0.75) / 0.25);
+    const apart = Math.sin(split * Math.PI * 0.5) * (1 - merge) * 1.05;
+    halves.forEach((half, i) => {
+      const side = i === 0 ? -1 : 1;
+      half.position.set(
+        origin.x + side * apart,
+        base + (i === 0 ? 0 : height) * (merge < 1 ? merge : 1) + Math.sin(split * Math.PI) * 0.18 * (1 - merge),
+        origin.z + side * 0.06 * (1 - square),
+      );
+      // Thumbs bend the inner edges up while the leaves interleave.
+      const bend = Math.sin(merge * Math.PI) * 0.28 + (1 - merge) * split * 0.08;
+      half.rotation.z = -side * bend;
+      half.rotation.y = side * 0.05 * (1 - square) + Math.sin(square * Math.PI * 2) * 0.015;
+    });
+  }
+  private endRiffle() {
+    if (!this.riffle) return;
+    this.riffle.halves.forEach((h) => {
+      this.shadow.removeShadowCaster(h);
+      h.dispose(false, false);
+    });
+    this.riffle = undefined;
+    this.deck.visibility = 1;
+    this.deck.getChildMeshes().forEach((m) => (m.visibility = 1));
+  }
   private updateRing(mesh: Mesh) {
     this.ring.position.set(mesh.position.x, -0.025, mesh.position.z);
     this.ring.rotation.y = mesh.rotation.y;
@@ -894,6 +1087,7 @@ export class Table {
   }
   sync(session: Session, selected?: string) {
     const previous = this.session;
+    const snap = this.snapNextSync;
     this.session = session;
     this.selected = selected;
     const ids = new Set(
@@ -940,25 +1134,13 @@ export class Table {
       const fresh = !item;
       if (this.exits.has(o.instanceId)) this.motion.finish(o.instanceId);
       if (!item) {
-        const mesh = isCard
-          ? this.cardTemplate.clone(o.instanceId, null, true)
-          : CreateBox(
-              o.instanceId,
-              { width: 2.4, depth: 1.05, height: 0.035 },
-              this.scene,
-            );
+        const mesh = (isCard ? this.cardTemplate : this.noteTemplate).clone(o.instanceId, null, true);
         mesh.setEnabled(true);
-        mesh.material = isCard ? this.paper : this.notePaper;
+        mesh.material = isCard ? this.cardMaterial : this.noteMaterial;
         mesh.receiveShadows = true;
         mesh.metadata = { id: o.instanceId };
         this.shadow.addShadowCaster(mesh);
-        const face = isCard
-          ? this.faceTemplate.clone(`${o.instanceId}-face`, null, true)
-          : CreateGround(
-              `${o.instanceId}-face`,
-              { width: 2.35, height: 1 },
-              this.scene,
-            );
+        const face = (isCard ? this.faceTemplate : this.noteFaceTemplate).clone(`${o.instanceId}-face`, null, true);
         face.setEnabled(true);
         face.parent = mesh;
         face.position.y = 0.021;
@@ -967,7 +1149,7 @@ export class Table {
           ? this.contactTemplate.clone(`${o.instanceId}-sombra`, null, true)
           : undefined;
         if (contact) {
-          contact.setEnabled(this.quality === "low");
+          contact.setEnabled(true);
           contact.isPickable = false;
         }
         item = { mesh, signature: "", contact };
@@ -1052,6 +1234,8 @@ export class Table {
         }
         item.signature = signature;
       }
+      const before = mesh.position.clone(),
+        beforeYaw = mesh.rotation.y;
       mesh.position.set(
         o.position.x,
         0.01 +
@@ -1061,6 +1245,10 @@ export class Table {
         o.position.z,
       );
       mesh.rotation.y = o.rotation;
+      if (!this.motion.has(o.instanceId)) {
+        mesh.rotation.x = 0;
+        mesh.rotation.z = 0;
+      }
       this.motion.retarget(
         o.instanceId,
         mesh.position,
@@ -1075,8 +1263,25 @@ export class Table {
           arc: this.jumperArrival ? 3.4 : from.y > 0.5 ? 0.12 : 1.2,
         });
         this.jumperArrival = false;
+      } else if (
+        !fresh &&
+        !snap &&
+        !this.motion.has(o.instanceId) &&
+        this.drag?.id !== o.instanceId
+      ) {
+        // Moves, rotations, selection lifts, undo/redo and drops glide instead of jumping.
+        const distance = Vector3.Distance(before, mesh.position),
+          turn = Math.abs(Math.atan2(Math.sin(o.rotation - beforeYaw), Math.cos(o.rotation - beforeYaw)));
+        if (distance > 0.002 || turn > 0.001)
+          this.motion.fly(o.instanceId, mesh, before, mesh.position, {
+            duration: Math.min(460, 170 + distance * 70 + turn * 90),
+            arc: distance > 0.8 ? 0.45 : 0,
+            tilt: distance > 0.8 ? 0.1 : 0,
+            fromRotation: beforeYaw,
+          });
       }
     });
+    this.snapNextSync = false;
     this.discardedTop.setEnabled(session.discardedCardIds.length > 0);
     this.deck.setEnabled(session.remainingCardIds.length > 0);
     this.deck.scaling.y =
@@ -1091,6 +1296,52 @@ export class Table {
     this.invalidate();
     this.scene.executeWhenReady(() => this.wake());
   }
+  // Desktop profiles add a post-processing stack; low only adds an FXAA pass.
+  // Image processing remains per material so the card art keeps its original colours.
+  private configurePostProcessing(q: Quality) {
+    if (q === "low") {
+      this.pipeline?.dispose();
+      this.pipeline = undefined;
+      // Cheap edge smoothing for the low profile, which renders below native resolution.
+      this.lowFxaa ??= new FxaaPostProcess("Suavização de bordas", 1, this.camera);
+    } else {
+      this.lowFxaa?.dispose(this.camera);
+      this.lowFxaa = undefined;
+      if (!this.pipeline) {
+        this.pipeline = new DefaultRenderingPipeline("Acabamento da mesa", true, this.scene, [this.camera]);
+        // Image processing stays in each material: applying it here would gamma-correct twice.
+        // The vignette is drawn in CSS over the canvas instead.
+        this.pipeline.imageProcessingEnabled = false;
+        // Only HDR highlights above 1 (the flames) bloom; paper and art stay crisp.
+        this.pipeline.bloomEnabled = true;
+        this.pipeline.bloomThreshold = 1.05;
+        this.pipeline.bloomWeight = 0.55;
+        this.pipeline.bloomKernel = 96;
+        this.pipeline.bloomScale = 0.5;
+        // No sharpening: it re-accentuates the stair-steps that MSAA and FXAA remove.
+        this.pipeline.sharpenEnabled = false;
+        this.pipeline.fxaaEnabled = true;
+      }
+      // MSAA on the off-screen target (the canvas' own antialiasing no longer applies once
+      // post-processing is on), capped by what the GPU supports.
+      const maxSamples = Math.max(1, this.engine.getCaps().maxMSAASamples || 4);
+      this.pipeline.samples = Math.min(maxSamples, q === "high" ? 8 : 4);
+    }
+    const wantsSsao = q === "high" && SSAO2RenderingPipeline.IsSupported;
+    if (!wantsSsao) {
+      this.ssao?.dispose();
+      this.ssao = undefined;
+    } else if (!this.ssao) {
+      // Ambient occlusion where cards, candles and props meet the cloth.
+      this.ssao = new SSAO2RenderingPipeline("Oclusão ambiente", this.scene, { ssaoRatio: 0.75, blurRatio: 1 }, [this.camera]);
+      this.ssao.radius = 0.9;
+      this.ssao.totalStrength = 1.15;
+      this.ssao.base = 0.12;
+      this.ssao.samples = 16;
+      this.ssao.maxZ = 60;
+      this.ssao.expensiveBlur = true;
+    }
+  }
   setQuality(q: Quality) {
     this.motion.clear();
     const old = this.quality;
@@ -1102,11 +1353,12 @@ export class Table {
       this.objects.forEach((o) => (o.signature = ""));
       if (this.session) this.sync(this.session, this.selected);
     }
-    const ratio = Math.min(
-      devicePixelRatio || 1,
-      q === "high" ? 2 : q === "medium" ? 1.35 : 1,
-    );
-    this.engine.setHardwareScalingLevel((q === "low" ? 1.35 : 1) / ratio);
+    // Render scale. High supersamples on standard displays (at least 1.5×, up to 2×), which is
+    // the most effective cure for shimmering on thin brass inlays and card edges.
+    const dpr = devicePixelRatio || 1;
+    const ratio =
+      q === "high" ? Math.min(2, Math.max(dpr, 1.5)) : q === "medium" ? Math.min(dpr, 1.5) : Math.min(dpr, 1);
+    this.engine.setHardwareScalingLevel((q === "low" ? 1.15 : 1) / ratio);
     this.scene.shadowsEnabled = q !== "low";
     this.glow.isEnabled = q !== "low";
     this.lamp.setEnabled(true);
@@ -1115,7 +1367,7 @@ export class Table {
       q === "high"
         ? ShadowGenerator.QUALITY_MEDIUM
         : ShadowGenerator.QUALITY_LOW;
-    this.objects.forEach((item) => item.contact?.setEnabled(q === "low"));
+    this.configurePostProcessing(q);
     this.invalidate();
     this.scene.executeWhenReady(() => this.wake());
     this.engine.resize();
