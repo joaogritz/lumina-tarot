@@ -201,3 +201,17 @@ test('parser preserva a dica online e trata salvaguardas sem aparência de SIM',
   }
   assert.deepEqual(parseYesNoAiResponse('VEREDITO: SIM\nRESPOSTA: Não avance.\nDICA: Aguarde.',fallback),fallback);
 });
+test('worker usa modelos com versão fixa e desliga o raciocínio nos modelos 2.5', async () => {
+  const original = globalThis.fetch;
+  const seen = [];
+  try {
+    globalThis.fetch = async (url, options) => {
+      seen.push({ model: String(url).match(/models\/([^:]+)/)[1], config: JSON.parse(options.body).generationConfig });
+      return new Response('{}', { status: 503 });
+    };
+    assert.equal((await worker.fetch(req(), env)).status, 502);
+    assert.deepEqual(seen.map(s => s.model), ['gemini-2.5-flash-lite', 'gemini-2.5-flash']);
+    for (const { config } of seen) assert.deepEqual(config.thinkingConfig, { thinkingBudget: 0 });
+    assert.ok(!seen.some(s => s.model.endsWith('-latest')));
+  } finally { globalThis.fetch = original; }
+});

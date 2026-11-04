@@ -148,7 +148,10 @@ const flag = (value) => String(value || '').trim().toLowerCase() === 'true';
 
 // One request may try at most this many models, so a single call never fans out into many paid calls.
 const MAX_MODEL_ATTEMPTS = 2;
-const FALLBACK_MODELS = ['gemini-2.5-flash-lite', 'gemini-flash-lite-latest'];
+// Pinned versions: '-latest' aliases can silently move to a slower model.
+const FALLBACK_MODELS = ['gemini-2.5-flash-lite', 'gemini-2.5-flash'];
+// Two attempts must fit in the 20 s the site waits before falling back to a local reading.
+const ATTEMPT_TIMEOUT_MS = 9000;
 
 // Only listed origins may call the Worker. A bare "*" is ignored on purpose: it would turn the
 // Worker back into an open proxy. Subdomain wildcards like https://*.example.com are supported.
@@ -265,7 +268,7 @@ export default {
       try {
         const upstream = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
           method: 'POST',
-          signal: AbortSignal.timeout(15000),
+          signal: AbortSignal.timeout(ATTEMPT_TIMEOUT_MS),
           headers: {
             'Content-Type': 'application/json',
             'x-goog-api-key': geminiApiKey
@@ -275,12 +278,19 @@ export default {
             contents: [{ role: 'user', parts: [{ text: JSON.stringify({ question: data.userQuestion || '', spread, cards }) }] }],
             generationConfig: {
               temperature: 0.6,
-              maxOutputTokens: isYesNo ? 1000 : 3000
+              maxOutputTokens: isYesNo ? 1000 : 3000,
+              // Short readings do not need a reasoning pass, which mostly adds latency.
+              ...(model.startsWith('gemini-2.5') ? { thinkingConfig: { thinkingBudget: 0 } } : {}),
             },
           }),
         });
 
-        if (!upstream.ok) continue;
+        if (!upstream.ok) {
+          // Status and a short excerpt go to the Worker logs only, to tell quota, retired models
+          // and outages apart. The provider's message never reaches the caller.
+          console.error('Provider returned', model, upstream.status, (await upstream.text()).slice(0, 300));
+          continue;
+        }
 
         const result = await upstream.json();
         if (result.candidates?.[0]?.finishReason === 'MAX_TOKENS') {
