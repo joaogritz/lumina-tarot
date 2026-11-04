@@ -16,7 +16,7 @@ As cartas do cigano têm IDs próprios (`lenormand_1` a `lenormand_36`). O estad
 
 ## Persistência
 
-`history.js` mantém até 100 leituras no localStorage. Entradas novas incluem `deckId` e `deckName`; entradas antigas continuam identificadas como Tarot. As estatísticas distinguem cartas pelo ID e incluem a contagem Lenormand. Temas e baralho têm fallback quando o armazenamento não está disponível.
+`history.js` mantém até 100 leituras no localStorage. Entradas novas incluem `deckId` e `deckName`; entradas antigas continuam identificadas como Tarot. `exportBackup()` serializa o diário em um JSON com `kind: "lumina-tarot-diary"` e `version`; `importBackup()` valida o arquivo com as mesmas regras de leitura, mescla por `id` (a entrada local vence em colisões, preservando notas editadas depois), ordena da mais recente para a mais antiga e aplica o limite de 100. Backups de versões futuras são recusados. As estatísticas distinguem cartas pelo ID e incluem a contagem Lenormand. Temas e baralho têm fallback quando o armazenamento não está disponível.
 
 ## Interface e acessibilidade
 
@@ -30,4 +30,4 @@ Vite divide o código em chunks. O service worker usa navegação network-first 
 
 ## Verificação
 
-`npm test` executa testes Node de dados, regras de interpretação, histórico e contrato de segurança do Worker com provedor simulado. O workflow executa testes e build. A revisão da interface é complementar: não substitui auditoria de acessibilidade assistiva, pentest ou validação do serviço implantado.
+`npm test` executa testes Node de dados, regras de interpretação, histórico, backup do diário e contrato de segurança do Worker com provedor simulado. `npm run test:mesa` cobre as regras da Mesa 3D e `npm run test:browser` exercita as duas páginas no Chromium com Playwright, incluindo arrastos no canvas, armazenamento indisponível, perda de contexto WebGL e navegação offline. O workflow executa tudo isso em pull requests e antes de cada publicação. A revisão da interface é complementar: não substitui auditoria de acessibilidade assistiva, pentest ou validação do serviço implantado.

@@ -12,7 +12,8 @@ Desenvolvido com React, Vite e Tailwind CSS. O frontend é estático e pode ser 
 - **Escolha manual ou sorteio**, com inversões opcionais no Tarot.
 - **Sim ou Não**, com uma carta e interpretação para a pergunta.
 - **Carta do dia e grimório**, para consultar os significados das cartas.
-- **Diário de leituras**, salvo no navegador, com histórico e estatísticas.
+- **Diário de leituras**, salvo no navegador, com histórico, estatísticas e backup em arquivo JSON.
+- **Mesa Livre 3D**, uma mesa independente para dispor cartas, notas e posições livremente.
 - **Temas, áudio e interface adaptada a dispositivos móveis.**
 
 As leituras são propostas de reflexão simbólica. O resultado de Sim ou Não não representa uma probabilidade calculada.
@@ -31,7 +32,10 @@ Abra o endereço exibido pelo Vite, normalmente `http://localhost:5173`.
 | Comando | Função |
 | --- | --- |
 | `npm run dev` | Inicia o servidor de desenvolvimento. |
-| `npm test` | Executa os testes automatizados com o runner do Node.js. |
+| `npm test` | Executa os testes de dados, interpretação, histórico e Worker com o runner do Node.js. |
+| `npm run typecheck` | Verifica os tipos do código TypeScript da Mesa 3D. |
+| `npm run test:mesa` | Executa os testes das regras da Mesa 3D. |
+| `npm run test:browser` | Executa os testes de navegador com Playwright (instale antes o Chromium com `npx playwright install chromium`). Requer um build. |
 | `npm run build` | Gera o site estático em `dist/`. |
 | `npm run preview` | Serve o build localmente para conferência. |
 
@@ -39,7 +43,7 @@ Abra o endereço exibido pelo Vite, normalmente `http://localhost:5173`.
 
 Na versão atual, ao consultar uma tiragem ou o Sim ou Não, a aplicação tenta gerar uma interpretação online por meio de um Cloudflare Worker conectado ao Google Gemini. Se o serviço falhar ou não retornar uma resposta utilizável, o frontend recorre à interpretação local.
 
-O código inclui um endpoint padrão em `src/utils/aiOracle.js`. Para usar seu próprio serviço, crie um arquivo `.env.local` na raiz do projeto:
+O código inclui um endpoint padrão em `src/utils/aiOracle.js`. Para usar seu próprio serviço, copie [`.env.example`](.env.example) para `.env.local` na raiz do projeto e ajuste o endereço:
 
 ```dotenv
 VITE_ORACLE_API_URL=https://seu-worker.seu-subdominio.workers.dev
@@ -48,6 +52,8 @@ VITE_ORACLE_API_URL=https://seu-worker.seu-subdominio.workers.dev
 Reinicie o servidor de desenvolvimento após alterar a variável. Em produção, ela precisa estar definida durante o build. Sem essa variável, o navegador usa o endpoint padrão; deixá-la vazia não desativa as consultas online.
 
 Nas consultas online, a pergunta e os dados das cartas são enviados ao Worker e ao provedor de interpretação. O diário e as preferências ficam no `localStorage` do navegador, sem conta, sincronização ou criptografia. Limpar os dados do site pode apagar esses registros; bloquear o armazenamento pode impedir sua persistência.
+
+Para guardar ou levar o diário a outro aparelho, use **Exportar** no Diário: o arquivo JSON contém todas as leituras, com perguntas e notas. **Importar** mescla um backup ao diário atual sem duplicar leituras e sem sobrescrever notas editadas depois do backup. O diário mantém as 100 leituras mais recentes.
 
 O service worker permite reutilizar recursos já carregados quando não há conexão. A primeira visita e recursos ainda não armazenados precisam de internet.
 
@@ -77,11 +83,22 @@ Nunca coloque a chave do Gemini em variáveis `VITE_*`: elas ficam expostas no J
 
 ## Publicar no GitHub Pages
 
-O workflow em [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml) instala as dependências, executa os testes, compila e publica `dist/` quando há um push em `main`. Também pode ser iniciado manualmente pelo GitHub Actions.
+O workflow em [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml) tem dois jobs:
+
+- **test** roda em todo pull request e em todo push na `main`: testes Node, typecheck e testes da Mesa 3D, build, conferência das duas páginas e testes de navegador. Se falhar, as evidências do Playwright (screenshots e traces) ficam disponíveis como artefato `mesa-browser-results`.
+- **deploy** roda só em push na `main` (ou execução manual na `main`) e só depois que **test** passa. Ele publica o `dist/` no GitHub Pages.
+
+O site publicado fica em <https://joaogritz.github.io/lumina-tarot/>.
 
 Nas configurações do repositório, selecione **GitHub Actions** como origem do GitHub Pages. Para usar um Worker próprio no build automatizado, adicione `VITE_ORACLE_API_URL` ao ambiente da etapa de build; o workflow atual não injeta essa variável.
 
 A publicação do frontend não publica nem configura o Cloudflare Worker.
+
+## Mesa Livre 3D
+
+Acesse **Mesa 3D** no cabeçalho ou abra `/mesa-3d/`. É uma aplicação independente com Tarot e Baralho Cigano, manipulação de cartas, notas, posições, significados, histórico reversível e mesas salvas no navegador. Importação e exportação usam JSON; as leituras do diário tradicional permanecem independentes.
+
+Desenvolvimento: `npm run dev`. Verificações: `npm run typecheck`, `npm run test:mesa`, `npm run build` e `npm run test:browser` (instale antes o Chromium com `npx playwright install chromium`). Consulte [implementação, controles, assets e limitações de validação](docs/mesa-3d/IMPLEMENTACAO.md).
 
 ## Estrutura
 
@@ -94,7 +111,8 @@ src/utils/                  Interpretação, histórico, temas e áudio
 public/tarot/               Artes dos baralhos e informações de origem
 public/sw.js                Cache para uso offline
 cloudflare_worker_code.js   Serviço de interpretação online
-tests/                      Testes automatizados
+mesa-3d/                    Mesa Livre 3D (TypeScript + Babylon.js)
+tests/                      Testes Node, da Mesa 3D e de navegador
 ```
 
 ## Artes dos baralhos
@@ -108,9 +126,3 @@ As imagens são servidas pelo próprio projeto. As fontes e condições de uso e
 ## Licença
 
 O código do projeto está sob a [licença MIT](LICENSE). As fontes e condições de uso das artes estão nos documentos dos conjuntos acima.
-
-## Mesa Livre 3D
-
-Acesse **Mesa 3D** no cabeçalho ou abra `/mesa-3d/`. É uma aplicação independente com Tarot e Baralho Cigano, manipulação de cartas, notas, posições, significados, histórico reversível e mesas salvas no navegador. Importação e exportação usam JSON; as leituras do diário tradicional permanecem independentes.
-
-Desenvolvimento: `npm run dev`. Verificações: `npm run typecheck`, `npm run test:mesa`, `npm run build` e `npm run test:browser` (instale antes o Chromium com `npx playwright install chromium`). Consulte [implementação, controles, assets e limitações de validação](docs/mesa-3d/IMPLEMENTACAO.md).
