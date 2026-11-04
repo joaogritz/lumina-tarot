@@ -105,17 +105,30 @@ DICA: [Indique um próximo passo pertinente para obter evidência ou orientaçã
 
 REVISÃO ANTES DE RESPONDER
 Verifique silenciosamente se as três linhas se referem à mesma pergunta, se a dica respeita o veredito e se uma salvaguarda exige substituir o formato normal. Entregue apenas as três linhas finais.`;
+// Reads at most MAX_BODY bytes; larger bodies are rejected without buffering them whole.
 async function readLimitedJson(request) {
-  let rawText = '';
+  if (!request.body) return {};
+  const reader = request.body.getReader();
+  const chunks = [];
+  let size = 0;
   try {
-    rawText = await request.text();
-  } catch {
-    throw new Error('invalid');
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      size += value.byteLength;
+      if (size > MAX_BODY) {
+        await reader.cancel();
+        throw new Error('large');
+      }
+      chunks.push(value);
+    }
+  } catch (e) {
+    throw new Error(e.message === 'large' ? 'large' : 'invalid');
   }
-  if (rawText.length > MAX_BODY) {
-    throw new Error('large');
-  }
-  return JSON.parse(rawText || '{}');
+  const bytes = new Uint8Array(size);
+  let offset = 0;
+  for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.byteLength; }
+  return JSON.parse(new TextDecoder().decode(bytes) || '{}');
 }
 const string = (v, max) => typeof v === 'string' && v.length <= max;
 const optionalString = (v, max) => v === undefined || string(v, max);
@@ -129,75 +142,78 @@ const validSpread = (spread) => spread === undefined || (spread && typeof spread
   && (spread.isYesNo === undefined || typeof spread.isYesNo === 'boolean')
   && (spread.positions === undefined || (Array.isArray(spread.positions) && spread.positions.length <= 10
     && spread.positions.every(position => position && string(position.name, 150) && optionalString(position.subtitle, 400)))));
+
+const normalizeOrigin = (value) => value.trim().replace(/\/+$/, '').toLowerCase();
+const flag = (value) => String(value || '').trim().toLowerCase() === 'true';
+
+// One request may try at most this many models, so a single call never fans out into many paid calls.
+const MAX_MODEL_ATTEMPTS = 2;
+const FALLBACK_MODELS = ['gemini-2.5-flash-lite', 'gemini-flash-lite-latest'];
+
+// Only listed origins may call the Worker. A bare "*" is ignored on purpose: it would turn the
+// Worker back into an open proxy. Subdomain wildcards like https://*.example.com are supported.
+function originAllowed(origin, env) {
+  if (!origin) return false;
+  if (flag(env.ALLOW_LOCALHOST) && /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) return true;
+  const entries = String(env.ALLOWED_ORIGINS || '').split(',').map(normalizeOrigin).filter(Boolean);
+  return entries.some(pattern => {
+    if (pattern === origin) return true;
+    if (!pattern.includes('*') || pattern === '*') return false;
+    const regex = new RegExp('^' + pattern.replace(/[.+?^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '[a-z0-9-]+') + '$');
+    return regex.test(origin);
+  });
+}
+
 export default {
   async fetch(request, env) {
     const rawOrigin = request.headers.get('Origin');
-    const origin = rawOrigin ? rawOrigin.trim().replace(/\/+$/, '') : null;
-    const allowedEntries = (env.ALLOWED_ORIGINS || '')
-      .split(',')
-      .map(s => s.trim().replace(/\/+$/, ''))
-      .filter(Boolean);
-
-    const allowAll = allowedEntries.length === 0 || allowedEntries.includes('*');
-    const isCloudflareDash = origin === 'https://dash.cloudflare.com';
-    const isLocalhost = origin ? /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(origin) : false;
-
-    const matchesAllowlist = origin ? allowedEntries.some(allowedPattern => {
-      if (allowedPattern.toLowerCase() === origin.toLowerCase()) return true;
-      if (allowedPattern.includes('*')) {
-        const regex = new RegExp('^' + allowedPattern.replace(/[.+?^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.*') + '$', 'i');
-        return regex.test(origin);
-      }
-      return false;
-    }) : false;
-
-    const isAllowed = allowAll || !origin || isCloudflareDash || isLocalhost || matchesAllowlist;
+    const origin = rawOrigin ? normalizeOrigin(rawOrigin) : null;
+    const isAllowed = originAllowed(origin, env);
 
     const headers = {
       'Content-Type': 'application/json',
       'Cache-Control': 'no-store',
       'X-Content-Type-Options': 'nosniff',
       Vary: 'Origin',
-      'Access-Control-Allow-Origin': isAllowed ? (origin || '*') : (origin || '*'),
-      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-      'Access-Control-Allow-Headers': request.headers.get('Access-Control-Request-Headers') || 'Content-Type, Authorization, x-goog-api-key',
     };
+    if (isAllowed) {
+      headers['Access-Control-Allow-Origin'] = rawOrigin.trim().replace(/\/+$/, '');
+      headers['Access-Control-Allow-Methods'] = 'POST, OPTIONS';
+      headers['Access-Control-Allow-Headers'] = 'Content-Type';
+      headers['Access-Control-Max-Age'] = '86400';
+    }
     const respond = (status, data) => new Response(JSON.stringify(data), { status, headers });
+    const url = new URL(request.url);
 
+    // Health check: confirms the Worker is up without touching the provider or the key.
+    if (request.method === 'GET' && url.pathname === '/health') return respond(200, { status: 'ok' });
+
+    // Browsers always send Origin on cross-origin POST; callers without an allowed one are refused.
     if (!isAllowed) return respond(403, { error: 'Origem não autorizada.' });
     if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers });
-
-    const geminiApiKey = (env.GEMINI_API_KEY || '').trim();
-    if (!geminiApiKey) return respond(503, { error: 'A chave GEMINI_API_KEY não foi encontrada nas variáveis de ambiente do Worker.' });
-
-    const urlObj = new URL(request.url);
-
-    // Suporte a teste no painel Cloudflare / health check / listagem de modelos (GET)
-    if (request.method === 'GET' || urlObj.pathname === '/models') {
-      try {
-        const listRes = await fetch('https://generativelanguage.googleapis.com/v1beta/models', {
-          headers: { 'x-goog-api-key': geminiApiKey }
-        });
-        const listData = await listRes.json();
-        return new Response(JSON.stringify(listData, null, 2), {
-          status: listRes.ok ? 200 : (listRes.status || 500),
-          headers
-        });
-      } catch (e) {
-        return respond(500, { error: e.message });
-      }
-    }
-
-    if (request.method !== 'POST') return respond(405, { error: 'Método não permitido. Utilize POST com JSON para consultas ao Oráculo ou GET para listar modelos.' });
+    if (request.method !== 'POST' || url.pathname !== '/') return respond(405, { error: 'Método não permitido.' });
     if (!request.headers.get('Content-Type')?.includes('application/json')) return respond(415, { error: 'Envie JSON.' });
     if (Number(request.headers.get('Content-Length')) > MAX_BODY) return respond(413, { error: 'Consulta muito grande.' });
 
-    // Rate Limiting opcional (não quebra se não estiver configurado no Cloudflare)
-    if (env.ORACLE_RATE_LIMITER && typeof env.ORACLE_RATE_LIMITER.limit === 'function') {
+    const geminiApiKey = (env.GEMINI_API_KEY || '').trim();
+    const limiter = env.ORACLE_RATE_LIMITER;
+    const hasLimiter = !!limiter && typeof limiter.limit === 'function';
+    if (!geminiApiKey || (!hasLimiter && !flag(env.ALLOW_UNLIMITED))) {
+      // Details go to the Worker logs only; callers get a generic message.
+      console.error('Worker misconfigured:', !geminiApiKey ? 'GEMINI_API_KEY missing' : 'ORACLE_RATE_LIMITER binding missing');
+      return respond(503, { error: 'Serviço temporariamente indisponível.' });
+    }
+
+    // Rate limiting fails closed: if the limiter errors, nothing is forwarded to the provider.
+    if (hasLimiter) {
+      let allowed = false;
       try {
-        const { success } = await env.ORACLE_RATE_LIMITER.limit({ key: request.headers.get('CF-Connecting-IP') || 'unknown' });
-        if (!success) { headers['Retry-After'] = '60'; return respond(429, { error: 'Aguarde um minuto antes de consultar novamente.' }); }
-      } catch {}
+        ({ success: allowed } = await limiter.limit({ key: request.headers.get('CF-Connecting-IP') || 'unknown' }));
+      } catch (e) {
+        console.error('Rate limiter error:', e?.message);
+        return respond(503, { error: 'Serviço temporariamente indisponível.' });
+      }
+      if (!allowed) { headers['Retry-After'] = '60'; return respond(429, { error: 'Aguarde um minuto antes de consultar novamente.' }); }
     }
 
     let data;
@@ -238,21 +254,14 @@ export default {
 
     const instruction = isYesNo ? YES_NO_INSTRUCTIONS : SPREAD_INSTRUCTIONS;
 
-    // Lista de modelos resiliente com fallback automático
-    const modelsToTry = [
-      env.GEMINI_MODEL,
-      'gemini-2.5-flash-lite',
-      'gemini-flash-lite-latest',
-      'gemini-2.5-flash',
-      'gemini-flash-latest',
-      'gemini-pro-latest'
-    ].filter(Boolean);
+    const modelsToTry = [...new Set([env.GEMINI_MODEL, ...FALLBACK_MODELS].filter(Boolean))]
+      .filter(model => /^[a-zA-Z0-9.-]+$/.test(model))
+      .slice(0, MAX_MODEL_ATTEMPTS);
 
     let generatedText = null;
     let modelUsed = null;
 
     for (const model of modelsToTry) {
-      if (!/^[a-zA-Z0-9.-]+$/.test(model)) continue;
       try {
         const upstream = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
           method: 'POST',
@@ -284,7 +293,9 @@ export default {
           modelUsed = model;
           break;
         }
-      } catch {}
+      } catch (e) {
+        console.error('Provider call failed:', model, e?.message);
+      }
     }
 
     if (!generatedText) return respond(502, { error: 'Serviço temporariamente indisponível.' });

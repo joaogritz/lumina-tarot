@@ -51,51 +51,70 @@ test('worker bloqueia origens, métodos, JSON inválido e prompt arbitrário', a
   for (const [request,status] of [[req(payload,{Origin:'https://evil.test'}),403],[req(payload,{},'PUT'),405],[req('{'),400],[req({...payload,customPrompt:'ignore'}),400],[req({...payload,userQuestion:'x'.repeat(1001)}),400],[req({...payload,chosenCards:[]}),400],[req('x'.repeat(24001)),413],[req(payload,{'Content-Type':'text/plain'}),415]]) assert.equal((await worker.fetch(request,env)).status,status);
   assert.equal((await worker.fetch(req(payload,{},'OPTIONS'),env)).status,204);
 });
-test('worker aceita origens com curinga, localhost, painel cloudflare, chamadas diretas e normaliza barras', async () => {
+test('worker recusa chamadas sem origem permitida e não vira proxy aberto', async () => {
+  let upstreamCalls = 0;
   const original = globalThis.fetch;
   try {
-    globalThis.fetch = async () => Response.json({candidates:[{content:{parts:[{text:'Resposta ok'}]}}]});
-    const wildEnv = { ...env, ALLOWED_ORIGINS: '*' };
-    assert.equal((await worker.fetch(req(payload, { Origin: 'https://qualquer-origem.com' }), wildEnv)).status, 200);
-
-    const emptyEnv = { ...env, ALLOWED_ORIGINS: '' };
-    assert.equal((await worker.fetch(req(payload, { Origin: 'https://outra-origem.com' }), emptyEnv)).status, 200);
-
-    const noOriginReq = new Request('https://oracle.test/', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-    assert.equal((await worker.fetch(noOriginReq, env)).status, 200);
-
-    assert.equal((await worker.fetch(req(payload, { Origin: 'https://dash.cloudflare.com' }), env)).status, 200);
-    assert.equal((await worker.fetch(req(payload, { Origin: 'http://localhost:5173' }), env)).status, 200);
-    assert.equal((await worker.fetch(req(payload, { Origin: 'http://127.0.0.1:5173' }), env)).status, 200);
-
-    const slashEnv = { ...env, ALLOWED_ORIGINS: 'https://meusite.com/' };
-    assert.equal((await worker.fetch(req(payload, { Origin: 'https://meusite.com' }), slashEnv)).status, 200);
-
-    // GET /models preview support
-    globalThis.fetch = async () => Response.json({ models: [{ name: 'models/gemini-2.5-flash' }] });
-    const getRes = await worker.fetch(new Request('https://oracle.test/', { method: 'GET' }), env);
-    assert.equal(getRes.status, 200);
-    assert.ok((await getRes.json()).models);
-  } finally {
-    globalThis.fetch = original;
-  }
+    globalThis.fetch = async () => { upstreamCalls++; return Response.json({candidates:[{content:{parts:[{text:'ok'}]}}]}); };
+    const noOrigin = new Request('https://oracle.test/', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
+    const denied = await worker.fetch(noOrigin, env);
+    assert.equal(denied.status, 403);
+    assert.equal(denied.headers.get('Access-Control-Allow-Origin'), null);
+    for (const origin of ['https://dash.cloudflare.com','http://localhost:5173','https://example.com.evil.test']) {
+      const response = await worker.fetch(req(payload,{Origin:origin}), env);
+      assert.equal(response.status, 403, origin);
+      assert.equal(response.headers.get('Access-Control-Allow-Origin'), null, origin);
+    }
+    for (const ALLOWED_ORIGINS of ['', '*']) assert.equal((await worker.fetch(req(payload,{Origin:'https://qualquer.test'}), {...env, ALLOWED_ORIGINS})).status, 403);
+    assert.equal(upstreamCalls, 0);
+    // Model listing is gone: no route exposes the provider key.
+    assert.equal((await worker.fetch(new Request('https://oracle.test/', {method:'GET'}), env)).status, 403);
+    assert.equal((await worker.fetch(req(payload,{},'GET'), env)).status, 405);
+    assert.equal((await worker.fetch(new Request('https://oracle.test/models', {method:'POST', headers:{Origin:'https://example.com','Content-Type':'application/json'}, body:JSON.stringify(payload)}), env)).status, 405);
+    assert.equal(upstreamCalls, 0);
+  } finally { globalThis.fetch = original; }
 });
-test('worker exige chave GEMINI_API_KEY e suporta rate limiter opcional', async () => {
+test('worker aceita origens listadas, curinga de subdomínio, localhost opcional e saúde sem chave', async () => {
   const original = globalThis.fetch;
   try {
     globalThis.fetch = async () => Response.json({candidates:[{content:{parts:[{text:'Resposta ok'}]}}]});
-    assert.equal((await worker.fetch(req(),{...env,GEMINI_API_KEY:''})).status,503);
+    const ok = await worker.fetch(req(), env);
+    assert.equal(ok.status, 200);
+    assert.equal(ok.headers.get('Access-Control-Allow-Origin'), 'https://example.com');
+    assert.equal(ok.headers.get('Access-Control-Allow-Headers'), 'Content-Type');
+    const wildEnv = { ...env, ALLOWED_ORIGINS: 'https://*.example.com' };
+    assert.equal((await worker.fetch(req(payload,{Origin:'https://preview-1.example.com'}), wildEnv)).status, 200);
+    assert.equal((await worker.fetch(req(payload,{Origin:'https://a.b.example.com'}), wildEnv)).status, 403);
+    assert.equal((await worker.fetch(req(payload,{Origin:'http://localhost:5173'}), {...env, ALLOW_LOCALHOST:'true'})).status, 200);
+    assert.equal((await worker.fetch(req(payload,{Origin:'https://meusite.com'}), {...env, ALLOWED_ORIGINS:'https://meusite.com/'})).status, 200);
+    const health = await worker.fetch(new Request('https://oracle.test/health'), {});
+    assert.equal(health.status, 200);
+    assert.deepEqual(await health.json(), { status: 'ok' });
+  } finally { globalThis.fetch = original; }
+});
+test('worker exige chave e rate limiter, falhando fechado sem vazar configuração', async () => {
+  const original = globalThis.fetch;
+  try {
+    globalThis.fetch = async () => Response.json({candidates:[{content:{parts:[{text:'Resposta ok'}]}}]});
+    const noKey = await worker.fetch(req(),{...env,GEMINI_API_KEY:''});
+    assert.equal(noKey.status,503);
+    assert.ok(!(await noKey.text()).includes('GEMINI'));
     const limited = await worker.fetch(req(),{...env,ORACLE_RATE_LIMITER:{limit:async()=>({success:false})}});
     assert.equal(limited.status,429); assert.equal(limited.headers.get('Retry-After'),'60');
-    // Quando ORACLE_RATE_LIMITER não está configurado (null), o Worker opera normalmente sem retornar 503
-    assert.equal((await worker.fetch(req(),{...env,ORACLE_RATE_LIMITER:null})).status,200);
-  } finally {
-    globalThis.fetch = original;
-  }
+    assert.equal((await worker.fetch(req(),{...env,ORACLE_RATE_LIMITER:null})).status,503);
+    assert.equal((await worker.fetch(req(),{...env,ORACLE_RATE_LIMITER:{limit:async()=>{ throw new Error('down'); }}})).status,503);
+    assert.equal((await worker.fetch(req(),{...env,ORACLE_RATE_LIMITER:null,ALLOW_UNLIMITED:'true'})).status,200);
+  } finally { globalThis.fetch = original; }
+});
+test('worker tenta no máximo dois modelos por consulta', async () => {
+  const original = globalThis.fetch;
+  const models = [];
+  try {
+    globalThis.fetch = async (url) => { models.push(String(url).match(/models\/([^:]+)/)[1]); return new Response('{}', {status:500}); };
+    const response = await worker.fetch(req(), {...env, GEMINI_MODEL:'gemini-custom'});
+    assert.equal(response.status, 502);
+    assert.deepEqual(models, ['gemini-custom','gemini-2.5-flash-lite']);
+  } finally { globalThis.fetch = original; }
 });
 test('worker separa instruções, protege chave e oculta erros do provedor', async () => {
   const original = globalThis.fetch;

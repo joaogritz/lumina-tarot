@@ -1,0 +1,22 @@
+# Copie para wrangler.toml e ajuste. O Worker recusa consultas se ALLOWED_ORIGINS
+# estiver vazio ou se o binding ORACLE_RATE_LIMITER não existir.
+name = "lumina-oracle"
+main = "cloudflare_worker_code.js"
+compatibility_date = "2026-11-01"
+
+[vars]
+# Origens que podem chamar o Worker, separadas por vírgula. "*" sozinho é ignorado.
+ALLOWED_ORIGINS = "https://joaogritz.github.io"
+# Opcional: modelo preferido. O Worker tenta no máximo dois modelos por consulta.
+# GEMINI_MODEL = "gemini-2.5-flash-lite"
+# Somente para desenvolvimento local (wrangler dev):
+# ALLOW_LOCALHOST = "true"
+
+# Limite por IP. Obrigatório em produção.
+[[ratelimits]]
+name = "ORACLE_RATE_LIMITER"
+namespace_id = "1001"
+simple = { limit = 10, period = 60 }
+
+# A chave não fica neste arquivo. Cadastre-a como segredo:
+#   npx wrangler secret put GEMINI_API_KEY
