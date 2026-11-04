@@ -84,7 +84,7 @@ O backend está no arquivo independente [`cloudflare_worker_code.js`](cloudflare
 | `ALLOWED_ORIGINS` | Sim | Origens separadas por vírgula, como `https://luminatarot.app`. Aceita curinga de subdomínio (`https://*.exemplo.com`); `*` sozinho é ignorado. |
 | `ORACLE_RATE_LIMITER` | Sim | Binding de rate limit por IP. Se faltar ou falhar, o Worker responde 503. |
 | `GEMINI_MODEL` | Não | Modelo do Gemini (padrão `gemini-3.5-flash-lite`), tentado uma vez, por até 12 s, quando o Workers AI falha. Prefira versões fixas a apelidos `-latest`. |
-| `WORKERS_AI_MODEL` | Não | Modelo do Workers AI (padrão `@cf/google/gemma-4-26b-a4b-it`), com até 16 s. Precisa começar com `@cf/`. |
+| `WORKERS_AI_MODEL` | Não | Modelo do Workers AI (padrão `@cf/meta/llama-3.3-70b-instruct-fp8-fast`), com até 16 s. Precisa começar com `@cf/`. |
 | `ALLOW_LOCALHOST` | Não | `true` libera `localhost` e `127.0.0.1`. Use só em desenvolvimento. |
 | `ALLOW_UNLIMITED` | Não | `true` dispensa o rate limiter. Use só em desenvolvimento. |
 

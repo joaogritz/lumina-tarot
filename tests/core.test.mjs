@@ -118,7 +118,7 @@ test('worker usa o Workers AI primeiro e o Gemini só se ele falhar', async () =
     const ok = await worker.fetch(req(), { ...env, AI: ai });
     assert.equal(ok.status, 200);
     const body = await ok.json();
-    assert.equal(body.modelUsed, '@cf/google/gemma-4-26b-a4b-it');
+    assert.equal(body.modelUsed, '@cf/meta/llama-3.3-70b-instruct-fp8-fast');
     assert.ok(body.text.includes('Workers AI'));
     assert.deepEqual(models, []);
     // Workers AI failing hands the consultation to Gemini, once.
@@ -153,7 +153,7 @@ test('worker funciona só com o Workers AI e aceita outro modelo @cf', async () 
   assert.deepEqual(seen, ['@cf/mistralai/mistral-small-3.1-24b-instruct']);
   // Invalid overrides fall back to the default model instead of being passed through.
   await worker.fetch(req(), { ...onlyAi, WORKERS_AI_MODEL: 'http://evil' });
-  assert.equal(seen.at(-1), '@cf/google/gemma-4-26b-a4b-it');
+  assert.equal(seen.at(-1), '@cf/meta/llama-3.3-70b-instruct-fp8-fast');
   // A provider error is logged and turns into a generic 502.
   const broken = { ...onlyAi, AI: { run: async () => { throw new Error('boom'); } } };
   const failed = await worker.fetch(req(), broken);

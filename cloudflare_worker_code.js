@@ -147,13 +147,13 @@ const normalizeOrigin = (value) => value.trim().replace(/\/+$/, '').toLowerCase(
 const flag = (value) => String(value || '').trim().toLowerCase() === 'true';
 
 // Providers, in order. Gemini's free tier is deprioritised under load (frequent 503 "high demand"
-// and slow answers), so Cloudflare Workers AI answers first and Gemini is the fallback. Gemma 4 26B
-// costs about a fifth of the neurons of Llama 3.3 70B, so the free daily allocation lasts ~5x longer.
+// and slow answers), so Cloudflare Workers AI answers first and Gemini is the fallback.
+// Gemma 4 26B was tried (cheaper) but answered empty or timed out through this call shape.
 // Both attempts together fit the site's 32 s wait.
 // Pinned version: '-latest' aliases move silently, and Gemini 2.5 answers 404 for new keys.
 const GEMINI_DEFAULT_MODEL = 'gemini-3.5-flash-lite';
 const GEMINI_TIMEOUT_MS = 12000;
-const WORKERS_AI_DEFAULT_MODEL = '@cf/google/gemma-4-26b-a4b-it';
+const WORKERS_AI_DEFAULT_MODEL = '@cf/meta/llama-3.3-70b-instruct-fp8-fast';
 const WORKERS_AI_TIMEOUT_MS = 16000;
 // Short readings gain little from reasoning, which mostly adds latency: use each model's lowest level.
 function thinkingFor(model) {
