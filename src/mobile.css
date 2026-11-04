@@ -80,7 +80,7 @@
   .spread-timeline:has(> .spread-slot:only-child) { justify-content: center; }
   .spread-free-grid { width: 100%; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 24px 20px; padding: 8px 4px 24px; }
   .spread-free-grid .spread-slot[data-size=md] > .spread-card-frame { width: 100%; max-width: 168px; }
-  .spread-remove-action { width: 44px; height: 44px; top: -12px; right: -8px; border-width: 1px; }
+  .spread-remove-action { width: 44px; height: 44px; top: -12px; right: -10px; }
   .spread-card-frame .card-inspect-action > div:last-child:not(.tarot-card-object) { display: none; }
   .reading-area .border-dashed > span { font-size: 12px; white-space: normal; }
   .reading-area .ritual-button { max-width: 100%; gap: 12px; padding-inline: 16px; }
