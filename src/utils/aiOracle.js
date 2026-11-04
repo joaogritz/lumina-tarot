@@ -2,7 +2,6 @@
 // With Full Archetypal Fallback Engine, Bulletproof Section Parser & Direct Yes/No AI Engine
 
 import { getYesNoEvaluation, generateOfflineYesNoReading } from './yesNoOracle.js';
-import { isOnlineEnabled } from './privacy.js';
 import { DEFAULT_ORACLE_URL } from '../config.js';
 
 /* global process */
@@ -176,8 +175,7 @@ export const aiOracleService = {
     if (validCards.length === 0) return null;
 
     const fallback = this.generateOfflineFallback({ spreadConfig, chosenCards, userQuestion });
-    // Local mode never sends the question or the cards over the network.
-    const workerUrl = isOnlineEnabled() ? DEFAULT_WORKER_URL : '';
+    const workerUrl = DEFAULT_WORKER_URL;
 
     if (fallback.source === 'ethical_safeguard') return fallback;
     if (workerUrl) {
@@ -235,8 +233,7 @@ export const aiOracleService = {
 
     const evalData = getYesNoEvaluation(card, card.isReversed);
     const fallback = generateOfflineYesNoReading({ card, userQuestion, evaluation: evalData });
-    // Local mode never sends the question or the cards over the network.
-    const workerUrl = isOnlineEnabled() ? DEFAULT_WORKER_URL : '';
+    const workerUrl = DEFAULT_WORKER_URL;
 
     if (fallback.source === 'ethical_safeguard') return fallback;
     if (workerUrl) {

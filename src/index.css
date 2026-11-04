@@ -292,11 +292,7 @@ body::after { content: ''; position: fixed; inset: 0; z-index: var(--z-texture);
 .journal-backup-note [data-tone=error] { color: var(--color-red-300); }
 @media(max-width: 520px) { .journal-backup-button span { display: none; } .journal-backup-button { padding: 8px 10px; } }
 
-/* Privacy: a quiet, always-visible line under the question, never a blocking banner. */
-.privacy-control { width: 100%; max-width: 42rem; margin: 6px auto 0; text-align: left; font-size: 12px; line-height: 1.55; color: var(--color-slate-400); }
-.privacy-toggle { display: inline-flex; align-items: center; gap: 8px; color: var(--color-parchment); cursor: pointer; min-height: 32px; }
-.privacy-toggle input { width: 16px; height: 16px; accent-color: var(--color-gold); }
-.privacy-control p { margin-top: 2px; }
-.privacy-control a, .footer-disclaimer a { color: var(--color-gold); text-decoration: underline; text-underline-offset: 3px; }
+/* Discreet link to the privacy policy beside the reading disclaimers. */
+.footer-disclaimer a, .reading-disclaimer a { color: var(--color-gold); text-decoration: underline; text-underline-offset: 3px; }
 .footer-disclaimer { position: relative; max-width: 44rem; margin: 14px auto 0; font-size: 12px; line-height: 1.6; color: var(--color-slate-400); }
 .reading-disclaimer { margin: 20px 0 4px; font-size: 12px; line-height: 1.6; text-align: center; color: var(--color-slate-400); }
