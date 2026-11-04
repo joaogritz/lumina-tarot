@@ -339,7 +339,7 @@ export const aiOracleService = {
       ['O Diabo', 'A Torre', 'A Morte', 'A Lua', 'Três de Espadas', 'Dez de Espadas', 'Sete de Espadas', 'Cinco de Ouros', 'Cinco de Copas', 'O Enforcado'].some(name => c.name.includes(name))
     );
 
-    let diagnosis = '';
+    let diagnosis;
     if (q) {
       if (first.isReversed) {
         diagnosis = `Para a sua consulta ("${q}"): o arcano ${first.name} (Invertido) indica que há entraves e falta de transparência no momento. A energia da carta alerta para ${firstShadow.toLowerCase()}.`;
@@ -354,7 +354,7 @@ export const aiOracleService = {
       }
     }
 
-    let dynamics = '';
+    let dynamics;
     if (shadowCard && shadowCard.id !== first.id) {
       const sName = shadowCard.name;
       const sMeaning = cleanAttr(shadowCard.isReversed ? shadowCard.shadow : shadowCard.light || 'desafios operacionais');

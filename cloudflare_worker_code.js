@@ -123,7 +123,7 @@ async function readLimitedJson(request) {
       chunks.push(value);
     }
   } catch (e) {
-    throw new Error(e.message === 'large' ? 'large' : 'invalid');
+    throw new Error(e.message === 'large' ? 'large' : 'invalid', { cause: e });
   }
   const bytes = new Uint8Array(size);
   let offset = 0;
@@ -206,7 +206,7 @@ export default {
 
     // Rate limiting fails closed: if the limiter errors, nothing is forwarded to the provider.
     if (hasLimiter) {
-      let allowed = false;
+      let allowed;
       try {
         ({ success: allowed } = await limiter.limit({ key: request.headers.get('CF-Connecting-IP') || 'unknown' }));
       } catch (e) {
