@@ -1,12 +1,26 @@
-import React, { useState } from 'react';
-import { isOnlineEnabled } from '../utils/privacy';
+import React, { useEffect, useState } from 'react';
+import { isOnlineEnabled, setOnlineEnabled, onPrivacyChange, PRIVACY_POLICY_URL } from '../utils/privacy';
+
+// Shown under the question field: says plainly where the question goes and lets the person keep it local.
 export function PrivacyControl() {
   const [enabled, setEnabled] = useState(isOnlineEnabled);
-  const configured = !!import.meta.env.VITE_ORACLE_API_URL;
-  return <div className="max-w-3xl mx-auto mb-4 text-xs text-slate-300 leading-relaxed w-full">
-    <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" checked={enabled} disabled={!configured}
-      onChange={e => { try { localStorage.setItem('lumina_online_ai', String(e.target.checked)); setEnabled(e.target.checked); } catch { setEnabled(false); } }} />
-      Usar interpretação por IA online {configured ? '' : '(não configurada)'}</label>
-    <p className="mt-1">{enabled && configured ? 'Ao consultar, sua pergunta e as cartas serão enviadas ao servidor do site e ao Google Gemini.' : 'Modo local: perguntas e cartas são interpretadas neste dispositivo.'} O diário fica salvo neste navegador. As leituras são reflexões simbólicas.</p>
-  </div>;
+  useEffect(() => onPrivacyChange(() => setEnabled(isOnlineEnabled())), []);
+  return (
+    <div className="privacy-control">
+      <label className="privacy-toggle">
+        <input
+          type="checkbox"
+          checked={enabled}
+          onChange={e => { setOnlineEnabled(e.target.checked); setEnabled(e.target.checked); }}
+        />
+        <span>Interpretação online com IA</span>
+      </label>
+      <p>
+        {enabled
+          ? 'Ao pedir a interpretação, sua pergunta e as cartas são enviadas ao nosso servidor e ao Google Gemini para gerar o texto. Desmarque para interpretar só neste aparelho.'
+          : 'Modo local: a pergunta e as cartas são interpretadas neste aparelho e não saem dele.'}
+        {' '}<a href={PRIVACY_POLICY_URL} target="_blank" rel="noopener">Privacidade</a>
+      </p>
+    </div>
+  );
 }

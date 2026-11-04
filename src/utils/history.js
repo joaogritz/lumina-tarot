@@ -185,7 +185,12 @@ export const historyService = {
     if (typeof data?.version === 'number' && data.version > BACKUP_VERSION) {
       throw new Error('Este backup foi criado por uma versão mais nova do Lumina.');
     }
-    const valid = incoming.filter(isValidReading);
+    // Artwork is always resolved from the bundled catalog by card id. Dropping any artwork carried in
+    // the file stops an edited backup from making the app load images from other servers.
+    const valid = incoming.filter(isValidReading).map(r => ({
+      ...r,
+      cards: r.cards.map(({ artwork: _artwork, ...card }) => card),
+    }));
     const current = this.getReadings();
     const known = new Set(current.map(r => r.id));
     const added = valid.filter(r => !known.has(r.id) && known.add(r.id));

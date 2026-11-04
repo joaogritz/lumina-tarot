@@ -12,15 +12,18 @@ export const CardDetailModal = ({
   onClose 
 }) => {
   const modalRef = useModalAccessibility(Boolean(card), onClose);
+
+  // Hooks must run on every render, so this sits above the early return below.
+  const cardId = card?.id;
+  useEffect(() => {
+    if (card) audio.playCardElementalSound(card);
+    // Only a different card should replay the sound, not every re-render of the same one.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cardId]);
+
   if (!card) return null;
 
   const suitConfig = SUITS[card.suit?.toUpperCase()] || SUITS.MAJOR;
-
-  useEffect(() => {
-    if (card) {
-      audio.playCardElementalSound(card);
-    }
-  }, [card?.id]);
 
   const handleClose = () => {
     audio.playCloseModal();

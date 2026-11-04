@@ -1,3 +1,4 @@
+import { PrivacyControl } from './PrivacyControl';
 import React, { useState, useEffect } from 'react';
 import { Volume2, VolumeX, HelpCircle, Oracle, Palette, Moon, Sun, BookOpen, RotateCw, Bookmark, Feather, Music, Maximize2, Minimize2 } from './icons/ArcaneIcons';
 import { audio } from '../utils/audio';
@@ -320,6 +321,7 @@ export const Header = ({
           </div>
         </div>
       </div>
+      <PrivacyControl />
     </header>
   );
 };
