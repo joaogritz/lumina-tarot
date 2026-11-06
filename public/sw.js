@@ -1,5 +1,5 @@
 // Separate navigation shells. The main visit never prefetches the 3D experience.
-const CACHE_NAME = "lumina-tarot-v4.1";
+const CACHE_NAME = "lumina-tarot-v4.2";
 const OFFLINE_ASSETS = [
   "./",
   "./index.html",
