@@ -4,7 +4,7 @@ import worker from '../cloudflare_worker_code.js';
 import { DECKS } from '../src/data/decks.js';
 import { getYesNoEvaluation } from '../src/utils/yesNoOracle.js';
 import { historyService } from '../src/utils/history.js';
-import { aiOracleService, parseYesNoAiResponse } from '../src/utils/aiOracle.js';
+import { aiOracleService, parseYesNoAiResponse, parsePartialSections, readOracleStream } from '../src/utils/aiOracle.js';
 import { generateOfflineYesNoReading } from '../src/utils/yesNoOracle.js';
 
 test('baralhos íntegros, independentes e com significados completos', () => {
@@ -278,5 +278,81 @@ test('worker usa versão fixa do Gemini e o menor nível de raciocínio', async 
     await worker.fetch(req(), { ...env, GEMINI_MODEL: 'gemini-2.5-flash-lite' });
     assert.deepEqual(seen.at(-1).config.thinkingConfig, { thinkingBudget: 0 });
     assert.ok(!seen.some(s => s.model.endsWith('-latest')));
+  } finally { globalThis.fetch = original; }
+});
+const sse = (chunks) => new ReadableStream({
+  start(controller) {
+    const encoder = new TextEncoder();
+    for (const chunk of chunks) controller.enqueue(encoder.encode(chunk));
+    controller.close();
+  },
+});
+const events = async (response) => (await response.text()).split('\n\n').filter(Boolean).map(block => JSON.parse(block.replace(/^data: /, '')));
+const streamReq = () => req(payload, { Accept: 'text/event-stream, application/json' });
+test('worker transmite a leitura do Gemma em partes e o cliente a remonta', async () => {
+  const calls = [];
+  const ai = { run: async (model, input) => {
+    calls.push({ model, stream: input.stream });
+    // Mixed formats in one stream: legacy { response } and OpenAI-style deltas, split mid-line.
+    return sse([
+      'data: {"response":"### 🌌 O que"}\n\ndata: {"choices":[{"delta":{"content":" as cartas mostram\\nUm ca',
+      'minho se abre."}}]}\n\n',
+      'data: {"choices":[{"delta":{"reasoning_content":"pensando"}}]}\n\n',
+      'data: {"choices":[{"delta":{"content":"\\n\\n### 💡 Forças\\nTensão e apoio."},"finish_reason":"stop"}]}\n\ndata: [DONE]\n\n',
+    ]);
+  } };
+  const response = await worker.fetch(streamReq(), { ...env, AI: ai });
+  assert.equal(response.status, 200);
+  assert.ok(response.headers.get('Content-Type').startsWith('text/event-stream'));
+  assert.equal(response.headers.get('Access-Control-Allow-Origin'), 'https://example.com');
+  const list = await events(response);
+  assert.deepEqual(calls, [{ model: '@cf/google/gemma-4-26b-a4b-it', stream: true }]);
+  assert.deepEqual(list.at(-1), { t: 'done', model: '@cf/google/gemma-4-26b-a4b-it' });
+  const text = list.filter(e => e.t === 'delta').map(e => e.v).join('');
+  assert.equal(text, '### 🌌 O que as cartas mostram\nUm caminho se abre.\n\n### 💡 Forças\nTensão e apoio.');
+  assert.ok(!text.includes('pensando'));
+  // The client rebuilds the same text and shows each section as it arrives, without filler.
+  const seen = [];
+  const again = await worker.fetch(streamReq(), { ...env, AI: ai });
+  const full = await readOracleStream(again.body, { onText: t => seen.push(parsePartialSections(t)) });
+  assert.equal(full, text);
+  assert.equal(seen.at(-1).diagnosis, 'Um caminho se abre.');
+  assert.equal(seen.at(-1).dynamics, 'Tensão e apoio.');
+  assert.equal(seen.at(-1).advice, '');
+  assert.ok(seen.every(s => !/#/.test(s.diagnosis)));
+});
+test('worker troca de modelo quando o stream falha, avisando o cliente para recomeçar', async () => {
+  // Fails before any text: no reset, gpt-oss answers in one piece.
+  let ai = { run: async (model, input) => {
+    if (input.stream) throw new Error('capacity');
+    return { choices: [{ message: { content: 'Leitura inteira do gpt-oss' } }] };
+  } };
+  let list = await events(await worker.fetch(streamReq(), { ...env, GEMINI_API_KEY: '', AI: ai }));
+  assert.deepEqual(list, [{ t: 'delta', v: 'Leitura inteira do gpt-oss' }, { t: 'done', model: '@cf/openai/gpt-oss-120b' }]);
+  // Truncated after some text: reset first, then the fallback.
+  ai = { run: async (model, input) => input.stream
+    ? sse(['data: {"choices":[{"delta":{"content":"Começo"},"finish_reason":"length"}]}\n\n'])
+    : { choices: [{ message: { content: 'Leitura completa' } }] } };
+  list = await events(await worker.fetch(streamReq(), { ...env, GEMINI_API_KEY: '', AI: ai }));
+  assert.deepEqual(list.map(e => e.t), ['delta', 'reset', 'delta', 'done']);
+  const rebuilt = await readOracleStream((await worker.fetch(streamReq(), { ...env, GEMINI_API_KEY: '', AI: ai })).body);
+  assert.equal(rebuilt, 'Leitura completa');
+  // Nothing answers: an error event, which the client turns into a failure.
+  ai = { run: async () => { throw new Error('down'); } };
+  list = await events(await worker.fetch(streamReq(), { ...env, GEMINI_API_KEY: '', AI: ai }));
+  assert.deepEqual(list, [{ t: 'error' }]);
+  await assert.rejects(readOracleStream((await worker.fetch(streamReq(), { ...env, GEMINI_API_KEY: '', AI: ai })).body));
+});
+test('Sim ou Não e Worker sem Workers AI continuam respondendo em JSON', async () => {
+  const ai = { run: async (model, input) => { assert.ok(!input.stream); return { response: 'VEREDITO: SIM\nRESPOSTA: Sim.\nDICA: Siga.' }; } };
+  const yesNo = await worker.fetch(req({ ...payload, mode: 'yes_no', spreadConfig: { name: 'Sim ou Não', isYesNo: true } }, { Accept: 'text/event-stream' }), { ...env, AI: ai });
+  assert.ok(yesNo.headers.get('Content-Type').startsWith('application/json'));
+  assert.equal((await yesNo.json()).text.slice(0, 12), 'VEREDITO: SI');
+  const original = globalThis.fetch;
+  try {
+    globalThis.fetch = async () => Response.json({ candidates: [{ content: { parts: [{ text: 'Leitura do Gemini' }] } }] });
+    const geminiOnly = await worker.fetch(streamReq(), env);
+    assert.ok(geminiOnly.headers.get('Content-Type').startsWith('application/json'));
+    assert.equal((await geminiOnly.json()).text, 'Leitura do Gemini');
   } finally { globalThis.fetch = original; }
 });

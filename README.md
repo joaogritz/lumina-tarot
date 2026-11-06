@@ -18,6 +18,7 @@ Desenvolvido com React, Vite e Tailwind CSS. O frontend é estático e é public
 - **Tiragem livre:** escolha de 1 a 10 cartas, sem significados fixos por posição.
 - **Escolha manual ou sorteio**, com inversões opcionais no Tarot.
 - **Sim ou Não**, com uma carta e interpretação para a pergunta.
+- **Interpretação ao vivo**, que surge palavra por palavra enquanto é escrita, e **imagem para compartilhar** no formato dos Stories.
 - **Carta do dia e grimório**, para consultar os significados das cartas.
 - **Diário de leituras**, salvo no navegador, com histórico, estatísticas e backup em arquivo JSON.
 - **Mesa Livre 3D**, uma mesa independente para dispor cartas, notas e posições livremente.

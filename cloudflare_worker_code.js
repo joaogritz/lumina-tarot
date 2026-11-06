@@ -162,6 +162,11 @@ const GEMINI_TIMEOUT_MS = 12000;
 const TOTAL_BUDGET_MS = 29000;
 // An attempt with less time than this left is skipped: it would only delay the 502.
 const MIN_ATTEMPT_MS = 3000;
+// Streaming (Accept: text/event-stream, full spreads only): the first model's text is relayed as it
+// is generated. A stream that stays silent this long is dropped and the rest of the chain answers.
+const STREAM_FIRST_TEXT_MS = 12000;
+const STREAM_IDLE_MS = 10000;
+const MAX_TEXT = 12000;
 // Workers AI models that reason by default are switched to their fastest mode.
 function workersAiOptions(model) {
   if (model.includes('gpt-oss')) return { reasoning_effort: 'low' };
@@ -195,7 +200,7 @@ function originAllowed(origin, env) {
 }
 
 export default {
-  async fetch(request, env) {
+  async fetch(request, env, ctx) {
     const rawOrigin = request.headers.get('Origin');
     const origin = rawOrigin ? normalizeOrigin(rawOrigin) : null;
     const isAllowed = originAllowed(origin, env);
@@ -287,48 +292,34 @@ export default {
 
     const prompt = `${SYSTEM}\n\n${instruction}`;
     const consultation = JSON.stringify({ question: data.userQuestion || '', spread, cards });
-    let generatedText = null;
-    let modelUsed = null;
+    const messages = [
+      { role: 'system', content: prompt },
+      { role: 'user', content: consultation },
+    ];
+    const aiInput = (aiModel) => ({ messages, max_tokens: isYesNo ? 400 : 1400, temperature: 0.6, ...workersAiOptions(aiModel) });
 
-    const deadline = Date.now() + TOTAL_BUDGET_MS;
-    const timeLeft = (limit) => Math.min(limit, deadline - Date.now());
-
-    // 1. Cloudflare Workers AI, each model once. WORKERS_AI_MODEL, if set, is tried first.
-    const override = /^@cf\/[\w./-]+$/.test(env.WORKERS_AI_MODEL || '') ? [{ model: env.WORKERS_AI_MODEL, timeout: 15000 }] : [];
-    const aiChain = [...override, ...WORKERS_AI_MODELS.filter(m => m.model !== env.WORKERS_AI_MODEL)];
-    for (const { model: aiModel, timeout } of workersAi ? aiChain : []) {
-      if (generatedText) break;
-      const ms = timeLeft(timeout);
-      if (ms < MIN_ATTEMPT_MS) break;
+    // Workers AI, without streaming: the text, or null after logging why.
+    const callWorkersAi = async (aiModel, ms) => {
       try {
-        const out = await withTimeout(workersAi.run(aiModel, {
-          messages: [
-            { role: 'system', content: prompt },
-            { role: 'user', content: consultation },
-          ],
-          max_tokens: isYesNo ? 400 : 1400,
-          temperature: 0.6,
-          ...workersAiOptions(aiModel),
-        }), ms);
+        const out = await withTimeout(workersAi.run(aiModel, aiInput(aiModel)), ms);
         const choice = out?.choices?.[0];
-        const text = (typeof out?.response === 'string' && out.response ? out.response : choice?.message?.content || '').slice(0, 12000);
+        const text = (typeof out?.response === 'string' && out.response ? out.response : choice?.message?.content || '').slice(0, MAX_TEXT);
         if (choice?.finish_reason === 'length') console.error('Provider truncated', aiModel);
-        else if (text.trim()) {
-          generatedText = text;
-          modelUsed = aiModel;
-        } else console.error('Provider returned empty', aiModel);
+        else if (text.trim()) return text;
+        else console.error('Provider returned empty', aiModel);
       } catch (e) {
         console.error('Provider call failed:', aiModel, e?.message);
       }
-    }
+      return null;
+    };
 
-    // 2. Gemini, one attempt, if Workers AI did not answer and time remains.
+    // Gemini, one attempt: the text, or null after logging why.
     const geminiModel = [env.GEMINI_MODEL, GEMINI_DEFAULT_MODEL].find(m => m && /^[a-zA-Z0-9.-]+$/.test(m));
-    if (!generatedText && geminiApiKey && geminiModel && timeLeft(GEMINI_TIMEOUT_MS) >= MIN_ATTEMPT_MS) {
+    const callGemini = async (ms) => {
       try {
         const upstream = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent`, {
           method: 'POST',
-          signal: AbortSignal.timeout(timeLeft(GEMINI_TIMEOUT_MS)),
+          signal: AbortSignal.timeout(ms),
           headers: {
             'Content-Type': 'application/json',
             'x-goog-api-key': geminiApiKey
@@ -347,23 +338,134 @@ export default {
           // Status and a short excerpt go to the Worker logs only, to tell quota, retired models
           // and outages apart. The provider's message never reaches the caller.
           console.error('Provider returned', geminiModel, upstream.status, (await upstream.text()).slice(0, 300));
-        } else {
-          const result = await upstream.json();
-          const candidate = result.candidates?.[0];
-          const text = candidate?.content?.parts?.map(p => p.text || '').join('').slice(0, 12000);
-          // A truncated reading is never delivered; the next provider gets a chance instead.
-          if (candidate?.finishReason === 'MAX_TOKENS') console.error('Provider truncated', geminiModel);
-          else if (text && text.trim()) {
-            generatedText = text;
-            modelUsed = geminiModel;
-          }
+          return null;
         }
+        const result = await upstream.json();
+        const candidate = result.candidates?.[0];
+        const text = candidate?.content?.parts?.map(p => p.text || '').join('').slice(0, MAX_TEXT);
+        // A truncated reading is never delivered; the next provider gets a chance instead.
+        if (candidate?.finishReason === 'MAX_TOKENS') console.error('Provider truncated', geminiModel);
+        else if (text && text.trim()) return text;
       } catch (e) {
         console.error('Provider call failed:', geminiModel, e?.message);
       }
+      return null;
+    };
+
+    // Workers AI models in order (WORKERS_AI_MODEL first, if set), then Gemini, sharing one deadline.
+    const override = /^@cf\/[\w./-]+$/.test(env.WORKERS_AI_MODEL || '') ? [{ model: env.WORKERS_AI_MODEL, timeout: 15000 }] : [];
+    const aiChain = workersAi ? [...override, ...WORKERS_AI_MODELS.filter(m => m.model !== env.WORKERS_AI_MODEL)] : [];
+    const generate = async (chain) => {
+      const deadline = Date.now() + TOTAL_BUDGET_MS;
+      const timeLeft = (limit) => Math.min(limit, deadline - Date.now());
+      for (const { model, timeout } of chain) {
+        const ms = timeLeft(timeout);
+        if (ms < MIN_ATTEMPT_MS) return null;
+        const text = await callWorkersAi(model, ms);
+        if (text) return { text, model };
+      }
+      if (geminiApiKey && geminiModel && timeLeft(GEMINI_TIMEOUT_MS) >= MIN_ATTEMPT_MS) {
+        const text = await callGemini(timeLeft(GEMINI_TIMEOUT_MS));
+        if (text) return { text, model: geminiModel };
+      }
+      return null;
+    };
+
+    // Streaming: relays the first model's text as server-sent events.
+    //   {"t":"delta","v":"..."}  text to append       {"t":"reset"}  discard the text so far
+    //   {"t":"done","model":"..."}  reading complete  {"t":"error"}  nothing could answer
+    // If the stream fails, stalls or is truncated, a reset follows and the rest of the chain answers
+    // in one piece. Yes/no stays JSON: it is short and parsed as a whole.
+    const wantsStream = !isYesNo && aiChain.length > 0 && (request.headers.get('Accept') || '').includes('text/event-stream');
+    if (wantsStream) {
+      const { readable, writable } = new TransformStream();
+      const writer = writable.getWriter();
+      const encoder = new TextEncoder();
+      const send = (event) => writer.write(encoder.encode(`data: ${JSON.stringify(event)}\n\n`));
+
+      const streamFirst = async (aiModel) => {
+        let sent = 0;
+        let reader;
+        try {
+          const stream = await withTimeout(workersAi.run(aiModel, { ...aiInput(aiModel), stream: true }), STREAM_FIRST_TEXT_MS);
+          if (!stream || typeof stream.getReader !== 'function') {
+            // Some bindings answer in one piece even when asked to stream.
+            const choice = stream?.choices?.[0];
+            const text = (typeof stream?.response === 'string' ? stream.response : choice?.message?.content || '').slice(0, MAX_TEXT);
+            if (text.trim() && choice?.finish_reason !== 'length') { await send({ t: 'delta', v: text }); return { ok: true, sent: text.length }; }
+            console.error('Provider returned empty', aiModel);
+            return { ok: false, sent: 0 };
+          }
+          reader = stream.pipeThrough(new TextDecoderStream()).getReader();
+          let buffer = '';
+          let truncated = false;
+          for (;;) {
+            const { value, done } = await withTimeout(reader.read(), sent ? STREAM_IDLE_MS : STREAM_FIRST_TEXT_MS);
+            if (done) break;
+            buffer += value;
+            let end;
+            while ((end = buffer.indexOf('\n')) >= 0) {
+              const line = buffer.slice(0, end).trim();
+              buffer = buffer.slice(end + 1);
+              if (!line.startsWith('data:')) continue;
+              const data = line.slice(5).trim();
+              if (!data || data === '[DONE]') continue;
+              let chunk;
+              try { chunk = JSON.parse(data); } catch { continue; }
+              const choice = chunk.choices?.[0];
+              // Legacy models send { response }, newer ones OpenAI-style deltas; reasoning is skipped.
+              const piece = typeof chunk.response === 'string' && chunk.response
+                ? chunk.response
+                : (typeof choice?.delta?.content === 'string' ? choice.delta.content : '');
+              if (choice?.finish_reason === 'length') truncated = true;
+              if (!piece) continue;
+              if (sent + piece.length > MAX_TEXT) { truncated = true; break; }
+              sent += piece.length;
+              await send({ t: 'delta', v: piece });
+            }
+            if (truncated) break;
+          }
+          if (truncated) {
+            console.error('Provider truncated', aiModel);
+            reader.cancel().catch(() => {});
+            return { ok: false, sent };
+          }
+          if (!sent) console.error('Provider returned empty', aiModel);
+          return { ok: sent > 0, sent };
+        } catch (e) {
+          console.error('Provider stream failed:', aiModel, e?.message);
+          reader?.cancel().catch(() => {});
+          return { ok: false, sent };
+        }
+      };
+
+      const work = (async () => {
+        try {
+          const [first, ...rest] = aiChain;
+          const streamed = await streamFirst(first.model);
+          if (streamed.ok) { await send({ t: 'done', model: first.model }); return; }
+          if (streamed.sent) await send({ t: 'reset' });
+          const result = await generate(rest);
+          if (result) {
+            await send({ t: 'delta', v: result.text });
+            await send({ t: 'done', model: result.model });
+          } else await send({ t: 'error' });
+        } catch (e) {
+          // The client went away mid-stream; nothing left to deliver.
+          console.error('Stream aborted:', e?.message);
+        } finally {
+          writer.close().catch(() => {});
+        }
+      })();
+      ctx?.waitUntil?.(work);
+      return new Response(readable, {
+        status: 200,
+        headers: { ...headers, 'Content-Type': 'text/event-stream; charset=utf-8', 'Content-Encoding': 'identity' },
+      });
     }
 
-    if (!generatedText) return respond(502, { error: 'Serviço temporariamente indisponível.' });
-    return respond(200, { text: generatedText, modelUsed });
+    const result = await generate(aiChain);
+    if (!result) return respond(502, { error: 'Serviço temporariamente indisponível.' });
+    return respond(200, { text: result.text, modelUsed: result.model });
   },
 };

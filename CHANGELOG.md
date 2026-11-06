@@ -5,7 +5,17 @@ e as versões seguem [SemVer](https://semver.org/lang/pt-BR/).
 
 ## [Não lançado]
 
+### Adicionado
+- A interpretação surge enquanto é escrita: as primeiras palavras aparecem em cerca de 1 s, cada uma
+  emergindo de um brilho dourado, em vez de a leitura inteira chegar depois de ~9 s. O Worker
+  transmite a resposta do Gemma por server-sent events quando o site pede (`Accept: text/event-stream`);
+  o Sim ou Não continua em JSON.
+- **Gerar Imagem**: cria uma imagem 1080×1920 (formato dos Stories) com a pergunta, as cartas e o
+  conselho do oráculo, assinada com luminatarot.app. No celular abre o menu de compartilhar; no
+  computador, salva o arquivo. Tudo é desenhado no navegador.
+
 ### Alterado
+- O botão que remove uma carta da tiragem segue o visual do site (dourado sobre obsidiana).
 - Interpretações mais confiáveis e rápidas: o Worker usa o Cloudflare Workers AI (Gemma 4 26B, com
   gpt-oss-120b de reserva) e deixa o Gemini como último recurso, dentro de um prazo único de 29 s.
   Uma Cruz Céltica sai em ~9 s. O Gemini 2.5 não está mais disponível para chaves novas, e o plano
