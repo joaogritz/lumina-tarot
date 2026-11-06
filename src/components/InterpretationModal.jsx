@@ -1,14 +1,16 @@
 import { useModalAccessibility } from '../utils/useModalAccessibility';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CelestialRing } from './CelestialRing';
 import { CardArt } from './CardArt';
 import { CardDetailModal } from './CardDetailModal';
-import { X, Sparkles, BookOpen, Share2, Copy, Bookmark, RotateCcw, Check, Flame, Droplets, Wind, Mountain, Feather, Star, ZoomIn } from './icons/ArcaneIcons';
+import { X, Sparkles, BookOpen, Share2, Copy, Bookmark, RotateCcw, Check, Flame, Droplets, Wind, Mountain, Feather, Star, ZoomIn, Download } from './icons/ArcaneIcons';
+import { EmergingText } from './EmergingText';
 import { SUITS } from '../data/tarotDeck';
 import { audio } from '../utils/audio';
 import { historyService } from '../utils/history';
 import { aiOracleService } from '../utils/aiOracle';
+import { renderReadingImage, shareReadingImage } from '../utils/shareImage';
 
 export const InterpretationModal = ({ 
   spreadConfig, 
@@ -46,7 +48,13 @@ export const InterpretationModal = ({
         result = await aiOracleService.generateRealAiReading({
           spreadConfig,
           chosenCards,
-          userQuestion
+          userQuestion,
+          // The reading surfaces as it is written; the loader stays until its first words arrive.
+          onProgress: (partial) => {
+            if (!active) return;
+            setAiReading(partial);
+            setIsLoadingAi(!partial.diagnosis);
+          },
         });
       } catch (err) {
         console.error('Error generating AI reading:', err);
@@ -62,6 +70,35 @@ export const InterpretationModal = ({
   }, [spreadConfig, chosenCards, userQuestion, attempt]);
 
   const unavailable = !aiReading || aiReading.source === 'unavailable';
+  const streaming = Boolean(aiReading?.streaming);
+  const readingReady = !isLoadingAi && !unavailable && !streaming;
+
+  // The share image is drawn as soon as the reading is complete, so the share sheet can open
+  // straight from the click (mobile browsers refuse it after a long async gap).
+  const [imageState, setImageState] = useState('idle');
+  const imageRef = useRef(null);
+  useEffect(() => {
+    imageRef.current = null;
+    if (!readingReady) return undefined;
+    let current = true;
+    renderReadingImage({ spreadConfig, chosenCards, userQuestion, aiReading })
+      .then(blob => { if (current) imageRef.current = blob; })
+      .catch(err => console.warn('Share image failed:', err));
+    return () => { current = false; };
+  }, [readingReady, aiReading, spreadConfig, chosenCards, userQuestion]);
+
+  const handleShareImage = async () => {
+    audio.playSelect();
+    setImageState('working');
+    try {
+      const outcome = await shareReadingImage({ spreadConfig, chosenCards, userQuestion, aiReading }, imageRef.current);
+      setImageState(outcome === 'downloaded' ? 'downloaded' : 'idle');
+    } catch (err) {
+      console.warn('Share image failed:', err);
+      setImageState('failed');
+    }
+    setTimeout(() => setImageState('idle'), 2500);
+  };
 
   const getReadingText = () => {
     const lines = [
@@ -240,30 +277,25 @@ export const InterpretationModal = ({
                 </button>
               </div>
             ) : aiReading?.diagnosis ? (
-              <div className="space-y-3.5 animate-fade-in text-xs sm:text-sm leading-relaxed text-slate-200 font-sans">
-                {/* 1. O que as cartas mostram */}
-                <div className="p-3.5 sm:p-4 rounded-sm bg-slate-900/80 border border-amber-500/30">
-                  <span className="font-cinzel text-xs font-bold text-amber-300 flex items-center gap-1.5 mb-1.5 uppercase tracking-wider">
-                    <span>🔍 O que as cartas estão mostrando</span>
-                  </span>
-                  <p className="text-slate-300">{aiReading.diagnosis}</p>
-                </div>
-
-                {/* 2. O que está acontecendo */}
-                <div className="p-3.5 sm:p-4 rounded-sm bg-slate-900/80 border border-amber-500/30">
-                  <span className="font-cinzel text-xs font-bold text-amber-300 flex items-center gap-1.5 mb-1.5 uppercase tracking-wider">
-                    <span>💡 O que está acontecendo por trás</span>
-                  </span>
-                  <p className="text-slate-300">{aiReading.dynamics}</p>
-                </div>
-
-                {/* 3. Conselho Prático */}
-                <div className="p-3.5 sm:p-4 rounded-sm bg-stone-950/70 border border-amber-400/40">
-                  <span className="font-cinzel text-xs font-bold text-amber-300 flex items-center gap-1.5 mb-1.5 uppercase tracking-wider">
-                    <span>🧭 Conselho prático para você</span>
-                  </span>
-                  <p className="text-amber-100/95 font-medium">{aiReading.advice}</p>
-                </div>
+              <div aria-busy={streaming} className="space-y-3.5 text-xs sm:text-sm leading-relaxed text-slate-200 font-sans">
+                {[
+                  { key: 'diagnosis', title: '🔍 O que as cartas estão mostrando', box: 'bg-slate-900/80 border-amber-500/30', text: 'text-slate-300' },
+                  { key: 'dynamics', title: '💡 O que está acontecendo por trás', box: 'bg-slate-900/80 border-amber-500/30', text: 'text-slate-300' },
+                  { key: 'advice', title: '🧭 Conselho prático para você', box: 'bg-stone-950/70 border-amber-400/40', text: 'text-amber-100/95 font-medium' },
+                ].map((section, i, all) => {
+                  const body = aiReading[section.key];
+                  if (!body) return null;
+                  // While streaming, the quill marks the section being written: the last one with text.
+                  const writing = streaming && !all.slice(i + 1).some(next => aiReading[next.key]);
+                  return (
+                    <div key={section.key} className={`oracle-section-enter p-3.5 sm:p-4 rounded-sm border ${section.box}`}>
+                      <span className="font-cinzel text-xs font-bold text-amber-300 flex items-center gap-1.5 mb-1.5 uppercase tracking-wider">
+                        <span>{section.title}</span>
+                      </span>
+                      <EmergingText text={body} active={writing} className={section.text} />
+                    </div>
+                  );
+                })}
               </div>
             ) : (
               <div className="text-xs sm:text-sm text-slate-200 leading-relaxed space-y-4 whitespace-pre-line animate-fade-in font-sans">
@@ -428,7 +460,18 @@ export const InterpretationModal = ({
 
             <button
               type="button"
-              disabled={isLoadingAi || unavailable || saved}
+              onClick={handleShareImage}
+              disabled={!readingReady || imageState === 'working'}
+              title="Gerar uma imagem da leitura no formato dos Stories"
+              className="flex-1 sm:flex-initial px-3.5 py-2.5 rounded-sm bg-slate-900 hover:bg-stone-950/80 border border-amber-500/40 text-amber-200 hover:text-amber-200 text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-md active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {imageState === 'downloaded' ? <Check className="w-4 h-4 text-emerald-400" /> : <Download className="w-4 h-4 text-amber-400" />}
+              <span>{{ working: 'Gerando...', downloaded: 'Imagem salva!', failed: 'Tente de novo' }[imageState] || 'Gerar Imagem'}</span>
+            </button>
+
+            <button
+              type="button"
+              disabled={!readingReady || saved}
               onClick={() => {
                 audio.playSelect();
                 const result = historyService.saveReading({

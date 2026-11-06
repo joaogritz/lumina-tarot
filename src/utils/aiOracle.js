@@ -7,6 +7,8 @@ import { DEFAULT_ORACLE_URL } from '../config.js';
 
 // Must exceed the Worker's shared provider deadline (29 s) so its answer is not cut off.
 const ORACLE_TIMEOUT_MS = 32000;
+// While a reading streams in, the wait restarts with every piece; silence this long ends it.
+const STREAM_IDLE_MS = 20000;
 
 /* global process */
 // Cloudflare Worker Endpoint
@@ -70,6 +72,46 @@ const parseAiSections = (text, fallbackData) => {
     advice: advice || (fallbackData?.advice || 'Mantenha os pés no chão e faça escolhas conscientes.'),
     text: text.trim()
   };
+};
+
+// Sections of a reading still being written: only what has arrived, never filler text.
+// Uses the same section markers as parseAiSections so the final text replaces it seamlessly.
+export const parsePartialSections = (text) => {
+  const tidy = (part) => cleanHeader(part || '').replace(/#+\s*$/, '').trim();
+  const diag = text.match(/(?:###\s*(?:🔍|🌌)|(?:🔍|🌌))[^\n]*\n([\s\S]*?)(?=(?:###\s*(?:💡|🔮)|(?:💡|🔮))|$)/i);
+  const dyn = text.match(/(?:###\s*(?:💡|🔮)|(?:💡|🔮))[^\n]*\n([\s\S]*?)(?=(?:###\s*(?:🧭|🗝️)|(?:🧭|🗝️))|$)/i);
+  const adv = text.match(/(?:###\s*(?:🧭|🗝️)|(?:🧭|🗝️))[^\n]*\n([\s\S]*?)$/i);
+  const sections = { diagnosis: tidy(diag?.[1]), dynamics: tidy(dyn?.[1]), advice: tidy(adv?.[1]) };
+  // A reply without the expected headings is shown as plain text while it streams.
+  if (!diag && !dyn && !adv && text.length > 120) sections.diagnosis = tidy(text.replace(/^#+[^\n]*$/gm, ''));
+  return { ...sections, text };
+};
+
+// Reads the Worker's server-sent events (delta / reset / done / error) and returns the full text.
+// onText gets the text so far after every change; onActivity is called whenever bytes arrive.
+export const readOracleStream = async (body, { onText, onActivity } = {}) => {
+  const reader = body.pipeThrough(new TextDecoderStream()).getReader();
+  let buffer = '';
+  let text = '';
+  for (;;) {
+    const { value, done } = await reader.read();
+    if (done) throw new Error('stream ended early');
+    onActivity?.();
+    buffer += value;
+    let end;
+    while ((end = buffer.indexOf('\n\n')) >= 0) {
+      const block = buffer.slice(0, end);
+      buffer = buffer.slice(end + 2);
+      const data = block.split('\n').filter(l => l.startsWith('data:')).map(l => l.slice(5).trim()).join('');
+      if (!data) continue;
+      let event;
+      try { event = JSON.parse(data); } catch { continue; }
+      if (event.t === 'delta' && typeof event.v === 'string') { text += event.v; onText?.(text); }
+      else if (event.t === 'reset') { text = ''; onText?.(text); }
+      else if (event.t === 'done') { reader.cancel().catch(() => {}); return text; }
+      else if (event.t === 'error') { reader.cancel().catch(() => {}); throw new Error('oracle unavailable'); }
+    }
+  }
 };
 
 // Parse structured Yes/No AI responses with bulletproof format recovery
@@ -177,7 +219,8 @@ export const UNAVAILABLE = Object.freeze({ source: 'unavailable' });
 
 export const aiOracleService = {
   // Call Cloudflare Worker AI Proxy for Standard Multi-Card Spreads
-  async generateRealAiReading({ spreadConfig, chosenCards, userQuestion }) {
+  // With onProgress, the reading streams in: onProgress receives the partial sections as they arrive.
+  async generateRealAiReading({ spreadConfig, chosenCards, userQuestion, onProgress }) {
     const validCards = chosenCards.filter(Boolean);
     if (validCards.length === 0) return null;
 
@@ -186,12 +229,17 @@ export const aiOracleService = {
 
     if (fallback.source === 'ethical_safeguard') return fallback;
     if (workerUrl) {
+      const controller = new AbortController();
+      let timer;
+      const wait = (ms) => { clearTimeout(timer); timer = setTimeout(() => controller.abort(), ms); };
+      wait(ORACLE_TIMEOUT_MS);
       try {
         const response = await fetch(workerUrl, {
           method: 'POST',
-          signal: AbortSignal.timeout(ORACLE_TIMEOUT_MS),
+          signal: controller.signal,
           headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            ...(onProgress ? { Accept: 'text/event-stream, application/json' } : {})
           },
           body: JSON.stringify({
             spreadConfig: {
@@ -215,8 +263,17 @@ export const aiOracleService = {
         });
 
         if (response.ok) {
-          const data = await response.json();
-          const generatedText = data.text || data.reading || data.content || '';
+          let generatedText;
+          // A Worker without streaming answers JSON even when a stream was requested.
+          if (onProgress && response.body && (response.headers.get('Content-Type') || '').includes('text/event-stream')) {
+            generatedText = await readOracleStream(response.body, {
+              onActivity: () => wait(STREAM_IDLE_MS),
+              onText: (text) => onProgress({ source: 'cloudflare_gemini_ai', streaming: true, ...parsePartialSections(text) }),
+            });
+          } else {
+            const data = await response.json();
+            generatedText = data.text || data.reading || data.content || '';
+          }
           if (typeof generatedText === 'string' && generatedText.length > 25) {
             const parsed = parseAiSections(generatedText, fallback);
             return {
@@ -227,6 +284,8 @@ export const aiOracleService = {
         }
       } catch (err) {
         console.warn('Oracle unavailable:', err);
+      } finally {
+        clearTimeout(timer);
       }
     }
 
