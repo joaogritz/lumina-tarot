@@ -12,6 +12,6 @@ Os metadados da imagem de origem declaram `LicenseShortName: Public domain` e `C
 
 ## Transformações locais
 
-A prancha de 3900 × 4900 px foi separada em 36 cartas completas, retirando apenas as margens brancas externas entre elas. O mapeamento segue os números históricos 1–36. Não houve geração por IA, recoloração ou substituição de símbolos históricos.
+A prancha de 3900 × 4900 px foi separada em 36 cartas completas, retirando apenas as margens brancas externas entre elas. Como as cartas não estão alinhadas em grade na prancha, cada uma é recortada pela própria borda, detectada pelo contraste do papel com o fundo branco. O mapeamento segue os números históricos 1–36. Não houve geração por IA, recoloração ou substituição de símbolos históricos.
 
-As cartas mantêm a resolução disponível na prancha, de aproximadamente 543–620 px de largura; não foram artificialmente ampliadas. Foram convertidas para WebP e receberam versões de até 360 px. O arquivo [../sources.json](../sources.json) registra o retângulo de extração de cada carta, as dimensões, os caminhos locais e a origem.
+As cartas mantêm a resolução disponível na prancha, de aproximadamente 505–525 px de largura; não foram artificialmente ampliadas. Foram convertidas para WebP e receberam versões de até 360 px. O arquivo [../sources.json](../sources.json) registra o retângulo de extração de cada carta, as dimensões, os caminhos locais e a origem.

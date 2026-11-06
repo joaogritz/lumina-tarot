@@ -63,3 +63,9 @@
 /* Printed scans carry their own numeral: give that row back to the artwork. */
 .tarot-card-frontface[data-printed-rank=true] > .tarot-card-numeral { display: none; }
 .tarot-card-frontface[data-printed-rank=true] { inset: 3.6% 4.6%; }
+
+/* Lenormand cards are wider than the Tarot frame: the picture keeps the card's own proportions and
+   hugs it, centred with its name, instead of leaving empty bands above and below the artwork. */
+.tarot-card-frontface[data-fit=art] { justify-content: center; }
+.tarot-card-frontface[data-fit=art] > .tarot-card-picture { flex: 0 1 auto; width: 100%; aspect-ratio: var(--art-ratio, 3 / 4); max-height: 100%; }
+.tarot-card-frontface[data-fit=art] .tarot-artwork-image { object-fit: cover; }

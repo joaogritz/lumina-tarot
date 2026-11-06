@@ -16,6 +16,11 @@ e as versões seguem [SemVer](https://semver.org/lang/pt-BR/).
 
 ### Alterado
 - O botão que remove uma carta da tiragem segue o visual do site (dourado sobre obsidiana).
+
+### Corrigido
+- Cartas do Baralho Cigano recortadas de novo da prancha original, cada uma pela própria borda: antes
+  algumas vinham com o topo cortado, fundo branco ou um pedaço da carta vizinha. No site, a imagem
+  ocupa a moldura na proporção da carta, e o número, já impresso na arte, não se repete acima dela.
 - Interpretações mais confiáveis e rápidas: o Worker usa o Cloudflare Workers AI (Gemma 4 26B, com
   gpt-oss-120b de reserva) e deixa o Gemini como último recurso, dentro de um prazo único de 29 s.
   Uma Cruz Céltica sai em ~9 s. O Gemini 2.5 não está mais disponível para chaves novas, e o plano

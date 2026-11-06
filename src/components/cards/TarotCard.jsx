@@ -1,6 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { artworkUrl } from '../../data/cardArtwork.js';
+
 import './tarot-card.css';
+
+// Collections whose scans already show the card number.
+const PRINTED_RANK = new Set(['rider-waite', 'lenormand-hope']);
 
 let tiltMedia;
 const supportsTilt = () => {
@@ -84,8 +88,10 @@ export const TarotCard = React.memo(function TarotCard({
             <img src={artworkUrl('tarot/backs/lumina-observatory.svg')} alt="" draggable={false} decoding="async" />
           </div>
         ) : (
-          <div className="tarot-card-frontface" data-printed-rank={artwork?.collectionId === 'rider-waite'}>
-            {/* Rider–Waite scans already print the numeral; repeating it above the art reads as a typo. */}
+          <div className="tarot-card-frontface" data-printed-rank={PRINTED_RANK.has(artwork?.collectionId)}
+            data-fit={artwork?.collectionId === 'lenormand-hope' ? 'art' : undefined}
+            style={artwork?.collectionId === 'lenormand-hope' ? { '--art-ratio': `${artwork.width} / ${artwork.height}` } : undefined}>
+            {/* Both scanned decks print the numeral; repeating it above the art reads as a typo. */}
             <div className="tarot-card-numeral">{rank}</div>
             <div className="tarot-card-picture" data-reversed={Boolean(card?.isReversed)}>
               {artwork ? <ArtworkImage key={artwork.src} artwork={artwork} name={card?.name || 'Carta'} priority={priority} size={size} /> : (
