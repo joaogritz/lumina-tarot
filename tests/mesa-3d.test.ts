@@ -28,6 +28,28 @@ test("draws every card exactly once; shuffled remainder survives serialization",
     partial.remainingCardIds.at(-1),
   );
 });
+test("draws from the bottom of the pile, where returned cards go, and undoes it", () => {
+  const start = createSession("tarot", "Leitura", true);
+  const bottom = start.remainingCardIds[0];
+  const top = start.remainingCardIds.at(-1);
+  const s = applyCommand(start, { type: "draw", from: "bottom" });
+  assert.equal(s.cards[0].cardId, bottom);
+  assert.equal(s.cards[0].faceUp, false);
+  assert.equal(s.remainingCardIds.length, 77);
+  assert.equal(s.remainingCardIds.at(-1), top);
+  assert.ok(!s.remainingCardIds.includes(bottom));
+  // A card returned to the pile goes underneath, so a bottom draw brings it straight back.
+  const returned = applyCommand(s, { type: "return", id: s.cards[0].instanceId });
+  assert.equal(applyCommand(returned, { type: "draw", from: "bottom" }).cards[0].cardId, bottom);
+  const h = new History(start);
+  h.execute({ type: "draw", from: "bottom" });
+  assert.ok(h.undo());
+  assert.deepEqual(h.state.remainingCardIds, start.remainingCardIds);
+  let empty = createSession("lenormand");
+  for (let i = 0; i < 36; i++) empty = applyCommand(empty, { type: "draw", from: "bottom" });
+  assert.equal(new Set(empty.cards.map((c) => c.cardId)).size, 36);
+  assert.equal(applyCommand(empty, { type: "draw", from: "bottom" }), empty);
+});
 test("Lenormand never reverses; Tarot reversals and visual rotation are independent", () => {
   let l = createSession("lenormand", "", true);
   l = applyCommand(l, { type: "draw" }, () => 0);

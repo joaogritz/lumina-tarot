@@ -10,7 +10,8 @@ import {
   LIMITS,
 } from "./model";
 export type Command =
-  | { type: "draw"; position?: Position }
+  // "bottom" takes the card under the pile (where Return puts cards); the default is the top.
+  | { type: "draw"; position?: Position; from?: "top" | "bottom" }
   | { type: "shuffle"; jump?: boolean }
   | { type: "move"; id: string; position: Position }
   | { type: "rotate"; id: string; amount: number }
@@ -46,7 +47,8 @@ export function applyCommand(
   const card = target && "cardId" in target ? target : undefined;
   switch (command.type) {
     case "draw": {
-      const cardId = s.remainingCardIds.pop();
+      const cardId =
+        command.from === "bottom" ? s.remainingCardIds.shift() : s.remainingCardIds.pop();
       if (!cardId) return state;
       const i = s.cards.length;
       s.cards.push({

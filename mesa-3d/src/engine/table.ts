@@ -94,6 +94,12 @@ export class Table {
   private pendingArrival?: Vector3;
   private jumperArrival = false;
   prepareJumper() { this.jumperArrival = true; }
+  private bottomArrival = false;
+  /** The next drawn card slides out from under the pile instead of lifting off its top. */
+  prepareBottomDraw() {
+    this.bottomArrival = true;
+    this.pendingArrival = new Vector3(this.deck.position.x + 0.35, 0.03, this.deck.position.z + 0.25);
+  }
   private exits = new Map<string, Mesh>();
   private glow: GlowLayer;
   private pipeline?: DefaultRenderingPipeline;
@@ -1259,10 +1265,11 @@ export class Table {
         const from = this.pendingArrival || this.deckOrigin();
         this.pendingArrival = undefined;
         this.motion.fly(o.instanceId, mesh, from, mesh.position, {
-          duration: this.jumperArrival ? 1100 : from.y > 0.5 ? 260 : 720,
-          arc: this.jumperArrival ? 3.4 : from.y > 0.5 ? 0.12 : 1.2,
+          duration: this.jumperArrival ? 1100 : this.bottomArrival ? 860 : from.y > 0.5 ? 260 : 720,
+          arc: this.jumperArrival ? 3.4 : this.bottomArrival ? 0.55 : from.y > 0.5 ? 0.12 : 1.2,
         });
         this.jumperArrival = false;
+        this.bottomArrival = false;
       } else if (
         !fresh &&
         !snap &&
