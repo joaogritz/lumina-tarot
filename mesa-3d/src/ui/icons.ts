@@ -1,5 +1,6 @@
 const paths: Record<string, string> = {
   draw: '<rect x="5" y="5" width="12" height="16" rx="1"/><path d="m9 2 11 2 2 15M9 13h4m-2-2v4"/>',
+  drawBottom: '<rect x="5" y="3" width="12" height="16" rx="1"/><path d="M9 22h11l2-15M11 7v6m-2-2 2 2 2-2"/>',
   flip: '<rect x="7" y="3" width="10" height="18" rx="1"/><path d="M4 8C0 11 1 16 5 17m-2-3 2 3-3 1M20 16c4-3 3-8-1-9m2 3-2-3 3-1"/>',
   discard: '<path d="M4 7h16M9 7V4h6v3M6 7l1 14h10l1-14M10 11v6m4-6v6"/>',
   return: '<path d="M9 4 4 9l5 5M4 9h10a6 6 0 0 1 0 12"/><path d="M13 3h7v12"/>',
@@ -26,6 +27,7 @@ export function icon(name: string) {
 export function decorateTools() {
   for (const [id, name, label, key] of [
     ["draw", "draw", "Puxar carta", "D"],
+    ["draw-bottom", "drawBottom", "Do fundo", "⇧D"],
     ["flip-button", "flip", "Virar", "F"],
     ["sideways-button", "redo", "De lado", "L"],
     ["return-button", "return", "Devolver", "B"],

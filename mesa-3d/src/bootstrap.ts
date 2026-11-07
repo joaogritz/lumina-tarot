@@ -114,9 +114,12 @@ function execute(command: Command) {
   if (history.execute(command)) {
     const jumped = command.type === "shuffle" && session().cards.length > previousCardCount;
     if (jumped) table?.prepareJumper();
+    if (command.type === "draw" && command.from === "bottom") table?.prepareBottomDraw();
     if (command.type === "draw" || jumped) {
       selected = session().cards.at(-1)?.instanceId;
-      announce("Carta retirada, ainda fechada. Use Revelar para vê-la.");
+      announce(command.type === "draw" && command.from === "bottom"
+        ? "Carta retirada do fundo do monte, ainda fechada. Use Revelar para vê-la."
+        : "Carta retirada, ainda fechada. Use Revelar para vê-la.");
     }
     if (
       selected &&
@@ -326,6 +329,7 @@ function render() {
   $<HTMLButtonElement>("sideways-button").disabled = !chosen;
   $<HTMLButtonElement>("shuffle-button").disabled = s.remainingCardIds.length < 2;
   $<HTMLButtonElement>("draw").disabled = !s.remainingCardIds.length;
+  $<HTMLButtonElement>("draw-bottom").disabled = !s.remainingCardIds.length;
   $<HTMLButtonElement>("undo").disabled = !history.past.length;
   $<HTMLButtonElement>("redo").disabled = !history.future.length;
   $<HTMLButtonElement>("add-note").disabled = s.notes.length >= LIMITS.notes;
@@ -820,6 +824,7 @@ $("settings-button").onclick = settings;
 $("sessions-button").onclick = () => void showSessions();
 $("welcome-saved").onclick = () => void showSessions(true);
 $("draw").onclick = () => execute({ type: "draw" });
+$("draw-bottom").onclick = () => execute({ type: "draw", from: "bottom" });
 $("sideways-button").onclick = () => {
   if (selected) execute({ type: "rotate", id: selected, amount: Math.PI / 2 });
 };
@@ -844,6 +849,7 @@ function shortcuts() {
   box.className = "shortcuts";
   for (const [keys, description] of [
     ["D", "Puxar uma carta do monte"],
+    ["Shift D", "Puxar a carta do fundo do monte"],
     ["B", "Devolver a carta selecionada ao bolo · ou arraste até ele"],
     ["S", "Embaralhar as cartas restantes do bolo"],
     ["F / Espaço", "Virar a carta selecionada"],
@@ -990,7 +996,7 @@ document.addEventListener("keydown", (e) => {
   if (key === "d" && !e.repeat) {
     e.preventDefault();
     table?.cancelDrag();
-    execute({ type: "draw" });
+    execute(e.shiftKey ? { type: "draw", from: "bottom" } : { type: "draw" });
     $("table-canvas").focus();
     return;
   }

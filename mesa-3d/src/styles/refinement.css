@@ -644,6 +644,7 @@ select {
   #loading *, #loading *::before { animation: none !important; }
 }
 @media (max-width: 1450px) and (min-width: 801px) {
+  .toolbar #draw-bottom .tool-label,
   .toolbar #add-note .tool-label,
   .toolbar #add-position .tool-label,
   .toolbar #objects .tool-label,
@@ -788,9 +789,16 @@ select {
     margin: 0;
     padding: 8px;
   }
-  .toolbar #flip-button,
   .toolbar #discard-button {
     grid-column: span 2;
+  }
+  /* "Do fundo" and "Virar" share the space "Virar" had, keeping the first row full. */
+  .toolbar #draw-bottom,
+  .toolbar #flip-button {
+    grid-column: span 1;
+  }
+  .toolbar #draw-bottom svg {
+    display: none;
   }
   .toolbar #add-note,
   .toolbar #add-position,

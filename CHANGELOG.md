@@ -6,6 +6,8 @@ e as versões seguem [SemVer](https://semver.org/lang/pt-BR/).
 ## [Não lançado]
 
 ### Adicionado
+- Mesa 3D: **Do fundo** (Shift D) puxa a carta de baixo do monte, que desliza para fora por baixo
+  dele. Como Devolver põe a carta no fundo, ela também recupera a última carta devolvida.
 - A interpretação surge enquanto é escrita: as primeiras palavras aparecem em cerca de 1 s, cada uma
   emergindo de um brilho dourado, em vez de a leitura inteira chegar depois de ~9 s. O Worker
   transmite a resposta do Gemma por server-sent events quando o site pede (`Accept: text/event-stream`);
