@@ -7,7 +7,7 @@
 
 ![Lumina Tarot: a carta A Estrela sobre o verso dourado do baralho](public/og-image.png)
 
-Uma mesa virtual de Tarot e Baralho Cigano para explorar cartas, fazer tiragens e registrar reflexões. A experiência está em português, com artes históricas dos baralhos, temas visuais, animações e trilha sonora.
+Uma mesa virtual de Tarot e Baralho Cigano para explorar cartas, fazer tiragens e registrar reflexões. A experiência está em português, com artes históricas dos baralhos e uma direção visual editorial: tinta, marfim e filetes dourados, tipografia serifada e movimento contido.
 
 Desenvolvido com React, Vite e Tailwind CSS. O frontend é estático e é publicado na Vercel; as interpretações online usam um serviço separado em Cloudflare Workers.
 
@@ -16,13 +16,15 @@ Desenvolvido com React, Vite e Tailwind CSS. O frontend é estático e é public
 - **Dois baralhos:** Tarot com 78 cartas e Baralho Cigano / Petit Lenormand com 36 cartas.
 - **Tiragens guiadas:** carta única, passado/presente/futuro e outras disposições de Tarot, incluindo Cruz Céltica. No Cigano, estão disponíveis carta única, três cartas e tiragem livre.
 - **Tiragem livre:** escolha de 1 a 10 cartas, sem significados fixos por posição.
-- **Escolha manual ou sorteio**, com inversões opcionais no Tarot.
+- **Escolha manual ou sorteio**, com o baralho aberto em fileiras de cartas sobrepostas e inversões opcionais no Tarot.
+- **Leitura como página impressa:** as cartas chegam fechadas e viram uma a uma; o texto surge palavra por palavra enquanto é escrito, em seções numeradas, com a pergunta como título.
+- **Imagem para compartilhar** no formato dos Stories, com a pergunta, as cartas e o conselho.
 - **Sim ou Não**, com uma carta e interpretação para a pergunta.
-- **Interpretação ao vivo**, que surge palavra por palavra enquanto é escrita, e **imagem para compartilhar** no formato dos Stories.
 - **Carta do dia e grimório**, para consultar os significados das cartas.
 - **Diário de leituras**, salvo no navegador, com histórico, estatísticas e backup em arquivo JSON.
-- **Mesa Livre 3D**, uma mesa independente para dispor cartas, notas e posições livremente.
-- **Temas, áudio e interface adaptada a dispositivos móveis.**
+- **Mesa Livre 3D**, uma mesa independente para dispor cartas, notas e posições livremente, com caixa de cartas e velas interativas.
+- **Atmosferas:** Noir, Nuit, Ambre, Bordeaux e a clara Ivoire.
+- **Efeitos sonoros discretos e interface adaptada a dispositivos móveis.** Tudo fica numa única página: a pergunta, a tiragem, a mesa e o baralho, em capítulos.
 
 As leituras são propostas de reflexão simbólica. O resultado de Sim ou Não não representa uma probabilidade calculada.
 
@@ -50,7 +52,7 @@ Abra o endereço exibido pelo Vite, normalmente `http://localhost:5173`.
 
 ## Interpretações e privacidade
 
-Ao consultar uma tiragem ou o Sim ou Não, a aplicação gera uma interpretação online por meio de um Cloudflare Worker. O Worker consulta primeiro o Cloudflare Workers AI (Gemma 4 26B e, se ele falhar, gpt-oss-120b) e, por último, o Google Gemini, tudo dentro de 29 s. Não há leitura gerada localmente: se nenhum dos dois responder, o site avisa que não foi possível consultar e oferece **Tentar novamente**, mantendo as cartas tiradas. As salvaguardas éticas (temas como autolesão) respondem localmente, sem consultar o serviço.
+Ao consultar uma tiragem ou o Sim ou Não, a aplicação gera uma interpretação online por meio de um Cloudflare Worker. O Worker consulta primeiro o Cloudflare Workers AI (Gemma 4 26B e, se ele falhar, gpt-oss-120b) e, por último, o Google Gemini, tudo dentro de 29 s. Nas tiragens completas, a resposta do Gemma chega em partes (server-sent events), e as primeiras palavras aparecem em cerca de 1 s; o Sim ou Não chega de uma vez. Não há leitura gerada localmente: se nenhum dos dois responder, o site avisa que não foi possível consultar e oferece **Tentar novamente**, mantendo as cartas tiradas. As salvaguardas éticas (temas como autolesão) respondem localmente, sem consultar o serviço.
 
 A interface não menciona a IA; a [política de privacidade](public/privacidade.html), publicada em `/privacidade.html` e linkada no rodapé e na janela da interpretação, explica que a pergunta e as cartas são enviadas ao Worker, ao Google Gemini e, quando necessário, ao Workers AI.
 
@@ -62,7 +64,7 @@ VITE_ORACLE_API_URL=https://seu-worker.seu-subdominio.workers.dev
 
 Reinicie o servidor de desenvolvimento após alterar a variável. Em produção, ela precisa estar definida durante o build. Sem essa variável, o navegador usa o endpoint padrão; deixá-la vazia não desativa as consultas online.
 
-O diário e as preferências ficam no `localStorage` do navegador, sem conta, sincronização ou criptografia. Limpar os dados do site pode apagar esses registros; bloquear o armazenamento pode impedir sua persistência.
+O diário, as preferências (cartas invertidas, efeitos sonoros e atmosfera) e as mesas 3D ficam no `localStorage` do navegador, sem conta, sincronização ou criptografia. Limpar os dados do site pode apagar esses registros; bloquear o armazenamento pode impedir sua persistência.
 
 Para guardar ou levar o diário a outro aparelho, use **Exportar** no Diário: o arquivo JSON contém todas as leituras, com perguntas e notas. **Importar** mescla um backup ao diário atual sem duplicar leituras e sem sobrescrever notas editadas depois do backup. O diário mantém as 100 leituras mais recentes.
 
@@ -111,9 +113,19 @@ A publicação do frontend não publica nem configura o Cloudflare Worker.
 
 ## Mesa Livre 3D
 
-Acesse **Mesa 3D** no cabeçalho ou abra `/mesa-3d/`. É uma aplicação independente com Tarot e Baralho Cigano, manipulação de cartas, notas, posições, significados, histórico reversível e mesas salvas no navegador. Importação e exportação usam JSON; as leituras do diário tradicional permanecem independentes.
+Acesse **Mesa 3D** pelo menu ou abra `/mesa-3d/`. É uma aplicação independente com Tarot e Baralho Cigano, manipulação de cartas, notas, posições, significados, histórico reversível e mesas salvas no navegador. Importação e exportação usam JSON; as leituras do diário tradicional permanecem independentes.
+
+- **Puxar carta** (D) tira a carta do topo do monte; **Do fundo** (Shift D) tira a de baixo.
+- **Devolver** (B) põe a carta selecionada sob o monte; **Recolher** (Shift B) devolve todas as cartas da mesa de uma vez.
+- **Caixa das cartas:** um clique abre e fecha a tampa, com som.
+- **Velas:** um clique em um castiçal apaga ou acende as três, com o som do fogo; a luz da mesa acompanha.
+- Todas as ações de cartas podem ser desfeitas com Ctrl Z. A lista completa de atalhos fica no botão de teclado da barra.
 
 Desenvolvimento: `npm run dev`. Verificações: `npm run typecheck`, `npm run test:mesa`, `npm run build` e `npm run test:browser` (instale antes o Chromium com `npx playwright install chromium`). Consulte [implementação, controles, assets e limitações de validação](docs/mesa-3d/IMPLEMENTACAO.md).
+
+## Direção visual
+
+O visual segue a direção "Maison Lumina", descrita em [docs/MAISON.md](docs/MAISON.md): paleta curta (tinta, marfim, pedra e um dourado champanhe usado só em filetes), tipografia Cormorant Garamond e Outfit servida pelo próprio site, nenhum texto abaixo de 12 px nas páginas do site e nada de brilhos, degradês ou emojis como ícone. O estilo do site fica em [`src/maison.css`](src/maison.css), carregado por último, e o da Mesa 3D em [`mesa-3d/src/styles/maison.css`](mesa-3d/src/styles/maison.css).
 
 ## Estrutura
 
@@ -122,7 +134,8 @@ Veja [ARCHITECTURE.md](ARCHITECTURE.md) para entender o fluxo de estado, a inter
 ```text
 src/components/             Interface, mesa, cartas e janelas
 src/data/                   Baralhos, artes e configurações das tiragens
-src/utils/                  Interpretação, histórico, temas e áudio
+src/utils/                  Interpretação, histórico, atmosferas, imagem para compartilhar e efeitos sonoros
+src/maison.css              Direção visual do site
 public/tarot/               Artes dos baralhos e informações de origem
 public/sw.js                Cache para uso offline
 public/privacidade.html     Política de privacidade

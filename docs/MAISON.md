@@ -1,7 +1,7 @@
-# Experimento: Maison Lumina
+# Maison Lumina
 
-Branch `experimento/maison`, separada da `main`. É um teste de direção de arte: a ideia é ver se o site
-ganha cara de casa de luxo antes de decidir se fica.
+Direção de arte do site desde os PRs #24 e #25: a ideia é dar ao Lumina a cara de uma casa de luxo,
+sem a aparência de site genérico.
 
 ## Princípios
 
@@ -40,16 +40,16 @@ Arquivos: `src/maison.css` (todo o visual novo, importado por último em `src/ma
 `src/components/Header.jsx` (reescrito), e ajustes em `TarotTable`, `InterpretationModal`,
 `SpreadArea`, `DeckSelectionGrid` e textos de outros componentes.
 
-**Para voltar ao visual anterior:** basta não fazer merge desta branch. Para manter só parte dela,
-`src/maison.css` concentra o estilo; o cabeçalho e os textos são as mudanças de componente.
+`src/maison.css` concentra o estilo do site e `mesa-3d/src/styles/maison.css` o da Mesa 3D; o
+cabeçalho e os textos são as mudanças de componente.
 
 ## Achado à parte
 
 A fonte `public/fonts/cormorant.woff2` desenha os **circunflexos (ê, ô, â) soltos acima da letra**,
-enquanto agudo e til saem certos. Isso já acontece no site atual, em qualquer título com "você",
-"três" etc. O título do experimento evita a palavra, mas o arquivo da fonte precisa ser trocado
-por uma versão correta, nesta branch ou na `main`.
+enquanto agudo e til saem certos. Isso acontece em qualquer título com "você",
+"três" etc. O título da abertura evita a palavra, mas o arquivo da fonte precisa ser trocado
+por uma versão correta.
 
-## Próximos passos, se a direção for aprovada
+## Próximos passos
 
 - Trocar o arquivo da fonte para corrigir os circunflexos.
