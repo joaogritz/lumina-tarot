@@ -50,6 +50,24 @@ test("draws from the bottom of the pile, where returned cards go, and undoes it"
   assert.equal(new Set(empty.cards.map((c) => c.cardId)).size, 36);
   assert.equal(applyCommand(empty, { type: "draw", from: "bottom" }), empty);
 });
+test("returns every card on the table to the pile in one undoable step", () => {
+  const start = createSession("tarot", "Leitura", true);
+  let s = start;
+  for (let i = 0; i < 3; i++) s = applyCommand(s, { type: "draw" });
+  s = applyCommand(s, { type: "note", note: { instanceId: "n1", kind: "reflection", text: "x", position: { x: 0, z: 0 }, rotation: 0, stackingOrder: 9, cardInstanceId: s.cards[0].instanceId } as never });
+  const onTable = s.cards.map((c) => c.cardId);
+  const all = applyCommand(s, { type: "returnAll" });
+  assert.equal(all.cards.length, 0);
+  assert.equal(all.remainingCardIds.length, 78);
+  assert.deepEqual(all.remainingCardIds.slice(0, 3), onTable);
+  assert.equal(all.notes.length, 1);
+  assert.ok(all.notes.every((n) => !n.cardInstanceId));
+  assert.equal(applyCommand(all, { type: "returnAll" }), all);
+  const h = new History(s);
+  h.execute({ type: "returnAll" });
+  assert.ok(h.undo());
+  assert.deepEqual(h.state.cards.map((c) => c.cardId), onTable);
+});
 test("Lenormand never reverses; Tarot reversals and visual rotation are independent", () => {
   let l = createSession("lenormand", "", true);
   l = applyCommand(l, { type: "draw" }, () => 0);

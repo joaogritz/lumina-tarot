@@ -13,6 +13,8 @@ export type Command =
   // "bottom" takes the card under the pile (where Return puts cards); the default is the top.
   | { type: "draw"; position?: Position; from?: "top" | "bottom" }
   | { type: "shuffle"; jump?: boolean }
+  // Every card on the table goes back under the pile, as Return does for one card.
+  | { type: "returnAll" }
   | { type: "move"; id: string; position: Position }
   | { type: "rotate"; id: string; amount: number }
   | {
@@ -114,6 +116,13 @@ export function applyCommand(
         });
       }
       break;
+    case "returnAll": {
+      if (!s.cards.length) return state;
+      s.remainingCardIds.unshift(...s.cards.map((c) => c.cardId));
+      s.cards = [];
+      s.notes.forEach((n) => { delete n.cardInstanceId; });
+      break;
+    }
     case "deleteNote":
       s.notes = s.notes.filter((n) => n.instanceId !== command.id);
       break;
