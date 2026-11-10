@@ -33,6 +33,8 @@ ganha cara de casa de luxo antes de decidir se fica.
 | Atmosferas | Noite Cósmica, Luar Místico, Alquimia Solar, Veludo Carmesim (ciano, rosa, laranja) | Noir, Nuit, Ambre, Bordeaux: tons escuros discretos; a escolha salva continua valendo |
 | Revelação | As cartas apareciam só na lista, já abertas | Ao abrir a leitura, as cartas chegam fechadas sob o título e viram uma a uma |
 | Folha de ouro | Brilho radial suave | Uma faixa estreita de luz dourada cruza a carta revelada sob o mouse |
+| Imagens das cartas | Cores saturadas do Rider-Waite e papel branco, diferentes do Cigano | Um só tratamento de papel antigo (menos saturação, leve sépia, vinheta suave), também na imagem para Stories |
+| Ivoire | Só temas escuros | Atmosfera clara: tinta sobre marfim, com cinzas e dourados invertidos para manter o contraste em todas as telas |
 
 Arquivos: `src/maison.css` (todo o visual novo, importado por último em `src/main.jsx`),
 `src/components/Header.jsx` (reescrito), e ajustes em `TarotTable`, `InterpretationModal`,
@@ -50,5 +52,4 @@ por uma versão correta, nesta branch ou na `main`.
 
 ## Próximos passos, se a direção for aprovada
 
-- Tratamento uniforme das imagens das cartas (cor e moldura próprias).
-- Uma edição clara (Ivoire) entre as Atmosferas.
+- Trocar o arquivo da fonte para corrigir os circunflexos.

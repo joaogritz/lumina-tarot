@@ -55,6 +55,20 @@ export const ALTAR_THEMES = [
     nebulaColors: ['rgba(110, 40, 44, 0.07)', 'rgba(236, 230, 218, 0.03)'],
     starColors: { primary: '#D8B6A8', secondary: '#9C7A72' },
     previewDot: 'bg-[#7a2e33]',
+  },
+  {
+    id: 'ivoire',
+    name: 'Ivoire',
+    subtitle: 'Marfim, tinta e ouro velho',
+    icon: 'Sun',
+    bgColor: '#F1ECE2',
+    cardBackGradient: 'from-[#120B2E] via-[#0A0F24] to-[#1A0B36]',
+    textAccent: 'text-amber-300',
+    goldTextClass: 'gold-gradient-text',
+    glowColor: 'rgba(138, 109, 59, 0.14)',
+    nebulaColors: ['rgba(138, 109, 59, 0.04)', 'rgba(29, 26, 22, 0.02)'],
+    starColors: { primary: '#8A6D3B', secondary: '#9C9385' },
+    previewDot: 'bg-[#efe8da]',
   }
 ];
 

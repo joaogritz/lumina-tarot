@@ -11,6 +11,8 @@ const IVORY = '#e9e3d6';
 const PARCHMENT = '#beb5a3';
 const SERIF = '"Cormorant Garamond", Georgia, serif';
 const SANS = 'Outfit, Arial, sans-serif';
+// Same aged-paper grade the site applies to card artwork (--m-art-filter in maison.css).
+const ART_FILTER = 'sepia(.2) saturate(.78) contrast(1.06) brightness(.94)';
 
 const loadImage = (src) => new Promise((resolve) => {
   const img = new Image();
@@ -130,6 +132,7 @@ function drawCard(ctx, img, card, x, y, w, h) {
   ctx.roundRect(x, y, w, h, r);
   ctx.clip();
   if (img) {
+    if ('filter' in ctx) ctx.filter = ART_FILTER;
     const scale = Math.max(w / img.width, h / img.height);
     const dw = img.width * scale;
     const dh = img.height * scale;

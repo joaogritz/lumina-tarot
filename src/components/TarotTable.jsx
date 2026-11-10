@@ -75,6 +75,11 @@ export const TarotTable = () => {
 
   // 1. Theme state (Noite Cósmica, Luar Místico, Alquimia Solar, Veludo Carmesim)
   const [currentTheme, setCurrentTheme] = useState(() => themeService.getCurrentTheme());
+  // The light edition swaps the maison tokens at the root, so windows and menus follow it too.
+  useEffect(() => {
+    document.documentElement.dataset.edition = currentTheme.id;
+    return () => { delete document.documentElement.dataset.edition; };
+  }, [currentTheme.id]);
 
   // 2. Deck state (78 cards with estaEscolhida boolean)
   const [deck, setDeck] = useState(() => {
