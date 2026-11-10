@@ -31,6 +31,8 @@ ganha cara de casa de luxo antes de decidir se fica.
 | Música e modo foco | Botões no cabeçalho, atalhos M e Z | Removidos do site (e o arquivo `sanctuary.mp3`); os efeitos sonoros continuam |
 | Outras janelas | Caixas coloridas, pílulas, botões dourados com degradê | Mesma linguagem: filetes, botões em texto, botão principal em marfim; textos curtos (Sim ou Não, Carta do dia, Diário, Como ler) |
 | Atmosferas | Noite Cósmica, Luar Místico, Alquimia Solar, Veludo Carmesim (ciano, rosa, laranja) | Noir, Nuit, Ambre, Bordeaux: tons escuros discretos; a escolha salva continua valendo |
+| Revelação | As cartas apareciam só na lista, já abertas | Ao abrir a leitura, as cartas chegam fechadas sob o título e viram uma a uma |
+| Folha de ouro | Brilho radial suave | Uma faixa estreita de luz dourada cruza a carta revelada sob o mouse |
 
 Arquivos: `src/maison.css` (todo o visual novo, importado por último em `src/main.jsx`),
 `src/components/Header.jsx` (reescrito), e ajustes em `TarotTable`, `InterpretationModal`,
@@ -48,7 +50,5 @@ por uma versão correta, nesta branch ou na `main`.
 
 ## Próximos passos, se a direção for aprovada
 
-- Revelação cerimonial das cartas antes do texto da leitura.
-- Reflexo de folha de ouro que acompanha o mouse nas cartas reveladas.
 - Tratamento uniforme das imagens das cartas (cor e moldura próprias).
 - Uma edição clara (Ivoire) entre as Atmosferas.

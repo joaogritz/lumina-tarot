@@ -205,6 +205,15 @@ export const InterpretationModal = ({
             </p>
           </header>
 
+          {/* The drawn cards arrive face down and turn one by one as the reading begins. */}
+          <div className="maison-reveal" aria-hidden="true">
+            {chosenCards.map((card, i) => (
+              <div key={card.id || i} className="maison-reveal-card" style={{ '--i': i }}>
+                <CardArt card={card} size="sm" showKeywords={false} />
+              </div>
+            ))}
+          </div>
+
           <div className="interpretation-prose maison-prose">
             {/* Loading State or Structured Sections */}
             {isLoadingAi ? (
