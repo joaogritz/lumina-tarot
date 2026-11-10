@@ -75,7 +75,7 @@ body { background: var(--m-ink); color: var(--m-bone); }
 
 .maison-chapter { display: flex; align-items: baseline; gap: 14px; margin: 0; font: 400 12px/1.4 var(--m-sans); letter-spacing: .28em; text-transform: uppercase; color: var(--m-stone); }
 .maison-chapter > span:first-child:not(.maison-dot) { font: italic 400 19px/1 var(--m-serif); letter-spacing: 0; text-transform: none; color: var(--m-gold); min-width: 1.6em; }
-.maison-chapter-rule { width: 100%; max-width: 80rem; margin: clamp(56px, 9vw, 120px) auto 28px; padding: 22px var(--m-gutter) 0; border-top: 1px solid var(--m-line); box-sizing: border-box; }
+.maison-chapter-rule { width: 100%; max-width: 80rem; margin: clamp(24px, 3vw, 40px) auto 14px; padding: 14px var(--m-gutter) 0; border-top: 1px solid var(--m-line); box-sizing: border-box; }
 .maison-dot { color: var(--m-gold); }
 
 .maison-bar-link { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; padding: 0; border: 0; background: none; color: var(--m-bone); font: 400 12px/1 var(--m-sans); letter-spacing: .24em; text-transform: uppercase; cursor: pointer; position: relative; }
@@ -92,11 +92,9 @@ body { background: var(--m-ink); color: var(--m-bone); }
 .maison-bar { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding: 18px var(--m-gutter); border-bottom: 1px solid var(--m-line); }
 .maison-bar-end { display: flex; justify-content: flex-end; gap: clamp(18px, 3vw, 40px); }
 
-.maison-opening { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); grid-template-areas: "chapter chapter" "title field"; column-gap: clamp(32px, 6vw, 110px); row-gap: 40px; align-items: end; max-width: 80rem; margin: 0 auto; padding: clamp(64px, 11vw, 150px) var(--m-gutter) clamp(24px, 4vw, 48px); box-sizing: border-box; text-align: left; transition: opacity .6s var(--m-ease); }
-.maison-opening.is-quiet { opacity: .35; }
-.maison-opening.is-quiet:hover, .maison-opening.is-quiet:focus-within { opacity: 1; }
+.maison-opening { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); grid-template-areas: "chapter chapter" "title field"; column-gap: clamp(32px, 6vw, 110px); row-gap: 20px; align-items: end; max-width: 80rem; margin: 0 auto; padding: clamp(28px, 4vw, 56px) var(--m-gutter) 8px; box-sizing: border-box; text-align: left; transition: opacity .6s var(--m-ease); }
 .maison-opening .maison-chapter { grid-area: chapter; }
-.maison-opening h1 { grid-area: title; margin: 0; font: 400 clamp(44px, 7.4vw, 108px)/.98 var(--m-serif); letter-spacing: -.035em; color: var(--m-bone); }
+.maison-opening h1 { grid-area: title; margin: 0; font: 400 clamp(40px, 5.6vw, 84px)/.98 var(--m-serif); letter-spacing: -.035em; color: var(--m-bone); }
 .maison-opening h1 em { font-style: italic; font-weight: 400; color: var(--m-gold-light); }
 .maison-question { grid-area: field; padding-bottom: 10px; }
 .maison-question label { display: flex; justify-content: space-between; font: 400 12px var(--m-sans); letter-spacing: .24em; text-transform: uppercase; color: var(--m-stone); }
@@ -134,8 +132,6 @@ body { background: var(--m-ink); color: var(--m-bone); }
 .maison-preferences > button span:last-child { font: italic 400 17px var(--m-serif); color: var(--m-stone); }
 .maison-preferences > button[aria-pressed="true"] span:last-child { color: var(--m-gold-light); }
 .maison-preferences > button:hover span:first-child { color: var(--m-gold-light); }
-.maison-volume { display: flex; align-items: center; gap: 16px; padding: 16px 0; border-bottom: 1px solid var(--m-line); font: 400 13px var(--m-sans); color: var(--m-stone); }
-.maison-volume input { flex: 1; accent-color: var(--m-gold); }
 .maison-menu-foot { margin-top: 28px; font: 400 11px var(--m-sans); letter-spacing: .24em; text-transform: uppercase; color: var(--m-stone); text-decoration: none; }
 .maison-menu-foot:hover { color: var(--m-bone); }
 
@@ -170,7 +166,7 @@ body { background: var(--m-ink); color: var(--m-bone); }
 .deck-destiny-action > span:last-child { display: none; }
 
 /* ---- Footer ------------------------------------------------------------------ */
-.maison-footer { position: relative; z-index: 10; display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: start; gap: 12px clamp(32px, 6vw, 96px); margin-top: clamp(80px, 12vw, 160px); padding: 48px var(--m-gutter) 56px; border-top: 1px solid var(--m-line); }
+.maison-footer { position: relative; z-index: 10; display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: start; gap: 12px clamp(32px, 6vw, 96px); margin-top: clamp(32px, 4vw, 56px); padding: 32px var(--m-gutter) 40px; border-top: 1px solid var(--m-line); }
 .maison-footer .maison-wordmark { align-items: flex-start; grid-row: span 2; }
 .maison-footer > p { margin: 0; max-width: 60ch; font: 400 13px/1.7 var(--m-sans); color: var(--m-stone); }
 .maison-footer-meta { display: flex; flex-wrap: wrap; gap: 10px; font-size: 12px !important; color: var(--m-stone-quiet) !important; }
@@ -230,9 +226,9 @@ body { background: var(--m-ink); color: var(--m-bone); }
   .maison-wordmark span { font-size: 17px; letter-spacing: .34em; padding-left: .34em; }
   .maison-wordmark small { display: none; }
   .maison-hide-mobile { display: none !important; }
-  .maison-opening { grid-template-columns: 1fr; grid-template-areas: "chapter" "title" "field"; row-gap: 28px; padding-top: 48px; }
+  .maison-opening { grid-template-columns: 1fr; grid-template-areas: "chapter" "title" "field"; row-gap: 16px; padding-top: 24px; }
   .maison-opening h1 { font-size: clamp(40px, 12vw, 56px); }
-  .maison-chapter-rule { margin-top: 56px; margin-bottom: 18px; }
+  .maison-chapter-rule { margin-top: 20px; margin-bottom: 10px; }
   .maison-menu-inner { grid-template-columns: 1fr; row-gap: 40px; }
   .maison-index > * { grid-template-columns: 2.4em minmax(0, 1fr); padding: 14px 0; }
   .maison-index-note { display: none; }
@@ -277,3 +273,11 @@ body { background: var(--m-ink); color: var(--m-bone); }
 .maison-reading .reading-card-text > span { font: 400 11px var(--m-sans) !important; letter-spacing: .22em; text-transform: uppercase; color: var(--m-stone) !important; }
 .maison-reading h3.font-cinzel { font: 400 12px var(--m-sans) !important; letter-spacing: .26em; color: var(--m-stone) !important; }
 .maison-reading h3.font-cinzel svg, .maison-reading h3.font-cinzel + span { display: none !important; }
+
+/* ---- Compact rhythm: sections sit close together on the single page ---------- */
+.sanctuary-table .spread-navigation { margin-bottom: 4px !important; padding-top: 0 !important; padding-bottom: 0 !important; }
+.sanctuary-table .deck-selection { padding-top: 0 !important; border-top: 0 !important; }
+.sanctuary-table .deck-controls { margin-bottom: 8px !important; padding-top: 4px !important; padding-bottom: 4px !important; }
+.sanctuary-table .ritual-deck { padding-top: 16px; }
+.sanctuary-table > main { padding-bottom: 24px !important; }
+.sanctuary-table .altar-surface { padding-left: 0 !important; padding-right: 0 !important; padding-top: 4px !important; }

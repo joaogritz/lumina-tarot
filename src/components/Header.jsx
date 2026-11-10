@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { audio } from '../utils/audio';
-import { bgMusicService } from '../utils/bgMusic';
 
 // Maison masthead: a quiet bar (menu, wordmark, journal) and an editorial opening chapter.
 // Every tool lives in one full-screen index instead of a row of competing buttons.
@@ -17,27 +16,12 @@ export const Header = ({
   onOpenHistory,
   onOpenDaily,
   onOpenYesNo,
-  isZenMode,
-  onToggleZenMode,
   historyCount = 0
 }) => {
   const [isMuted, setIsMuted] = useState(audio.isMuted());
-  const [isMusicPlaying, setIsMusicPlaying] = useState(() => bgMusicService.getIsPlaying());
-  const [volume, setVolume] = useState(() => bgMusicService.getVolume());
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef(null);
   const menuButtonRef = useRef(null);
-
-  useEffect(() => {
-    const handleMusicChange = (e) => {
-      if (e.detail) {
-        setIsMusicPlaying(e.detail.isPlaying);
-        if (typeof e.detail.volume === 'number') setVolume(e.detail.volume);
-      }
-    };
-    window.addEventListener('lumina_bg_music_changed', handleMusicChange);
-    return () => window.removeEventListener('lumina_bg_music_changed', handleMusicChange);
-  }, []);
 
   useEffect(() => {
     const dialog = menuRef.current;
@@ -65,17 +49,6 @@ export const Header = ({
     if (!nextMute) audio.playHover();
   };
 
-  const toggleMusic = () => {
-    audio.playSelect();
-    setIsMusicPlaying(bgMusicService.toggle());
-  };
-
-  const handleVolumeChange = (e) => {
-    const next = parseFloat(e.target.value);
-    setVolume(next);
-    bgMusicService.setVolume(next);
-  };
-
   const index = [
     ['Sim ou Não', 'Uma carta para uma pergunta direta', onOpenYesNo],
     ['Carta do dia', 'Um arcano para acompanhar o dia', onOpenDaily],
@@ -87,9 +60,7 @@ export const Header = ({
 
   const preferences = [
     ['Cartas invertidas', reversalsSupported ? (allowReversed ? 'Sim' : 'Não') : 'Indisponível no Cigano', () => { audio.playSelect(); setAllowReversed(!allowReversed); }, !reversalsSupported, allowReversed],
-    ['Música', isMusicPlaying ? `${Math.round(volume * 100)}%` : 'Desligada', toggleMusic, false, isMusicPlaying],
     ['Efeitos sonoros', isMuted ? 'Desligados' : 'Ligados', toggleSound, false, !isMuted],
-    ['Modo foco', isZenMode ? 'Ligado' : 'Desligado', () => { audio.playSelect(); onToggleZenMode?.(); }, false, isZenMode],
   ];
 
   return (
@@ -119,7 +90,7 @@ export const Header = ({
         </div>
       </div>
 
-      <section className={`maison-opening ${isZenMode ? 'is-quiet' : ''}`} aria-labelledby="maison-question-title">
+      <section className="maison-opening" aria-labelledby="maison-question-title">
         <p className="maison-chapter"><span>I</span>A pergunta</p>
         <h1 id="maison-question-title">Sobre o que<br /><em>deseja refletir?</em></h1>
         <div className="maison-question">
@@ -177,12 +148,6 @@ export const Header = ({
                 <span>{label}</span><span>{state}</span>
               </button>
             ))}
-            {isMusicPlaying && (
-              <label className="maison-volume">
-                <span>Volume</span>
-                <input type="range" min="0" max="1" step="0.01" value={volume} onChange={handleVolumeChange} aria-label="Volume da música" />
-              </label>
-            )}
             <a className="maison-menu-foot" href="./privacidade.html" target="_blank" rel="noopener">Privacidade</a>
           </section>
         </div>

@@ -5,8 +5,8 @@ ganha cara de casa de luxo antes de decidir se fica.
 
 ## Princípios
 
-- **Menos por tela.** Um foco de cada vez, muito espaço vazio e capítulos numerados (I A pergunta,
-  II A tiragem, III A mesa, IV O baralho).
+- **Página única e compacta.** Os blocos ficam próximos, separados por filetes e capítulos numerados
+  (I A pergunta, II A tiragem, III A mesa, IV O baralho); a mesa aparece já na primeira tela.
 - **Paleta curta.** Tinta (#0a0908), marfim (#ece6da), pedra (#a39b8c) e um dourado champanhe
   (#b5955c) usado só em filetes e detalhes, nunca como brilho.
 - **Tipografia editorial.** Cormorant Garamond grande e alinhada à esquerda nos títulos e na leitura,
@@ -28,6 +28,7 @@ ganha cara de casa de luxo antes de decidir se fica.
 | Leitura | Caixas com emojis 🔍 💡 🧭 | Página impressa: pergunta como título, data, capítulos I, II, III, capitular dourada, conselho como citação |
 | Rodapé | Frase mística centralizada | Assinatura, aviso e atalhos em duas colunas |
 | Textos | "Consagração", "Destino", "Sagrado" | Linguagem simples e elegante |
+| Música e modo foco | Botões no cabeçalho, atalhos M e Z | Removidos do site (e o arquivo `sanctuary.mp3`); os efeitos sonoros continuam |
 
 Arquivos: `src/maison.css` (todo o visual novo, importado por último em `src/main.jsx`),
 `src/components/Header.jsx` (reescrito), e ajustes em `TarotTable`, `InterpretationModal`,
