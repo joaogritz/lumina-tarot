@@ -1,5 +1,5 @@
-// Local synthesis for the candles: a match-like spark when they light, a soft puff with a last
-// crackle when they go out. No downloads; follows the table's sound preference.
+// Local synthesis for the candles: the soft whoomp of a flame catching when they light, and a
+// breathy puff when they go out. No downloads; follows the table's sound preference.
 export class CandleSound {
   private context?: AudioContext;
   private get enabled() {
@@ -36,15 +36,13 @@ export class CandleSound {
         source.stop(at + length + 0.02);
       };
       if (lighting) {
-        // Spark: a quick scatter of bright crackles, then the flame catching with a soft whoomp.
-        [0, 0.018, 0.041, 0.07, 0.095, 0.13].forEach((t, i) => burst(now + t, 0.03, "highpass", 3200 + i * 500, 0.9 - i * 0.08));
-        burst(now + 0.08, 0.38, "lowpass", 520, 0.55, 0.06);
-        [0.28, 0.41].forEach((t) => burst(now + t, 0.025, "highpass", 4200, 0.35));
+        // Just the fire: a warm, rounded whoomp as the flame catches, settling into a low hush.
+        burst(now, 0.45, "lowpass", 480, 0.75, 0.08);
+        burst(now + 0.05, 0.6, "lowpass", 260, 0.35, 0.15);
       } else {
-        // Out: a breathy puff and one last tiny crackle of the wick.
+        // Out: a short breathy puff.
         burst(now, 0.22, "lowpass", 700, 0.7, 0.02);
-        burst(now + 0.02, 0.16, "bandpass", 1600, 0.25, 0.02);
-        burst(now + 0.24, 0.02, "highpass", 3800, 0.4);
+        burst(now + 0.02, 0.16, "bandpass", 1400, 0.2, 0.02);
       }
       setTimeout(() => master.disconnect(), 900);
     } catch {
