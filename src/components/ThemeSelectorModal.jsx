@@ -58,7 +58,7 @@ export const ThemeSelectorModal = ({
           <div className="flex items-center gap-2 text-amber-300">
             <Palette className="w-5 h-5 text-amber-400" />
             <h3 className="font-cinzel text-lg sm:text-xl font-bold text-slate-100 gold-gradient-text">
-              Estilos do Santuário & Altar
+              Atmosferas
             </h3>
           </div>
 
@@ -72,7 +72,7 @@ export const ThemeSelectorModal = ({
         </div>
 
         <p className="text-xs text-slate-400 mt-2 mb-4">
-          Personalize a frequência cromática, nebulosas e iluminação do seu templo de tiragem:
+          O tom de fundo da mesa.
         </p>
 
         {/* Theme List */}
@@ -133,7 +133,7 @@ export const ThemeSelectorModal = ({
             aria-label="Fechar" onClick={handleClose}
             className="px-5 py-2 rounded-sm bg-amber-500 hover:bg-amber-400 text-slate-950 font-cinzel font-bold text-xs cursor-pointer transition-all shadow-md active:scale-95"
           >
-            Aplicar Santuário
+            Aplicar
           </button>
         </div>
       </motion.div>

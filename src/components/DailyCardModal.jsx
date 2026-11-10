@@ -141,22 +141,22 @@ export const DailyCardModal = ({
           <div className="flex flex-wrap items-center justify-center gap-2 mb-2">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-400/10 border border-amber-400/30 text-amber-300 text-xs font-cinzel font-semibold">
               <Sun className="w-3.5 h-3.5 text-amber-400 animate-spin" style={{ animationDuration: '8s' }} />
-              <span className="capitalize">{todayFormatted}</span>
+              <span className="first-letter:uppercase">{todayFormatted}</span>
             </div>
 
             {streak > 0 && (
               <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-stone-950/80 border border-amber-400/40 text-amber-200 text-xs font-cinzel font-semibold shadow-sm">
                 <Flame className="w-3.5 h-3.5 text-amber-400 fill-amber-400 animate-pulse" />
-                <span>{streak} {streak === 1 ? 'Dia de Conexão' : 'Dias Consecutivos'}</span>
+                <span>{streak} {streak === 1 ? 'dia seguido' : 'dias seguidos'}</span>
               </div>
             )}
           </div>
 
           <h3 className="font-cinzel text-xl sm:text-3xl font-black text-slate-100 gold-gradient-text tracking-wide">
-            <span className="hidden md:inline">Carta do Dia • Oráculo Diário</span><span className="md:hidden">Carta do dia</span>
+            <span>Carta do dia</span>
           </h3>
           <p className="text-xs text-amber-200/80 mt-1 max-w-md">
-            Sua frequência energética e arquétipo guia para reflexão, presença e foco nas próximas 24 horas.
+            Um arcano para acompanhar o seu dia.
           </p>
         </div>
 
@@ -237,7 +237,7 @@ export const DailyCardModal = ({
             ) : (
               <>
                 <Bell className="w-3.5 h-3.5 text-amber-400" />
-                <span>Lembrar do Conselho Diário</span>
+                <span>Lembrar todos os dias</span>
               </>
             )}
           </button>
@@ -247,7 +247,7 @@ export const DailyCardModal = ({
             aria-label="Fechar" onClick={handleClose}
             className="w-full sm:w-auto px-6 py-2.5 rounded-sm bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-slate-950 font-cinzel font-bold text-xs cursor-pointer transition-all shadow-md active:scale-95 text-center"
           >
-            Acolher Mensagem
+            Fechar
           </button>
         </div>
       </motion.div>

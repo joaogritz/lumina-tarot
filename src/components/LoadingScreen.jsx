@@ -56,10 +56,10 @@ export const LoadingScreen = ({ onLoaded }) => {
   return (
     <motion.main className="sanctuary-entry" initial={{ opacity: 1 }} exit={{ opacity: 0, pointerEvents: 'none', transition: { duration: .8 } }}>
       <BackgroundStars />
-      <div className="entry-nav"><span className="entry-wordmark">✧ LUMINA</span><span className="micro-label">TAROT & BARALHO CIGANO</span></div>
+      <div className="entry-nav"><span className="entry-wordmark">LUMINA</span><span className="micro-label">LUMINATAROT.APP</span></div>
       <div className="entry-composition">
         <div className="entry-copy">
-          <p className="micro-label"><span className="gold-rule" /> SANTUÁRIO DOS ARCANOS</p>
+          <p className="micro-label"><span className="gold-rule" /> TAROT &amp; BARALHO CIGANO</p>
           <h1>Lumina<br /><em>Tarot.</em></h1>
           <p className="entry-description">Sua jornada começa com uma pergunta e uma escolha.</p>
           <div className="entry-action" aria-live="polite">

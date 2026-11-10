@@ -139,7 +139,7 @@ export const ReadingHistoryModal = ({
           <div className="flex items-center gap-2 text-amber-300">
             <BookOpen className="w-5 h-5 text-amber-400" />
             <h3 className="font-cinzel text-lg sm:text-2xl font-bold text-slate-100 gold-gradient-text">
-              Diário Oracular & Autoconhecimento
+              Diário
             </h3>
           </div>
 
@@ -167,7 +167,7 @@ export const ReadingHistoryModal = ({
             }`}
           >
             <BookOpen className="w-4 h-4" />
-            <span className="hidden md:inline">Diário de Leituras ({readings.length})</span><span className="md:hidden">Diário ({readings.length})</span>
+            <span>Leituras ({readings.length})</span>
           </button>
 
           <button
@@ -183,7 +183,7 @@ export const ReadingHistoryModal = ({
             }`}
           >
             <BarChart3 className="w-4 h-4 text-amber-400" />
-            <span className="hidden md:inline">Estatísticas & Autoconhecimento</span><span className="md:hidden">Estatísticas</span>
+            <span>Estatísticas</span>
           </button>
         </div>
 
@@ -238,9 +238,9 @@ export const ReadingHistoryModal = ({
               {readings.length === 0 ? (
                 <div className="text-center py-16 text-slate-400 font-cinzel">
                   <Sparkles className="w-8 h-8 text-amber-400/40 mx-auto mb-3 animate-pulse" />
-                  <p className="text-sm font-semibold">Seu Diário Oracular está vazio.</p>
+                  <p className="text-sm font-semibold">Nenhuma leitura guardada ainda.</p>
                   <p className="text-xs text-slate-500 mt-1">
-                    Ao concluir uma tiragem no altar, ela será gravada aqui para você revisitar suas reflexões.
+                    Use "Salvar no Diário" ao fim de uma leitura para revê-la aqui.
                   </p>
                 </div>
               ) : filteredReadings.length === 0 ? (
