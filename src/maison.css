@@ -140,7 +140,11 @@ body { background: var(--m-ink); color: var(--m-bone); }
 .sanctuary-table > main > *:not(.maison-masthead):not(.maison-chapter-rule) { width: 100%; max-width: 80rem; margin-left: auto; margin-right: auto; padding-left: var(--m-gutter); padding-right: var(--m-gutter); box-sizing: border-box; }
 .spread-navigation { border: 0 !important; }
 .spread-navigation button { font-family: var(--m-sans) !important; font-weight: 400 !important; font-size: 13px !important; letter-spacing: .06em; color: var(--m-stone) !important; }
-.spread-navigation button svg { display: none; }
+.spread-navigation button:not(.spread-scroll-arrow) svg { display: none; }
+/* Scroll arrows: a small bare chevron at each end of the spread index. */
+.spread-navigation .spread-scroll-arrow { width: 28px !important; height: 28px !important; min-height: 28px; padding: 0 !important; border: 0 !important; border-radius: 0 !important; background: transparent !important; box-shadow: none !important; backdrop-filter: none !important; color: var(--m-stone) !important; }
+.spread-navigation .spread-scroll-arrow:hover { color: var(--m-gold-light) !important; }
+.spread-navigation .spread-scroll-arrow svg { display: block; width: 14px; height: 14px; stroke-width: 1.5; }
 .spread-navigation button[aria-pressed="true"] { color: var(--m-bone) !important; }
 .spread-navigation button[aria-pressed="true"] > div { border-bottom-color: var(--m-gold) !important; }
 .spread-navigation button > span:last-child { font: italic 400 14px var(--m-serif) !important; color: var(--m-gold) !important; background: transparent !important; border: 0 !important; padding: 0 !important; }
