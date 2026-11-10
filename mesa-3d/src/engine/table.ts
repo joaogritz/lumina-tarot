@@ -47,6 +47,7 @@ import { roundedBox, outline, ring, roundedPlane, roundedSlab } from "../scene/g
 import type { MultiMaterial } from "@babylonjs/core/Materials/multiMaterial";
 import { atmosphere } from "../scene/atmosphere";
 import { FramePacer } from "./framePacer";
+import { CaseSound } from "../audio/caseSound";
 import { CardMotion } from "../cards/motion";
 import { createCardFront } from "../cards/material";
 import {
@@ -70,6 +71,8 @@ export type TableCallbacks = {
 };
 /** Corner radius of every card, deck and discard pile (about 6% of the card width). */
 const CARD_RADIUS = 0.1;
+/** How far the case lid swings back on its hinge when open (radians). */
+const CASE_OPEN_ANGLE = 1.8;
 // Inertia keeps nudging the camera by imperceptible amounts for many frames. Comparing at 1e-4
 // precision stops those from counting as changes, so the scene can go idle and saves can settle.
 const cameraKey = (c: CameraState) =>
@@ -106,6 +109,10 @@ export class Table {
   private ssao?: SSAO2RenderingPipeline;
   private lowFxaa?: FxaaPostProcess;
   private flames: { outer: Mesh; core: Mesh; baseY: number; seed: number }[] = [];
+  private caseHinge?: MeshClass;
+  private caseOpen = false;
+  private caseAnim?: { from: number; to: number; start: number; duration: number };
+  private caseSound = new CaseSound();
   private armillary?: Mesh;
   private lastAmbient = 0;
   private deckDrag?: {
@@ -374,17 +381,25 @@ export class Table {
     this.lamp.specular = new Color3(0.9, 0.5, 0.2);
     this.lamp.intensity = 3.1;
     this.lamp.range = 15;
-    // The deck's case: a stitched leather tray holding a gilt-edged pack, its lid open on a back
-    // hinge to show a wine velvet lining, with gold inlay along both rims and a gilt seal on top.
+    // The deck's case, a small toy: a solid, hollow leather box holding a gilt-edged pack. A click
+    // (or tap) on it opens or closes the lid on its back hinge, with a little spring and a sound.
     const caseRoot = new MeshClass("Caixa das cartas", this.scene);
     caseRoot.position.set(9.6, 0, 4.6);
     caseRoot.rotation.y = -0.15;
-    const caseW = 2.2, caseD = 3.65, baseH = 0.46, lidH = 0.12;
+    const caseW = 2.2, caseD = 3.65, baseH = 0.5, lidH = 0.13, wall = 0.11, floorY = -0.05;
     const caseLeather = leather(this.scene, "Couro bordô", "#24161a", caseW, caseD);
+    caseLeather.backFaceCulling = false; // Solid from every angle, inside and out.
     const velvet = material(this.scene, "Veludo do forro", "#3a1519", 0.95);
+    velvet.backFaceCulling = false;
     const caseGilt = gilt(this.scene, "Filete da caixa");
+    const pickable = (mesh: Mesh) => {
+      mesh.isPickable = true;
+      mesh.metadata = { caseToggle: true };
+      mesh.receiveShadows = true;
+      this.shadow.addShadowCaster(mesh);
+    };
     const inlay = (w: number, d: number, y: number, parent: MeshClass, name: string) => {
-      const path = outline(w, d, 0.12, y);
+      const path = outline(w, d, 0.05, y);
       path.push(path[0]);
       const tube = CreateTube(name, { path, radius: 0.016, tessellation: 6 }, this.scene);
       tube.parent = parent;
@@ -392,52 +407,62 @@ export class Table {
       tube.isPickable = false;
       return tube;
     };
-    const base = roundedBox("Caixa · base de couro", caseW, caseD, baseH, 0.14, this.scene);
-    base.parent = caseRoot;
-    base.position.y = baseH / 2 - 0.05;
-    base.material = caseLeather;
-    base.isPickable = false;
-    base.receiveShadows = true;
-    this.shadow.addShadowCaster(base);
-    inlay(caseW - 0.08, caseD - 0.08, baseH / 2 - 0.004, base, "Caixa · filete da base");
-    // Velvet well and the pack resting in it, its top card showing the Lumina back.
-    const well = CreateGround("Caixa · fundo de veludo", { width: caseW - 0.22, height: caseD - 0.22 }, this.scene);
-    well.parent = base;
-    well.position.y = baseH / 2 + 0.002;
+    // Floor and four walls make a real box, so nothing below or around the pack is see-through.
+    const floor = roundedBox("Caixa · fundo", caseW, caseD, 0.07, 0.05, this.scene);
+    floor.parent = caseRoot;
+    floor.position.y = floorY + 0.035;
+    floor.material = caseLeather;
+    pickable(floor);
+    const wallH = baseH - 0.07;
+    const wallY = floorY + 0.07 + wallH / 2;
+    for (const [name, w, d, x, z] of [
+      ["Caixa · parede da frente", caseW, wall, 0, -(caseD - wall) / 2],
+      ["Caixa · parede de trás", caseW, wall, 0, (caseD - wall) / 2],
+      ["Caixa · parede esquerda", wall, caseD - wall * 2, -(caseW - wall) / 2, 0],
+      ["Caixa · parede direita", wall, caseD - wall * 2, (caseW - wall) / 2, 0],
+    ] as [string, number, number, number, number][]) {
+      const side = CreateBox(name, { width: w, depth: d, height: wallH }, this.scene);
+      side.parent = caseRoot;
+      side.position.set(x, wallY, z);
+      side.material = caseLeather;
+      pickable(side);
+    }
+    const rimY = floorY + baseH;
+    inlay(caseW - 0.02, caseD - 0.02, rimY + 0.002, caseRoot, "Caixa · filete da borda");
+    const well = CreateGround("Caixa · fundo de veludo", { width: caseW - wall * 2, height: caseD - wall * 2 }, this.scene);
+    well.parent = caseRoot;
+    well.position.y = floorY + 0.071;
     well.material = velvet;
     well.isPickable = false;
-    const pack = roundedSlab("Caixa · maço de cartas", 1.72, 3, 0.22, CARD_RADIUS, this.scene);
-    pack.parent = base;
-    pack.position.set(0, baseH / 2 + 0.11, 0.05);
-    pack.rotation.y = 0.03;
+    const packH = 0.34;
+    const pack = roundedSlab("Caixa · maço de cartas", 1.72, 3, packH, CARD_RADIUS, this.scene);
+    pack.parent = caseRoot;
+    pack.position.set(0, floorY + 0.072 + packH / 2, 0);
     pack.material = cardBody(this.scene, this.paper, pageEdges(this.scene), "Maço da caixa");
     pack.isPickable = false;
     pack.receiveShadows = true;
-    this.shadow.addShadowCaster(pack);
     const packTop = CreateGround("Caixa · verso do maço", { width: 1.66, height: 2.94 }, this.scene);
     packTop.parent = pack;
-    packTop.position.y = 0.112;
+    packTop.position.y = packH / 2 + 0.002;
     packTop.material = cardBack(this.scene);
     packTop.isPickable = false;
-    // Lid hinged on the far edge, opened past upright so it leans back against the light.
+    // Lid on a hinge along the back rim; closed it rests flat on the walls.
     const lidHinge = new MeshClass("Caixa · dobradiça", this.scene);
     lidHinge.parent = caseRoot;
-    lidHinge.position.set(0, baseH - 0.05, caseD / 2);
-    lidHinge.rotation.x = 1.8;
-    const lid = roundedBox("Caixa · tampa", caseW + 0.04, caseD + 0.04, lidH, 0.15, this.scene);
+    lidHinge.position.set(0, rimY, caseD / 2);
+    this.caseHinge = lidHinge;
+    const lid = roundedBox("Caixa · tampa", caseW + 0.04, caseD + 0.04, lidH, 0.06, this.scene);
     lid.parent = lidHinge;
-    lid.position.set(0, lidH / 2, -(caseD + 0.04) / 2);
+    lid.position.set(0, lidH / 2, -(caseD + 0.04) / 2 + 0.02);
     lid.material = caseLeather;
-    lid.isPickable = false;
-    this.shadow.addShadowCaster(lid);
+    pickable(lid);
     inlay(caseW - 0.06, caseD - 0.06, lidH / 2 + 0.002, lid, "Caixa · filete da tampa");
-    const lining = CreateGround("Caixa · forro da tampa", { width: caseW - 0.16, height: caseD - 0.16 }, this.scene);
+    const lining = CreateGround("Caixa · forro da tampa", { width: caseW - 0.14, height: caseD - 0.14 }, this.scene);
     lining.parent = lid;
     lining.position.y = -lidH / 2 - 0.002;
     lining.rotation.x = Math.PI;
     lining.material = velvet;
     lining.isPickable = false;
-    // Gilt seal on the lid: two fine rings around a small star.
     for (const [d, t] of [[1.1, 0.024], [0.92, 0.014]]) {
       const seal = ring("Caixa · selo dourado", d, t, this.scene, 72);
       seal.parent = lid;
@@ -709,7 +734,8 @@ export class Table {
           this.endRiffle();
         }
       }
-      const moving = this.motion.update(start) || shuffling;
+      const caseMoving = this.updateCase(start);
+      const moving = this.motion.update(start) || shuffling || caseMoving;
       if (moving) this.frames = Math.max(this.frames, 2);
       const motionState = moving ? "active" : "idle";
       if (this.canvas.dataset.motion !== motionState)
@@ -795,6 +821,35 @@ export class Table {
     }
     this.lamp.intensity = 3.1 + (glow / Math.max(1, this.flames.length)) * 0.32;
     if (this.armillary && !still) this.armillary.rotation.y = time * 0.00012;
+  }
+  /** Opens or closes the card case: a short spring on the lid hinge and a sound. */
+  toggleCase() {
+    const hinge = this.caseHinge;
+    if (!hinge) return;
+    this.caseOpen = !this.caseOpen;
+    this.caseAnim = {
+      from: hinge.rotation.x,
+      to: this.caseOpen ? CASE_OPEN_ANGLE : 0,
+      start: performance.now(),
+      duration: this.caseOpen ? 720 : 520,
+    };
+    void this.caseSound.play(this.caseOpen);
+    this.wake(3);
+  }
+  private updateCase(now: number) {
+    const anim = this.caseAnim, hinge = this.caseHinge;
+    if (!anim || !hinge) return false;
+    const t = Math.min(1, (now - anim.start) / anim.duration);
+    // Opening overshoots a little and settles back; closing lands with a firm ease-in.
+    const eased = this.caseOpen
+      ? 1 + 2.4 * Math.pow(t - 1, 3) + 1.4 * Math.pow(t - 1, 2)
+      : t * t;
+    hinge.rotation.x = anim.from + (anim.to - anim.from) * eased;
+    if (t >= 1) {
+      hinge.rotation.x = anim.to;
+      this.caseAnim = undefined;
+    }
+    return true;
   }
   wake(frames = 2) {
     this.frames = Math.max(this.frames, frames);
@@ -897,6 +952,11 @@ export class Table {
             (!m.metadata.id || !this.exits.has(m.metadata.id)),
         );
         const metadata = hit?.pickedMesh?.metadata;
+        if (metadata?.caseToggle) {
+          this.toggleCase();
+          e.preventDefault();
+          return;
+        }
         if (metadata?.deck) {
           this.beginDeckDrag(e);
           e.preventDefault();
