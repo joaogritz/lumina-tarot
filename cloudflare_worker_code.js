@@ -146,19 +146,15 @@ const validSpread = (spread) => spread === undefined || (spread && typeof spread
 const normalizeOrigin = (value) => value.trim().replace(/\/+$/, '').toLowerCase();
 const flag = (value) => String(value || '').trim().toLowerCase() === 'true';
 
-// Providers, in order. Gemini's free tier is deprioritised under load (frequent 503 "high demand"
-// and slow answers), so Cloudflare Workers AI answers first and Gemini is the last resort.
-// Measured with the real prompt (Nov 2026): Gemma 4 26B without thinking answers a 10-card spread in
+// Provider: Cloudflare Workers AI, on Cloudflare's own network (the AI binding, no external key).
+// Models are tried in order. Measured with the real prompt (Nov 2026): Gemma 4 26B without thinking answers a 10-card spread in
 // ~9 s for ~35 neurons (the free 10,000/day covers ~280 readings); gpt-oss-120b takes 4-12 s for
 // ~100 neurons; Llama 3.3 70B took 11 s for ~160. Gemma with thinking on timed out or came back empty.
 // Every attempt shares one deadline so the site (32 s wait) always gets an answer or a clean 502.
-// Pinned versions: '-latest' aliases move silently, and Gemini 2.5 answers 404 for new keys.
 const WORKERS_AI_MODELS = [
   { model: '@cf/google/gemma-4-26b-a4b-it', timeout: 15000 },
   { model: '@cf/openai/gpt-oss-120b', timeout: 12000 },
 ];
-const GEMINI_DEFAULT_MODEL = 'gemini-3.5-flash-lite';
-const GEMINI_TIMEOUT_MS = 12000;
 const TOTAL_BUDGET_MS = 29000;
 // An attempt with less time than this left is skipped: it would only delay the 502.
 const MIN_ATTEMPT_MS = 3000;
@@ -172,13 +168,6 @@ function workersAiOptions(model) {
   if (model.includes('gpt-oss')) return { reasoning_effort: 'low' };
   if (/gemma-4|qwen3|glm-/.test(model)) return { chat_template_kwargs: { enable_thinking: false } };
   return {};
-}
-// Short readings gain little from reasoning, which mostly adds latency: use each model's lowest level.
-function thinkingFor(model) {
-  if (model.startsWith('gemini-2.5')) return { thinkingBudget: 0 };
-  if (model.includes('flash-lite')) return { thinkingLevel: 'minimal' };
-  if (model.startsWith('gemini-3')) return { thinkingLevel: 'low' };
-  return undefined;
 }
 const withTimeout = (promise, ms) => Promise.race([
   promise,
@@ -230,13 +219,12 @@ export default {
     if (!request.headers.get('Content-Type')?.includes('application/json')) return respond(415, { error: 'Envie JSON.' });
     if (Number(request.headers.get('Content-Length')) > MAX_BODY) return respond(413, { error: 'Consulta muito grande.' });
 
-    const geminiApiKey = (env.GEMINI_API_KEY || '').trim();
     const workersAi = env.AI && typeof env.AI.run === 'function' ? env.AI : null;
     const limiter = env.ORACLE_RATE_LIMITER;
     const hasLimiter = !!limiter && typeof limiter.limit === 'function';
-    if ((!geminiApiKey && !workersAi) || (!hasLimiter && !flag(env.ALLOW_UNLIMITED))) {
+    if (!workersAi || (!hasLimiter && !flag(env.ALLOW_UNLIMITED))) {
       // Details go to the Worker logs only; callers get a generic message.
-      console.error('Worker misconfigured:', !geminiApiKey && !workersAi ? 'no AI provider (GEMINI_API_KEY or AI binding)' : 'ORACLE_RATE_LIMITER binding missing');
+      console.error('Worker misconfigured:', !workersAi ? 'AI binding (Workers AI) missing' : 'ORACLE_RATE_LIMITER binding missing');
       return respond(503, { error: 'Serviço temporariamente indisponível.' });
     }
 
@@ -313,46 +301,7 @@ export default {
       return null;
     };
 
-    // Gemini, one attempt: the text, or null after logging why.
-    const geminiModel = [env.GEMINI_MODEL, GEMINI_DEFAULT_MODEL].find(m => m && /^[a-zA-Z0-9.-]+$/.test(m));
-    const callGemini = async (ms) => {
-      try {
-        const upstream = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent`, {
-          method: 'POST',
-          signal: AbortSignal.timeout(ms),
-          headers: {
-            'Content-Type': 'application/json',
-            'x-goog-api-key': geminiApiKey
-          },
-          body: JSON.stringify({
-            systemInstruction: { parts: [{ text: prompt }] },
-            contents: [{ role: 'user', parts: [{ text: consultation }] }],
-            generationConfig: {
-              temperature: 0.6,
-              maxOutputTokens: isYesNo ? 1000 : 3000,
-              ...(thinkingFor(geminiModel) ? { thinkingConfig: thinkingFor(geminiModel) } : {}),
-            },
-          }),
-        });
-        if (!upstream.ok) {
-          // Status and a short excerpt go to the Worker logs only, to tell quota, retired models
-          // and outages apart. The provider's message never reaches the caller.
-          console.error('Provider returned', geminiModel, upstream.status, (await upstream.text()).slice(0, 300));
-          return null;
-        }
-        const result = await upstream.json();
-        const candidate = result.candidates?.[0];
-        const text = candidate?.content?.parts?.map(p => p.text || '').join('').slice(0, MAX_TEXT);
-        // A truncated reading is never delivered; the next provider gets a chance instead.
-        if (candidate?.finishReason === 'MAX_TOKENS') console.error('Provider truncated', geminiModel);
-        else if (text && text.trim()) return text;
-      } catch (e) {
-        console.error('Provider call failed:', geminiModel, e?.message);
-      }
-      return null;
-    };
-
-    // Workers AI models in order (WORKERS_AI_MODEL first, if set), then Gemini, sharing one deadline.
+    // Workers AI models in order (WORKERS_AI_MODEL first, if set), sharing one deadline.
     const override = /^@cf\/[\w./-]+$/.test(env.WORKERS_AI_MODEL || '') ? [{ model: env.WORKERS_AI_MODEL, timeout: 15000 }] : [];
     const aiChain = workersAi ? [...override, ...WORKERS_AI_MODELS.filter(m => m.model !== env.WORKERS_AI_MODEL)] : [];
     const generate = async (chain) => {
@@ -363,10 +312,6 @@ export default {
         if (ms < MIN_ATTEMPT_MS) return null;
         const text = await callWorkersAi(model, ms);
         if (text) return { text, model };
-      }
-      if (geminiApiKey && geminiModel && timeLeft(GEMINI_TIMEOUT_MS) >= MIN_ATTEMPT_MS) {
-        const text = await callGemini(timeLeft(GEMINI_TIMEOUT_MS));
-        if (text) return { text, model: geminiModel };
       }
       return null;
     };

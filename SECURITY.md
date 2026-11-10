@@ -23,13 +23,14 @@ na `main` e registradas no [CHANGELOG](CHANGELOG.md).
 
 - **Sem contas nem servidor de dados.** Diário, preferências e mesas ficam no navegador
   (`localStorage` e IndexedDB). Não há dados pessoais armazenados em servidores do projeto.
-- **A chave do Gemini existe apenas no Worker**, como segredo da Cloudflare. Nada em `VITE_*`
-  pode conter segredos, porque essas variáveis vão para o JavaScript público.
+- **Sem chaves de API externas.** O Worker gera as interpretações pelo Workers AI, um binding da
+  Cloudflare, sem segredos de terceiros. Nada em `VITE_*` pode conter segredos, porque essas
+  variáveis vão para o JavaScript público.
 - **O Worker recusa por padrão:** só aceita origens listadas em `ALLOWED_ORIGINS`, exige o
   rate limiter por IP (e recusa se ele falhar), tenta no máximo dois modelos por consulta,
   limita o tamanho do corpo e valida cada campo. Não expõe rotas além de `POST /` e `GET /health`.
 - **A pergunta é tratada como dado**, nunca como instrução: as diretrizes ficam em
-  `systemInstruction` e o Worker recusa `customPrompt`.
+  mensagem de sistema, separadas dos dados da consulta, e o Worker recusa `customPrompt`.
 - **O site publica uma Content-Security-Policy** (via `<meta>`, gerada no build) que só permite
   scripts, fontes e imagens do próprio site e conexões ao Worker. A Vercel envia cabeçalhos
   complementares (`vercel.json`): `frame-ancestors 'none'`, `X-Frame-Options`, `nosniff`,
@@ -41,5 +42,5 @@ na `main` e registradas no [CHANGELOG](CHANGELOG.md).
 ## Limitações conhecidas
 
 - CORS impede que outros sites usem o Worker pelo navegador, mas não impede scripts que forjem o
-  cabeçalho `Origin`. Para esse caso, a defesa é o rate limiter por IP e o limite de gasto no
-  Google Cloud. Recomenda-se também configurar um orçamento com alerta para a chave da API.
+  cabeçalho `Origin`. Para esse caso, a defesa é o rate limiter por IP e a cota diária do
+  Workers AI, acompanhada no painel da Cloudflare.

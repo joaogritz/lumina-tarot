@@ -268,7 +268,7 @@ export const aiOracleService = {
           if (onProgress && response.body && (response.headers.get('Content-Type') || '').includes('text/event-stream')) {
             generatedText = await readOracleStream(response.body, {
               onActivity: () => wait(STREAM_IDLE_MS),
-              onText: (text) => onProgress({ source: 'cloudflare_gemini_ai', streaming: true, ...parsePartialSections(text) }),
+              onText: (text) => onProgress({ source: 'cloudflare_workers_ai', streaming: true, ...parsePartialSections(text) }),
             });
           } else {
             const data = await response.json();
@@ -277,7 +277,7 @@ export const aiOracleService = {
           if (typeof generatedText === 'string' && generatedText.length > 25) {
             const parsed = parseAiSections(generatedText, fallback);
             return {
-              source: 'cloudflare_gemini_ai',
+              source: 'cloudflare_workers_ai',
               ...parsed
             };
           }
@@ -338,7 +338,7 @@ export const aiOracleService = {
           if (typeof generatedText === 'string' && generatedText.length > 10) {
             const parsed = parseYesNoAiResponse(generatedText, fallback);
             return {
-              source: 'cloudflare_gemini_ai',
+              source: 'cloudflare_workers_ai',
               ...parsed
             };
           }
