@@ -374,21 +374,83 @@ export class Table {
     this.lamp.specular = new Color3(0.9, 0.5, 0.2);
     this.lamp.intensity = 3.1;
     this.lamp.range = 15;
-    const box = roundedBox("Caixa de couro", 2.2, 3.65, 0.7, 0.14, this.scene);
-    box.position.set(9.7, 0.3, 4.7);
-    box.rotation.y = -0.15;
-    box.material = leather(this.scene, "Couro obsidiana", "#1b1720", 2.2, 3.65);
-    box.isPickable = false;
-    this.shadow.addShadowCaster(box);
-    const boxLabel = CreateGround(
-      "Gravação da caixa",
-      { width: 1.8, height: 3.15 },
-      this.scene,
-    );
-    boxLabel.parent = box;
-    boxLabel.position.y = 0.357;
-    boxLabel.material = cardBack(this.scene);
-    boxLabel.isPickable = false;
+    // The deck's case: a stitched leather tray holding a gilt-edged pack, its lid open on a back
+    // hinge to show a wine velvet lining, with gold inlay along both rims and a gilt seal on top.
+    const caseRoot = new MeshClass("Caixa das cartas", this.scene);
+    caseRoot.position.set(9.6, 0, 4.6);
+    caseRoot.rotation.y = -0.15;
+    const caseW = 2.2, caseD = 3.65, baseH = 0.46, lidH = 0.12;
+    const caseLeather = leather(this.scene, "Couro bordô", "#24161a", caseW, caseD);
+    const velvet = material(this.scene, "Veludo do forro", "#3a1519", 0.95);
+    const caseGilt = gilt(this.scene, "Filete da caixa");
+    const inlay = (w: number, d: number, y: number, parent: MeshClass, name: string) => {
+      const path = outline(w, d, 0.12, y);
+      path.push(path[0]);
+      const tube = CreateTube(name, { path, radius: 0.016, tessellation: 6 }, this.scene);
+      tube.parent = parent;
+      tube.material = caseGilt;
+      tube.isPickable = false;
+      return tube;
+    };
+    const base = roundedBox("Caixa · base de couro", caseW, caseD, baseH, 0.14, this.scene);
+    base.parent = caseRoot;
+    base.position.y = baseH / 2 - 0.05;
+    base.material = caseLeather;
+    base.isPickable = false;
+    base.receiveShadows = true;
+    this.shadow.addShadowCaster(base);
+    inlay(caseW - 0.08, caseD - 0.08, baseH / 2 - 0.004, base, "Caixa · filete da base");
+    // Velvet well and the pack resting in it, its top card showing the Lumina back.
+    const well = CreateGround("Caixa · fundo de veludo", { width: caseW - 0.22, height: caseD - 0.22 }, this.scene);
+    well.parent = base;
+    well.position.y = baseH / 2 + 0.002;
+    well.material = velvet;
+    well.isPickable = false;
+    const pack = roundedSlab("Caixa · maço de cartas", 1.72, 3, 0.22, CARD_RADIUS, this.scene);
+    pack.parent = base;
+    pack.position.set(0, baseH / 2 + 0.11, 0.05);
+    pack.rotation.y = 0.03;
+    pack.material = cardBody(this.scene, this.paper, pageEdges(this.scene), "Maço da caixa");
+    pack.isPickable = false;
+    pack.receiveShadows = true;
+    this.shadow.addShadowCaster(pack);
+    const packTop = CreateGround("Caixa · verso do maço", { width: 1.66, height: 2.94 }, this.scene);
+    packTop.parent = pack;
+    packTop.position.y = 0.112;
+    packTop.material = cardBack(this.scene);
+    packTop.isPickable = false;
+    // Lid hinged on the far edge, opened past upright so it leans back against the light.
+    const lidHinge = new MeshClass("Caixa · dobradiça", this.scene);
+    lidHinge.parent = caseRoot;
+    lidHinge.position.set(0, baseH - 0.05, caseD / 2);
+    lidHinge.rotation.x = 1.8;
+    const lid = roundedBox("Caixa · tampa", caseW + 0.04, caseD + 0.04, lidH, 0.15, this.scene);
+    lid.parent = lidHinge;
+    lid.position.set(0, lidH / 2, -(caseD + 0.04) / 2);
+    lid.material = caseLeather;
+    lid.isPickable = false;
+    this.shadow.addShadowCaster(lid);
+    inlay(caseW - 0.06, caseD - 0.06, lidH / 2 + 0.002, lid, "Caixa · filete da tampa");
+    const lining = CreateGround("Caixa · forro da tampa", { width: caseW - 0.16, height: caseD - 0.16 }, this.scene);
+    lining.parent = lid;
+    lining.position.y = -lidH / 2 - 0.002;
+    lining.rotation.x = Math.PI;
+    lining.material = velvet;
+    lining.isPickable = false;
+    // Gilt seal on the lid: two fine rings around a small star.
+    for (const [d, t] of [[1.1, 0.024], [0.92, 0.014]]) {
+      const seal = ring("Caixa · selo dourado", d, t, this.scene, 72);
+      seal.parent = lid;
+      seal.position.y = lidH / 2 + 0.006;
+      seal.material = caseGilt;
+      seal.isPickable = false;
+    }
+    const star = CreateCylinder("Caixa · estrela do selo", { height: 0.012, diameter: 0.34, tessellation: 4 }, this.scene);
+    star.parent = lid;
+    star.position.y = lidH / 2 + 0.008;
+    star.scaling.set(0.55, 1, 1);
+    star.material = caseGilt;
+    star.isPickable = false;
     const armillary = new MeshClass("Esfera armilar", this.scene);
     armillary.position.set(10, 0.95, -4.9);
     armillary.rotation.z = 0.41; // The axis leans like the Earth's.
