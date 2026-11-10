@@ -140,7 +140,8 @@ function execute(command: Command) {
         : "Bolo embaralhado.");
     }
     if (command.type === "return") announce("Carta devolvida ao bolo. Ctrl Z para desfazer.");
-    if (["shuffle", "draw", "reveal", "discard", "return", "note"].includes(command.type))
+    if (command.type === "returnAll") announce("Todas as cartas voltaram ao bolo. Ctrl Z para desfazer.");
+    if (["shuffle", "draw", "reveal", "discard", "return", "returnAll", "note"].includes(command.type))
       void flush();
   }
 }
@@ -327,6 +328,7 @@ function render() {
   $<HTMLButtonElement>("flip-button").disabled = !chosen;
   $<HTMLButtonElement>("discard-button").disabled = !chosen;
   $<HTMLButtonElement>("return-button").disabled = !chosen;
+  $<HTMLButtonElement>("return-all-button").disabled = !s.cards.length;
   $<HTMLButtonElement>("sideways-button").disabled = !chosen;
   $<HTMLButtonElement>("shuffle-button").disabled = s.remainingCardIds.length < 2;
   $<HTMLButtonElement>("draw").disabled = !s.remainingCardIds.length;
@@ -829,6 +831,10 @@ $("draw-bottom").onclick = () => execute({ type: "draw", from: "bottom" });
 $("sideways-button").onclick = () => {
   if (selected) execute({ type: "rotate", id: selected, amount: Math.PI / 2 });
 };
+$("return-all-button").onclick = () => {
+  table?.cancelDrag();
+  execute({ type: "returnAll" });
+};
 $("return-button").onclick = () => {
   if (selected) execute({ type: "return", id: selected });
 };
@@ -852,6 +858,7 @@ function shortcuts() {
     ["D", "Puxar uma carta do monte"],
     ["Shift D", "Puxar a carta do fundo do monte"],
     ["B", "Devolver a carta selecionada ao bolo · ou arraste até ele"],
+    ["Shift B", "Devolver todas as cartas da mesa ao bolo"],
     ["S", "Embaralhar as cartas restantes do bolo"],
     ["F / Espaço", "Virar a carta selecionada"],
     ["Delete / Backspace", "Descartar a seleção"],
@@ -1005,6 +1012,12 @@ document.addEventListener("keydown", (e) => {
     e.preventDefault();
     table?.cancelDrag();
     if (session().remainingCardIds.length > 1) execute({ type: "shuffle" });
+    return;
+  }
+  if (key === "b" && e.shiftKey && !e.repeat) {
+    e.preventDefault();
+    table?.cancelDrag();
+    execute({ type: "returnAll" });
     return;
   }
   if (key === "b" && selected && !e.repeat) {

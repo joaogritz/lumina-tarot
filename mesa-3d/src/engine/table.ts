@@ -48,6 +48,7 @@ import type { MultiMaterial } from "@babylonjs/core/Materials/multiMaterial";
 import { atmosphere } from "../scene/atmosphere";
 import { FramePacer } from "./framePacer";
 import { CaseSound } from "../audio/caseSound";
+import { CandleSound } from "../audio/candleSound";
 import { CardMotion } from "../cards/motion";
 import { createCardFront } from "../cards/material";
 import {
@@ -113,6 +114,10 @@ export class Table {
   private caseOpen = false;
   private caseAnim?: { from: number; to: number; start: number; duration: number };
   private caseSound = new CaseSound();
+  private candlesLit = true;
+  private candleFade = 1;
+  private candleAnim?: { from: number; to: number; start: number; duration: number };
+  private candleSound = new CandleSound();
   private armillary?: Mesh;
   private lastAmbient = 0;
   private deckDrag?: {
@@ -323,7 +328,8 @@ export class Table {
       const stick = CreateLathe("Castiçal torneado", { shape: stickProfile, tessellation: 48, cap: MeshClass.NO_CAP }, this.scene);
       stick.position.set(x, 0, z);
       stick.material = brass;
-      stick.isPickable = false;
+      stick.isPickable = true;
+      stick.metadata = { candleToggle: true };
       stick.receiveShadows = true;
       this.shadow.addShadowCaster(stick);
       // Candle with a softened, melted rim and a shallow pool around the wick.
@@ -346,7 +352,8 @@ export class Table {
       candle.name = "Vela de cera";
       candle.position.set(x, 0.44, z);
       candle.material = wax;
-      candle.isPickable = false;
+      candle.isPickable = true;
+      candle.metadata = { candleToggle: true };
       candle.receiveShadows = true;
       this.shadow.addShadowCaster(candle);
       const wick = CreateCylinder("Pavio", { diameter: 0.032, height: 0.15, tessellation: 8 }, this.scene);
@@ -734,7 +741,7 @@ export class Table {
           this.endRiffle();
         }
       }
-      const caseMoving = this.updateCase(start);
+      const caseMoving = this.updateCase(start) || this.updateCandles(start);
       const moving = this.motion.update(start) || shuffling || caseMoving;
       if (moving) this.frames = Math.max(this.frames, 2);
       const motionState = moving ? "active" : "idle";
@@ -813,14 +820,41 @@ export class Table {
       const t = time * 0.001 + f.seed;
       // Layered sines give an irregular, non-repeating flicker.
       const n = still ? 0 : Math.sin(t * 7.3) * 0.5 + Math.sin(t * 13.1 + 1.7) * 0.3 + Math.sin(t * 23.7) * 0.2;
-      f.outer.scaling.set(1.15 - n * 0.05, 1.15 + n * 0.16, 1.15 - n * 0.05);
+      const k = this.candleFade;
+      f.outer.setEnabled(k > 0.01);
+      f.outer.scaling.set((1.15 - n * 0.05) * k, (1.15 + n * 0.16) * k, (1.15 - n * 0.05) * k);
       f.outer.position.y = f.baseY + n * 0.006;
       f.outer.rotation.z = still ? 0 : Math.sin(t * 2.3) * 0.06;
       f.outer.rotation.x = still ? 0 : Math.sin(t * 1.7 + 0.6) * 0.05;
       glow += n;
     }
-    this.lamp.intensity = 3.1 + (glow / Math.max(1, this.flames.length)) * 0.32;
+    this.lamp.intensity = (3.1 + (glow / Math.max(1, this.flames.length)) * 0.32) * this.candleFade;
     if (this.armillary && !still) this.armillary.rotation.y = time * 0.00012;
+  }
+  /** Lights or snuffs the three candles together, with a spark or a puff. */
+  toggleCandles() {
+    this.candlesLit = !this.candlesLit;
+    this.candleAnim = {
+      from: this.candleFade,
+      to: this.candlesLit ? 1 : 0,
+      start: performance.now(),
+      duration: this.candlesLit ? 650 : 380,
+    };
+    void this.candleSound.play(this.candlesLit);
+    this.wake(3);
+  }
+  private updateCandles(now: number) {
+    const anim = this.candleAnim;
+    if (!anim) return false;
+    const t = Math.min(1, (now - anim.start) / anim.duration);
+    // Lighting catches late and blooms; going out collapses quickly.
+    const eased = this.candlesLit ? 1 - Math.pow(1 - t, 3) * (1 - t * 0.4) : t * t;
+    this.candleFade = anim.from + (anim.to - anim.from) * eased;
+    if (t >= 1) {
+      this.candleFade = anim.to;
+      this.candleAnim = undefined;
+    }
+    return true;
   }
   /** Opens or closes the card case: a short spring on the lid hinge and a sound. */
   toggleCase() {
@@ -952,6 +986,11 @@ export class Table {
             (!m.metadata.id || !this.exits.has(m.metadata.id)),
         );
         const metadata = hit?.pickedMesh?.metadata;
+        if (metadata?.candleToggle) {
+          this.toggleCandles();
+          e.preventDefault();
+          return;
+        }
         if (metadata?.caseToggle) {
           this.toggleCase();
           e.preventDefault();
