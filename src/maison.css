@@ -361,3 +361,37 @@ button[class*="text-slate-950"] svg, button[class*="text-stone-950"] svg { color
 @media (prefers-reduced-motion: reduce) {
   .maison-reveal-card .tarot-card-object { animation: none; }
 }
+
+/* ---- One print: every card artwork shares the same aged-paper grade ----------- */
+:root { --m-art-filter: sepia(.2) saturate(.78) contrast(1.06) brightness(.94); }
+.tarot-artwork-image { filter: var(--m-art-filter); }
+.tarot-artwork-window::after { content: ''; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse at 50% 45%, transparent 58%, rgb(10 9 8 / .28) 100%); }
+.tarot-card-picture { border-color: rgb(181 149 92 / .35) !important; }
+
+/* ---- Ivoire: the light edition. Same structure, ink on ivory paper. -------------- */
+:root[data-edition="ivoire"] {
+  color-scheme: light;
+  --m-ink: #f1ece2; --m-ink-raised: #e9e2d5;
+  --m-bone: #1d1a16; --m-stone: #6a6255; --m-stone-quiet: #958c7d;
+  --m-gold: #8a6d3b; --m-gold-light: #74582a;
+  --m-line: rgb(29 26 22 / .12); --m-line-strong: rgb(29 26 22 / .26); --m-gold-line: rgb(138 109 59 / .5);
+  --m-sage: #5f6e55; --m-rose: #8e4f45;
+  --color-void: var(--m-ink); --color-obsidian: var(--m-ink-raised); --color-surface: var(--m-ink-raised); --color-raised: #e2dacb;
+  /* Utility greys and golds flip so light text becomes dark text. */
+  --color-slate-50: #1d1a16; --color-slate-100: #24201b; --color-slate-200: #2f2a23; --color-slate-300: #4a4339;
+  --color-slate-400: #6a6255; --color-slate-500: #81786a; --color-slate-600: #9a9183; --color-slate-700: #c9c0b0;
+  --color-slate-800: #ddd5c6; --color-slate-900: #e9e2d5; --color-slate-950: #f1ece2;
+  --color-stone-800: #ddd5c6; --color-stone-900: #e9e2d5; --color-stone-950: #f1ece2;
+  --color-amber-100: #3b2e17; --color-amber-200: #4d3c1e; --color-amber-300: #74582a; --color-amber-400: #8a6d3b; --color-amber-500: #9a7d4b;
+  --color-amber-900: #e6dcc6; --color-amber-950: #efe7d6;
+}
+:root[data-edition="ivoire"] body { background: var(--m-ink); }
+:root[data-edition="ivoire"] .sanctuary-table canvas.fixed { opacity: .5; }
+:root[data-edition="ivoire"] [role="dialog"]:not(.destiny-ritual),
+:root[data-edition="ivoire"] .maison-reading { box-shadow: 0 30px 80px rgb(29 26 22 / .18) !important; }
+:root[data-edition="ivoire"] .maison-reading-bar,
+:root[data-edition="ivoire"] .maison-reading > div:last-child { background: var(--m-ink) !important; }
+:root[data-edition="ivoire"] .mobile-tools-backdrop,
+:root[data-edition="ivoire"] .fixed.inset-0.bg-slate-950\/90 { background: rgb(241 236 226 / .86) !important; }
+:root[data-edition="ivoire"] .tarot-artwork-window::after { background: radial-gradient(ellipse at 50% 45%, transparent 62%, rgb(29 26 22 / .18) 100%); }
+:root[data-edition="ivoire"] ::selection { background: var(--m-bone); color: var(--m-ink); }
