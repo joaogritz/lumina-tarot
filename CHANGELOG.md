@@ -5,6 +5,12 @@ e as versões seguem [SemVer](https://semver.org/lang/pt-BR/).
 
 ## [Não lançado]
 
+### Removido
+- O Google Gemini deixou de ser usado: as interpretações vêm só do Cloudflare Workers AI (Gemma 4 26B,
+  com gpt-oss-120b de reserva). O Worker não precisa mais de chave externa, e a política de privacidade
+  agora diz que nenhuma outra empresa recebe a consulta.
+- Música de fundo e modo foco.
+
 ### Adicionado
 - Mesa 3D: **Do fundo** (Shift D) puxa a carta de baixo do monte, que desliza para fora por baixo
   dele. Como Devolver põe a carta no fundo, ela também recupera a última carta devolvida.
