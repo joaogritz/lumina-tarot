@@ -10,7 +10,6 @@ import { MobileBottomDock } from './MobileBottomDock';
 import { BackgroundStars } from './BackgroundStars';
 import { historyService } from '../utils/history';
 import { themeService } from '../utils/theme';
-import { bgMusicService } from '../utils/bgMusic';
 import { audio } from '../utils/audio';
 
 // Resilient Lazy Loader that automatically recovers from stale chunk hashes on new deployments
@@ -114,7 +113,6 @@ export const TarotTable = () => {
   const [isDailyOpen, setIsDailyOpen] = useState(false);
   const [isThemesOpen, setIsThemesOpen] = useState(false);
   const [isYesNoOpen, setIsYesNoOpen] = useState(false);
-  const [isZenMode, setIsZenMode] = useState(false);
   const [destinySummonData, setDestinySummonData] = useState(null);
   const [pendingSpreadChange, setPendingSpreadChange] = useState(null);
   const [historyCount, setHistoryCount] = useState(() => historyService.getReadings().length);
@@ -325,12 +323,6 @@ export const TarotTable = () => {
         e.preventDefault();
         audio.playHover();
         setIsThemesOpen(prev => !prev);
-      } else if (e.key === 'z' || e.key === 'Z') {
-        e.preventDefault();
-        setIsZenMode(prev => !prev);
-      } else if (e.key === 'm' || e.key === 'M') {
-        e.preventDefault();
-        bgMusicService.toggle();
       } else if (e.key === 'Escape') {
 
         setInspectingCardData(null);
@@ -378,23 +370,20 @@ export const TarotTable = () => {
           }}
           onOpenDaily={() => setIsDailyOpen(true)}
           onOpenYesNo={() => setIsYesNoOpen(true)}
-          isZenMode={isZenMode}
-          onToggleZenMode={() => setIsZenMode(!isZenMode)}
           historyCount={historyCount}
         />
 
-        {/* Spread Selector Navigation (Visible when not in Zen Mode) */}
-        {!isZenMode && (
-          <SpreadSelector
-            spreads={availableSpreads}
-            currentSpread={activeSpread}
-            onSelectSpread={handleSelectSpreadRequest}
-            onFreeCountChange={handleFreeCountChange}
-            minimumFreeCount={minimumFreeCount}
-          />
-        )}
+        <p className="maison-chapter maison-chapter-rule"><span>II</span>A tiragem</p>
+        <SpreadSelector
+          spreads={availableSpreads}
+          currentSpread={activeSpread}
+          onSelectSpread={handleSelectSpreadRequest}
+          onFreeCountChange={handleFreeCountChange}
+          minimumFreeCount={minimumFreeCount}
+        />
 
         {/* The Spread Reading Altar (Slots Area) */}
+        <p className="maison-chapter maison-chapter-rule"><span>III</span>A mesa</p>
         <div ref={altarRef} id="reading-altar" className="altar-scene">
           <CelestialRing className="altar-instrument" />
           <SpreadArea
@@ -410,44 +399,38 @@ export const TarotTable = () => {
           />
         </div>
 
-        {/* The Card Deck Selection Grid (Visible when not in Zen Mode) */}
-        {!isZenMode && (
-          <DeckSelectionGrid
-            key={deckId}
-            deck={deck}
-            activeDeckId={deckId}
-            layoutMode={deckLayout}
-            onChangeLayoutMode={setDeckLayout}
-            onSwitchDeck={() => {
-              const targetDeck = deckId === 'tarot' ? 'lenormand' : 'tarot';
-              if (filledCount > 0) {
-                setPendingDeckId(targetDeck);
-              } else {
-                changeDeck(targetDeck);
-              }
-            }}
-            onSelectCard={handleSelectCard}
-            onRandomPick={handleFullDestinyDraw}
-            onShuffleDeck={handleShuffleDeck}
-            canSelectMore={canSelectMore}
-            remainingToPick={remainingToPick}
-          />
-        )}
+        <p className="maison-chapter maison-chapter-rule"><span>IV</span>O baralho</p>
+        <DeckSelectionGrid
+          key={deckId}
+          deck={deck}
+          activeDeckId={deckId}
+          layoutMode={deckLayout}
+          onChangeLayoutMode={setDeckLayout}
+          onSwitchDeck={() => {
+            const targetDeck = deckId === 'tarot' ? 'lenormand' : 'tarot';
+            if (filledCount > 0) {
+              setPendingDeckId(targetDeck);
+            } else {
+              changeDeck(targetDeck);
+            }
+          }}
+          onSelectCard={handleSelectCard}
+          onRandomPick={handleFullDestinyDraw}
+          onShuffleDeck={handleShuffleDeck}
+          canSelectMore={canSelectMore}
+          remainingToPick={remainingToPick}
+        />
 
       </main>
 
       {/* Footer */}
-      <footer className="sanctuary-footer relative z-10 py-6 text-center text-xs text-slate-500 border-t border-stone-900/30 glass-panel-subtle mt-auto hidden md:block">
-        <CelestialRing className="footer-instrument" />
-        <p className="font-cinzel tracking-wider text-amber-200/60">
-          Lumina Tarot • Sabedoria Ancestral & Arcanos do Destino
-        </p>
-        <p className="footer-disclaimer">
-          As leituras são reflexões simbólicas e não substituem orientação médica, psicológica, jurídica ou financeira.
-          {' '}<a href="./privacidade.html" target="_blank" rel="noopener">Privacidade</a>
-        </p>
-        <p className="text-[11px] text-slate-600 mt-1">
-          Atalhos: [Espaço] Embaralhar • [D] Destino • [G] Grimório • [H] Diário • [T] Temas • [Z] Zen • [Esc] Fechar
+      <footer className="maison-footer">
+        <p className="maison-wordmark"><span>Lumina</span></p>
+        <p>Tarot e Baralho Cigano, para reflexão. As leituras são simbólicas e não substituem orientação médica, psicológica, jurídica ou financeira.</p>
+        <p className="maison-footer-meta">
+          <a href="./privacidade.html" target="_blank" rel="noopener">Privacidade</a>
+          <span aria-hidden="true">·</span>
+          <span>Atalhos: Espaço embaralha, D tira ao acaso, G grimório, H diário, Esc fecha</span>
         </p>
       </footer>
 

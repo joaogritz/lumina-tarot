@@ -87,7 +87,7 @@ export const ConfirmSpreadChangeModal = ({
 
         {/* Description */}
         <p className="text-xs sm:text-sm text-slate-300 leading-relaxed mb-6">
-          As cartas consagradas na mesa serão recolhidas e o baralho será reembaralhado para o novo formato de leitura. Deseja prosseguir?
+          As cartas da mesa serão recolhidas e o baralho, embaralhado de novo. Deseja continuar?
         </p>
 
         {/* Action Buttons */}

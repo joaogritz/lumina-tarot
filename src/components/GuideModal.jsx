@@ -44,12 +44,12 @@ export const GuideModal = ({ isOpen, onClose }) => {
         <div className="flex items-center gap-2 mb-2 text-amber-400">
           <HelpCircle className="w-5 h-5" />
           <h3 className="font-cinzel text-lg sm:text-xl font-bold text-amber-200">
-            Guia do Oráculo Lumina
+            Como ler
           </h3>
         </div>
 
         <p className="text-xs text-slate-300 mb-6 leading-relaxed">
-          O Tarot é um espelho arquetípico da consciência humana. Ao mentalizar sua questão e escolher as cartas, seu subconsciente e as sincronias do universo guiam a escolha.
+          O Tarot é um espelho simbólico. Formule a pergunta com calma e escolha as cartas sem pressa: a leitura é um convite à reflexão, não uma previsão.
         </p>
 
         <div className="space-y-4 text-xs text-slate-300">

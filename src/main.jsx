@@ -4,6 +4,8 @@ import App from './App';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import './index.css';
 import './mobile.css';
+// Experimental art direction (branch experimento/maison).
+import './maison.css';
 
 // Register PWA Service Worker in production
 if ('serviceWorker' in navigator && import.meta.env.PROD) {

@@ -82,7 +82,7 @@ export const DeckSelectionGrid = ({
           <div className="text-center lg:text-left">
             <div className="flex flex-wrap items-center justify-center lg:justify-start gap-2.5">
               <h3 className="font-cinzel text-base sm:text-lg md:text-xl font-bold text-amber-200">
-                Seu baralho ({availableCount} de {deck.length} cartas)
+                {activeDeckId === 'tarot' ? 'Tarot' : 'Baralho Cigano'} <small className="maison-count">{availableCount} de {deck.length}</small>
               </h3>
               {onSwitchDeck && (
                 <button
@@ -93,7 +93,7 @@ export const DeckSelectionGrid = ({
                   className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-sm bg-gradient-to-r from-stone-950/90 via-slate-900 to-emerald-950/90 hover:from-stone-900 hover:to-emerald-900 border border-amber-400/50 hover:border-amber-300 text-amber-200 hover:text-white text-xs font-cinzel font-semibold transition-all shadow-md active:scale-95 cursor-pointer"
                 >
                   <Layers className="w-4 h-4 text-amber-400" />
-                  <span>{activeDeckId === 'tarot' ? 'Trocar para Baralho Cigano' : 'Trocar para Tarot'}</span>
+                  <span>{activeDeckId === 'tarot' ? 'Usar o Baralho Cigano' : 'Usar o Tarot'}</span>
                 </button>
               )}
               <div className="deck-layout-switch" role="group" aria-label="Disposição do baralho">
@@ -112,9 +112,9 @@ export const DeckSelectionGrid = ({
                 ? 'Embaralhando as cartas...'
                 : canSelectMore 
                   ? layoutMode === 'row'
-                    ? `Puxe uma carta da fileira. Faltam ${remainingToPick} carta(s).`
-                    : `Passe o mouse ou toque para escolher mais ${remainingToPick} carta(s).`
-                  : 'Todos os slots foram preenchidos! Veja a interpretação acima.'
+                    ? `Puxe da fileira. ${remainingToPick === 1 ? 'Falta uma carta' : `Faltam ${remainingToPick} cartas`}.`
+                    : `Escolha ${remainingToPick === 1 ? 'mais uma carta' : `mais ${remainingToPick} cartas`}.`
+                  : 'A mesa está completa.'
               }
             </p>
           </div>
@@ -133,7 +133,7 @@ export const DeckSelectionGrid = ({
               `}
             >
               <Shuffle className={`w-3.5 h-3.5 ${isShuffling ? 'animate-spin' : ''}`} />
-              <span>{isShuffling ? 'Embaralhando...' : 'Embaralhar Baralho'}</span>
+              <span>{isShuffling ? 'Embaralhando' : 'Embaralhar'}</span>
             </button>
 
             {canSelectMore && !isShuffling && (
@@ -147,7 +147,7 @@ export const DeckSelectionGrid = ({
 
                 <Destiny className="w-4 h-4 text-amber-400 group-hover:scale-125 transition-transform duration-300 shrink-0" />
                 <span className="font-outfit text-xs uppercase tracking-widest">
-                  Tiragem do Destino
+                  Tirar ao acaso
                 </span>
                 <span className="text-[11px] px-2 py-0.5 rounded-full bg-amber-500/20 border border-amber-400/40 text-amber-300 font-cinzel font-semibold">
                   {remainingToPick}

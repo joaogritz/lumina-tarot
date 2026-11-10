@@ -140,10 +140,10 @@ export const YesNoOracleModal = ({
         <div className="mb-4">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-stone-950/80 border border-amber-500/30 text-amber-300 text-xs font-cinzel font-semibold mb-2">
             <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-            <span>Reflexão simbólica com as cartas</span>
+            <span>Uma carta, uma resposta</span>
           </div>
           <h3 className="font-cinzel text-xl sm:text-2xl md:text-3xl font-black text-slate-100 gold-gradient-text tracking-wide">
-            Oráculo do Sim ou Não
+            Sim ou Não
           </h3>
           <p className="text-xs text-slate-400 mt-1 max-w-md mx-auto">
             Faça sua pergunta e explore uma orientação simbólica com conselhos práticos. O resultado não é uma certeza sobre os fatos.
@@ -184,7 +184,7 @@ export const YesNoOracleModal = ({
             {/* Quick Question Chips */}
             <div className="mt-3">
               <span className="text-[10px] font-cinzel text-amber-400/80 font-semibold uppercase block mb-1.5">
-                Sugestões Rápidas:
+                Sugestões
               </span>
               <div className="flex flex-wrap gap-1.5">
                 {QUICK_QUESTIONS.map((q, idx) => (
@@ -213,7 +213,7 @@ export const YesNoOracleModal = ({
               `}
             >
               <Dices className={`w-5 h-5 ${isDrawing ? 'animate-spin' : ''}`} />
-              <span>{isDrawing ? 'Embaralhando Arcanos...' : 'Tirar Carta & Consultar Oráculo'}</span>
+              <span>{isDrawing ? 'Embaralhando' : 'Tirar a carta'}</span>
             </button>
           </div>
         )}
@@ -265,7 +265,7 @@ export const YesNoOracleModal = ({
                 onClick={handleReset}
                 className="py-2.5 px-4 rounded-sm bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300 hover:text-amber-300 text-xs font-semibold cursor-pointer transition-all active:scale-95"
               >
-                Outra Pergunta
+                Outra pergunta
               </button>
             </div>
           </motion.div>
@@ -361,7 +361,7 @@ export const YesNoOracleModal = ({
                 className="flex-1 min-w-[130px] py-2.5 px-3 rounded-sm bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300 hover:text-amber-300 text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition-all active:scale-95"
               >
                 <RotateCcw className="w-4 h-4" />
-                <span>Outra Pergunta</span>
+                <span>Outra pergunta</span>
               </button>
 
               <button

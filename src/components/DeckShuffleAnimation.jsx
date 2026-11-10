@@ -61,9 +61,9 @@ export const DeckShuffleAnimation = ({ onComplete }) => {
         <Sparkles className="w-4 h-4 text-amber-400 animate-spin" style={{ animationDuration: '3s' }} />
         <span className="font-cinzel text-xs md:text-sm font-bold text-amber-200 tracking-wider">
           {phase === 'cut' && 'Cortando o Baralho Arcano...'}
-          {phase === 'riffle' && 'Embaralhando as Forças do Destino...'}
+          {phase === 'riffle' && 'Embaralhando'}
           {phase === 'fan' && 'Alinhando as cartas...'}
-          {phase === 'gather' && 'Consagração Concluída!'}
+          {phase === 'gather' && 'Pronto'}
         </span>
         <Sparkles className="w-4 h-4 text-amber-400 animate-spin" style={{ animationDuration: '3s' }} />
       </motion.div>
@@ -198,7 +198,7 @@ export const DeckShuffleAnimation = ({ onComplete }) => {
             className="relative w-32 sm:w-36 aspect-[7/12] rounded-sm shadow-2xl flex items-center justify-center"
           >
             <TarotCard face="back" size="md" />
-            <span className="sr-only">Baralho Consagrado</span>
+            <span className="sr-only">Baralho embaralhado</span>
           </motion.div>
         )}
 

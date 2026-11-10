@@ -83,7 +83,7 @@ export const GrimoireModal = ({
                 Grimório · {cards.length} cartas
               </h3>
               <p className="text-[11px] text-slate-400 hidden sm:block">
-                Enciclopédia de sabedoria ancestral, correspondências astrológicas e simbologia sagrada
+                Significados, correspondências e símbolos de cada carta
               </p>
             </div>
           </div>

@@ -71,8 +71,8 @@ export const SpreadSelector = ({
           <button
             type="button"
             onClick={() => handleScroll('left')}
-            title="Ver tiragens anteriores"
-            className="shrink-0 w-8 h-8 rounded-full bg-slate-950/85 backdrop-blur-md border border-amber-400/50 hover:border-amber-300 text-amber-300 hover:text-white flex items-center justify-center shadow-lg transition-all cursor-pointer active:scale-90"
+            title="Ver tiragens anteriores" aria-label="Ver tiragens anteriores"
+            className="spread-scroll-arrow shrink-0 w-8 h-8 rounded-full bg-slate-950/85 backdrop-blur-md border border-amber-400/50 hover:border-amber-300 text-amber-300 hover:text-white flex items-center justify-center shadow-lg transition-all cursor-pointer active:scale-90"
           >
             <ChevronLeft className="w-4 h-4" />
           </button>
@@ -139,8 +139,8 @@ export const SpreadSelector = ({
           <button
             type="button"
             onClick={() => handleScroll('right')}
-            title="Ver mais tiragens"
-            className="shrink-0 w-8 h-8 rounded-full bg-slate-950/85 backdrop-blur-md border border-amber-400/50 hover:border-amber-300 text-amber-300 hover:text-white flex items-center justify-center shadow-lg transition-all cursor-pointer active:scale-90"
+            title="Ver mais tiragens" aria-label="Ver mais tiragens"
+            className="spread-scroll-arrow shrink-0 w-8 h-8 rounded-full bg-slate-950/85 backdrop-blur-md border border-amber-400/50 hover:border-amber-300 text-amber-300 hover:text-white flex items-center justify-center shadow-lg transition-all cursor-pointer active:scale-90"
           >
             <ChevronRight className="w-4 h-4" />
           </button>

@@ -114,7 +114,7 @@ export const InterpretationModal = ({
       `----------------------------------------`,
       `🌌 SÍNTESE SAGRADA DO ORÁCULO:`,
       aiReading?.text || 'Interpretação profunda revelada pelos arcanos.',
-      `\nLumina Tarot • Sabedoria Ancestral & Arcanos do Destino`
+      `\nLumina · luminatarot.app`
     ];
     return lines.filter(Boolean).join('\n');
   };
@@ -186,78 +186,40 @@ export const InterpretationModal = ({
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.96, y: 15 }}
         transition={{ duration: .7, ease: [.16, 1, .3, 1] }}
-        className="responsive-dialog dialog-interpretation relative z-10 w-full max-w-5xl max-h-[90vh] flex flex-col rounded-sm bg-[var(--color-obsidian)] border border-amber-500/40 shadow-[0_0_50px_rgba(147,51,234,0.3)] overflow-hidden text-left"
+        className="responsive-dialog dialog-interpretation maison-reading relative z-10 w-full max-w-5xl max-h-[90vh] flex flex-col overflow-hidden text-left"
       >
         {/* Header Bar */}
-        <div className="p-4 sm:p-6 border-b border-amber-500/20 flex items-center justify-between bg-slate-950/60 sticky top-0 z-20 backdrop-blur-md">
-          <div className="flex items-center gap-2 text-amber-300">
-            <Sparkles className="w-5 h-5 text-amber-400 animate-pulse" />
-            <span className="font-cinzel text-xs uppercase tracking-widest font-semibold text-amber-300/80">
-              {chosenCards[0]?.deckId === 'lenormand' ? 'Oráculo Cigano · Petit Lenormand' : 'Oráculo dos 78 Arcanos'}
-            </span>
-          </div>
-
-          <button
-            type="button"
-            aria-label="Fechar" onClick={handleClose}
-            className="p-1.5 rounded-full bg-slate-900/80 border border-slate-700 text-slate-400 hover:text-amber-300 hover:border-amber-400/50 transition-all cursor-pointer"
-          >
-            <X aria-hidden="true" className="w-5 h-5" />
-          </button>
+        <div className="maison-reading-bar">
+          <p className="maison-wordmark"><span>Lumina</span></p>
+          <button type="button" className="maison-bar-link" onClick={handleClose}>Fechar</button>
         </div>
 
         {/* Scrollable Content */}
-        <div className="p-4 sm:p-6 md:p-8 overflow-y-auto min-h-0 space-y-6">
-          
-          {/* Main Title & Intention */}
-          <div className="text-center max-w-3xl mx-auto">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-400/10 border border-amber-400/30 text-amber-300 text-xs font-cinzel mb-2">
-              <Star className="w-3.5 h-3.5 text-amber-400" />
-              <span>Conselho Sagrado Revelado</span>
-            </div>
+        <div className="maison-reading-scroll overflow-y-auto min-h-0">
 
-            <h2 className="font-cinzel text-2xl md:text-4xl font-black text-slate-100 gold-gradient-text tracking-wide">
-              Interpretação Completa da Tiragem
-            </h2>
-
-            <p className="font-cinzel text-xs md:text-sm text-amber-200/80 mt-1">
-              {spreadConfig.name} • {chosenCards.length} Cartas Reveladas
+          <header className="maison-reading-title">
+            <p className="maison-chapter">A leitura <span className="maison-dot" aria-hidden="true">·</span> {spreadConfig.name}</p>
+            <h2>{userQuestion ? <em>{userQuestion}</em> : <>Uma leitura <em>aberta</em></>}</h2>
+            <p className="maison-reading-meta">
+              {chosenCards[0]?.deckId === 'lenormand' ? 'Baralho Cigano' : 'Tarot'} <span aria-hidden="true">·</span> {chosenCards.length} {chosenCards.length === 1 ? 'carta' : 'cartas'} <span aria-hidden="true">·</span> {new Date().toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' })}
             </p>
+          </header>
 
-            {userQuestion && (
-              <motion.div 
-                initial={{ opacity: 0, y: 6 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="mt-4 max-w-xl mx-auto p-3 rounded-sm bg-stone-950/60 border border-amber-500/40 text-xs md:text-sm text-amber-200 italic shadow-lg text-left"
-              >
-                <div className="flex items-center gap-1.5 text-amber-400 font-bold not-italic mb-0.5 font-cinzel text-xs">
-                  <Feather className="w-3.5 h-3.5" />
-                  <span>Sua Pergunta / Intenção:</span>
-                </div>
-                "{userQuestion}"
-              </motion.div>
-            )}
+          {/* The drawn cards arrive face down and turn one by one as the reading begins. */}
+          <div className="maison-reveal" aria-hidden="true">
+            {chosenCards.map((card, i) => (
+              <div key={card.id || i} className="maison-reveal-card" style={{ '--i': i }}>
+                <CardArt card={card} size="sm" showKeywords={false} />
+              </div>
+            ))}
           </div>
 
-          {/* Authentic Mystical Oracle Synthesis Box */}
-          <div className="interpretation-prose relative p-5 sm:p-7">
-            {/* Ambient Background Glow */}
-            <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
-
-            <div className="flex items-center gap-2 pb-3 mb-3 border-b border-amber-500/20 text-amber-400">
-              <Sparkles className="w-5 h-5 text-amber-400 animate-pulse" />
-              <h3 className="font-cinzel text-base sm:text-lg font-bold text-amber-200 gold-gradient-text">
-                Interpretação da sua Leitura
-              </h3>
-            </div>
-
+          <div className="interpretation-prose maison-prose">
             {/* Loading State or Structured Sections */}
             {isLoadingAi ? (
               <div className="py-8 flex flex-col items-center justify-center gap-3 text-center">
                 <CelestialRing className="oracle-loading-instrument" />
-                <p className="font-cinzel text-xs sm:text-sm text-amber-200 animate-pulse">
-                  Analisando as cartas e preparando uma resposta clara para você...
-                </p>
+                <p className="maison-loading-text">As cartas estão sendo lidas</p>
               </div>
             ) : unavailable ? (
               <div role="alert" className="py-8 flex flex-col items-center justify-center gap-3 text-center animate-fade-in">
@@ -277,21 +239,19 @@ export const InterpretationModal = ({
                 </button>
               </div>
             ) : aiReading?.diagnosis ? (
-              <div aria-busy={streaming} className="space-y-3.5 text-xs sm:text-sm leading-relaxed text-slate-200 font-sans">
+              <div aria-busy={streaming} className="maison-sections">
                 {[
-                  { key: 'diagnosis', title: '🔍 O que as cartas estão mostrando', box: 'bg-slate-900/80 border-amber-500/30', text: 'text-slate-300' },
-                  { key: 'dynamics', title: '💡 O que está acontecendo por trás', box: 'bg-slate-900/80 border-amber-500/30', text: 'text-slate-300' },
-                  { key: 'advice', title: '🧭 Conselho prático para você', box: 'bg-stone-950/70 border-amber-400/40', text: 'text-amber-100/95 font-medium' },
+                  { key: 'diagnosis', numeral: 'I', title: 'O que as cartas mostram', text: 'maison-section-text maison-dropcap' },
+                  { key: 'dynamics', numeral: 'II', title: 'O que age por trás', text: 'maison-section-text' },
+                  { key: 'advice', numeral: 'III', title: 'O conselho', text: 'maison-section-text maison-advice' },
                 ].map((section, i, all) => {
                   const body = aiReading[section.key];
                   if (!body) return null;
                   // While streaming, the quill marks the section being written: the last one with text.
                   const writing = streaming && !all.slice(i + 1).some(next => aiReading[next.key]);
                   return (
-                    <div key={section.key} className={`oracle-section-enter p-3.5 sm:p-4 rounded-sm border ${section.box}`}>
-                      <span className="font-cinzel text-xs font-bold text-amber-300 flex items-center gap-1.5 mb-1.5 uppercase tracking-wider">
-                        <span>{section.title}</span>
-                      </span>
+                    <div key={section.key} className="oracle-section-enter maison-section">
+                      <h3 className="maison-section-title"><span>{section.numeral}</span>{section.title}</h3>
                       <EmergingText text={body} active={writing} className={section.text} />
                     </div>
                   );
@@ -309,7 +269,7 @@ export const InterpretationModal = ({
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-cinzel text-sm font-bold text-amber-300 uppercase tracking-widest flex items-center gap-2">
                 <BookOpen className="w-4 h-4" />
-                <span>As Cartas em suas Posições no Altar</span>
+                <span>As cartas</span>
               </h3>
               <span className="text-[11px] text-amber-300/80 font-cinzel flex items-center gap-1">
                 <ZoomIn className="w-3.5 h-3.5 text-amber-400" />
@@ -400,7 +360,7 @@ export const InterpretationModal = ({
               {stats.majorCount > 0 && (
                 <div className="flex items-center gap-1.5 px-3 py-1 rounded-sm bg-amber-950/60 border border-amber-400/40 text-amber-300 text-xs">
                   <Sparkles className="w-3.5 h-3.5" />
-                  <span>{stats.majorCount} Arcanos Maiores (Destino)</span>
+                  <span>{stats.majorCount} Arcanos Maiores</span>
                 </div>
               )}
               {stats.wandsCount > 0 && (

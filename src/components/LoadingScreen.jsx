@@ -47,19 +47,19 @@ export const LoadingScreen = ({ onLoaded }) => {
   }, [isReady, handleEnter]);
 
   const getStatusText = () => {
-    if (progress < 30) return 'Sintonizando o Oráculo Sagrado...';
-    if (progress < 65) return 'Preparando os baralhos...';
-    if (progress < 95) return 'Alinhando as Constelações & Energias...';
-    return 'O santuário dos arcanos está aberto';
+    if (progress < 30) return 'Preparando as cartas';
+    if (progress < 65) return 'Embaralhando';
+    if (progress < 95) return 'Quase lá';
+    return 'Pronto';
   };
 
   return (
     <motion.main className="sanctuary-entry" initial={{ opacity: 1 }} exit={{ opacity: 0, pointerEvents: 'none', transition: { duration: .8 } }}>
       <BackgroundStars />
-      <div className="entry-nav"><span className="entry-wordmark">✧ LUMINA</span><span className="micro-label">TAROT & BARALHO CIGANO</span></div>
+      <div className="entry-nav"><span className="entry-wordmark">LUMINA</span><span className="micro-label">LUMINATAROT.APP</span></div>
       <div className="entry-composition">
         <div className="entry-copy">
-          <p className="micro-label"><span className="gold-rule" /> SANTUÁRIO DOS ARCANOS</p>
+          <p className="micro-label"><span className="gold-rule" /> TAROT &amp; BARALHO CIGANO</p>
           <h1>Lumina<br /><em>Tarot.</em></h1>
           <p className="entry-description">Sua jornada começa com uma pergunta e uma escolha.</p>
           <div className="entry-action" aria-live="polite">
@@ -74,7 +74,7 @@ export const LoadingScreen = ({ onLoaded }) => {
           <span className="instrument-note micro-label">AS ABOVE · SO BELOW</span>
         </div>
       </div>
-      <div className="entry-footer"><span>Sabedoria Ancestral & Arcanos do Destino</span><span className="micro-label">UM INSTANTE DE SILÊNCIO. UMA NOVA PERSPECTIVA.</span></div>
+      <div className="entry-footer"><span>Tarot &amp; Baralho Cigano</span><span className="micro-label">UM INSTANTE DE SILÊNCIO. UMA NOVA PERSPECTIVA.</span></div>
     </motion.main>
   );
 };
