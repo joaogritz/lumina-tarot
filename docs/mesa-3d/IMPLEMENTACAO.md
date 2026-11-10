@@ -35,7 +35,7 @@ O workflow executa as regras das duas aplicações, TypeScript, build multipági
 
 ## Comportamentos definidos
 
-O monte conserva sua ordem exata. Retirar nunca revela automaticamente. A inversão do Tarot é independente do ângulo físico e não existe no Cigano. Devolver coloca a carta no fundo do monte; descartar a retira da circulação. **Do fundo** (Shift D) retira a carta de baixo do monte, que desliza para fora por baixo dele; uma carta recém-devolvida volta assim à mão. Ambas as ações são reversíveis. Embaralhar afeta apenas as cartas restantes.
+O monte conserva sua ordem exata. Retirar nunca revela automaticamente. A inversão do Tarot é independente do ângulo físico e não existe no Cigano. Devolver coloca a carta no fundo do monte; descartar a retira da circulação. **Do fundo** (Shift D) retira a carta de baixo do monte, que desliza para fora por baixo dele; uma carta recém-devolvida volta assim à mão. A caixa das cartas, no canto da mesa, é decorativa e interativa: um clique ou toque abre e fecha a tampa, com uma pequena mola na animação e um som sintetizado localmente (segue a preferência de som da mesa). Ambas as ações são reversíveis. Embaralhar afeta apenas as cartas restantes.
 
 O arraste conserva o deslocamento inicial e confirma uma única ação ao soltar. Escape, perda de captura, perda de foco e um segundo toque cancelam a apresentação temporária. Dois dedos passam a controlar a câmera. A seleção se eleva acima das demais cartas sem alterar a ordem persistida até uma movimentação confirmada. A lista e os botões de movimento permitem operar sem arrastar.
 

@@ -130,9 +130,26 @@ dialog { border-radius: 0 !important; border-color: var(--m-line-strong) !import
 @media (max-width: 800px) {
   .topbar { height: 60px; padding: 0 14px; }
   .back { letter-spacing: .2em; }
-  .toolbar { padding: 6px; }
-  .toolbar button { letter-spacing: .08em; font-size: 10px; }
+  .toolbar { padding: 6px; gap: 4px; }
+  /* Narrow screens: labels stay legible without the wide tracking that made them collide. */
+  .toolbar button { letter-spacing: .02em; text-transform: none; font-size: 11px; padding: 6px 4px; min-height: 38px; overflow: hidden; }
+  .toolbar button .tool-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .toolbar button.primary { letter-spacing: .06em; text-transform: uppercase; font-size: 10px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .back, .top-actions button, .toolbar button { transition: none; }
 }
+
+/* ---- Primary and wide buttons everywhere (welcome, dialogs) ---------------------- */
+button.primary {
+  background: var(--m-bone) !important; background-image: none !important;
+  border: 1px solid var(--m-bone) !important; border-radius: 0 !important;
+  color: var(--m-ink) !important; box-shadow: none !important;
+  font: 400 12px var(--m-sans); letter-spacing: .2em; text-transform: uppercase;
+  transition: background .5s var(--m-ease), color .5s var(--m-ease);
+}
+button.primary:hover:not(:disabled) { background: transparent !important; color: var(--m-bone) !important; }
+button.wide:not(.primary) { border-radius: 0; background: transparent; border-color: var(--m-line-strong); font: 400 12px var(--m-sans); letter-spacing: .2em; text-transform: uppercase; }
+button.wide:not(.primary):hover { border-color: var(--m-bone); }
+.deck-option { border-radius: 0 !important; }
+.deck-option:has(input:checked) { border-color: var(--m-gold) !important; background: rgb(181 149 92 / .06) !important; }
