@@ -1,6 +1,7 @@
 import "./styles/fonts.css";
 import "./styles/mesa.css";
 import "./styles/refinement.css";
+import "./styles/maison.css";
 import { decorateTools } from "./ui/icons";
 decorateTools();
 import { DECKS } from "../../src/data/decks.js";

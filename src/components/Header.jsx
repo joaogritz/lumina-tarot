@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { audio } from '../utils/audio';
+import { CelestialRing } from './CelestialRing';
 
 // Maison masthead: a quiet bar (menu, wordmark, journal) and an editorial opening chapter.
 // Every tool lives in one full-screen index instead of a row of competing buttons.
@@ -122,10 +123,14 @@ export const Header = ({
         onCancel={(e) => { e.preventDefault(); closeMenu(); }}
         onClick={(e) => { if (e.target === e.currentTarget) closeMenu(); }}
       >
+        <CelestialRing className="maison-menu-ring" />
         <div className="maison-menu-inner">
           <div className="maison-menu-top">
-            <p className="maison-wordmark"><span>Lumina</span></p>
-            <button type="button" className="maison-bar-link" onClick={closeMenu}>Fechar</button>
+            <p className="maison-menu-kicker">Índice</p>
+            <p className="maison-wordmark"><span>Lumina</span><small>Tarot &amp; Baralho Cigano</small></p>
+            <button type="button" className="maison-bar-link maison-menu-close" onClick={closeMenu}>
+              Fechar <span className="maison-close-glyph" aria-hidden="true" />
+            </button>
           </div>
           <nav className="maison-index" aria-label="Consultas e ferramentas">
             {index.map(([label, note, action], i) => (
@@ -145,11 +150,18 @@ export const Header = ({
             <p className="maison-chapter">Preferências</p>
             {preferences.map(([label, state, action, disabled, on]) => (
               <button key={label} type="button" disabled={disabled} aria-pressed={Boolean(on)} onClick={action}>
-                <span>{label}</span><span>{state}</span>
+                <span>{label}</span>
+                <span className="maison-pref-state">
+                  <span>{state}</span>
+                  <span className="maison-switch" aria-hidden="true"><i /></span>
+                </span>
               </button>
             ))}
-            <a className="maison-menu-foot" href="./privacidade.html" target="_blank" rel="noopener">Privacidade</a>
           </section>
+          <footer className="maison-menu-footer">
+            <span>Leituras simbólicas, para reflexão.</span>
+            <a href="./privacidade.html" target="_blank" rel="noopener">Privacidade</a>
+          </footer>
         </div>
       </dialog>
     </header>
