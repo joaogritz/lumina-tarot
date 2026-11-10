@@ -1,0 +1,279 @@
+/* ============================================================================
+   MAISON LUMINA — experimental art direction (branch experimento/maison)
+   Ink, bone and a champagne gold used as hairline, never as glow. Editorial
+   type set left, chapters numbered in roman, generous air. Remove this import
+   from main.jsx to return to the previous look (the copy and components that
+   changed are listed in docs/MAISON.md).
+   ============================================================================ */
+
+:root {
+  --m-ink: #0a0908;
+  --m-ink-raised: #12100e;
+  --m-bone: #ece6da;
+  --m-stone: #a39b8c;
+  --m-stone-quiet: #6f685c;
+  --m-gold: #b5955c;
+  --m-gold-light: #d4b98a;
+  --m-line: rgb(236 230 218 / .1);
+  --m-line-strong: rgb(236 230 218 / .22);
+  --m-gold-line: rgb(181 149 92 / .45);
+  --m-sage: #a3ad97;
+  --m-rose: #c39a90;
+  --m-serif: 'Cormorant Garamond', Georgia, serif;
+  --m-sans: 'Outfit', Arial, sans-serif;
+  --m-ease: cubic-bezier(.2, .7, .1, 1);
+  --m-gutter: clamp(20px, 5vw, 72px);
+
+  /* Existing tokens follow the maison palette. */
+  --color-gold: var(--m-gold);
+  --color-gold-bright: var(--m-gold-light);
+  --color-ivory: var(--m-bone);
+  --color-parchment: var(--m-stone);
+  --color-obsidian: var(--m-ink-raised);
+  --color-void: var(--m-ink);
+  --border-quiet: var(--m-line);
+  --border-lit: var(--m-gold-line);
+  --color-amber-200: #e3d3b4; --color-amber-300: #d4b98a; --color-amber-400: #b5955c; --color-amber-500: #9a7d4b;
+  --color-emerald-300: var(--m-sage); --color-emerald-400: var(--m-sage);
+  --color-rose-300: var(--m-rose); --color-rose-400: var(--m-rose); --color-rose-500: var(--m-rose); --color-rose-950: #1c1211;
+  --color-red-300: var(--m-rose); --color-red-400: var(--m-rose);
+  --color-pink-300: var(--m-rose); --color-pink-400: var(--m-rose);
+  --color-cyan-300: var(--m-stone); --color-cyan-400: var(--m-stone);
+  --color-blue-950: var(--m-ink-raised);
+  --color-green-400: var(--m-sage);
+}
+
+body { background: var(--m-ink); color: var(--m-bone); }
+::selection { background: var(--m-bone); color: var(--m-ink); }
+
+/* ---- Restraint: no glow, no pulse, no gradient sweeps --------------------- */
+.sanctuary-table [class*="shadow-[0_0"],
+.sanctuary-table [class*="shadow-[0_0"]:hover,
+[role="dialog"] [class*="shadow-[0_0"] { box-shadow: none !important; }
+.sanctuary-table .animate-pulse,
+[role="dialog"] .animate-pulse { animation: none !important; }
+.sanctuary-table [class*="via-amber-300/"],
+[role="dialog"] [class*="via-amber-300/"],
+.sanctuary-table .blur-3xl,
+[role="dialog"] .blur-3xl { display: none !important; }
+.sanctuary-table .gold-gradient-text,
+[role="dialog"] .gold-gradient-text { background: none; -webkit-text-fill-color: currentColor; color: var(--m-bone); }
+.sanctuary-table canvas.fixed { opacity: .28; }
+.sanctuary-table [class*="bg-gradient-to-r"] { background-image: none !important; }
+.sanctuary-table [class*="rounded-full"]:not(.spread-remove-action):not([class*="w-"]) { border-radius: 2px; }
+
+/* Small print never drops below 12px. */
+.sanctuary-table [class*="text-[10px]"],
+.sanctuary-table [class*="text-[11px]"],
+[role="dialog"] [class*="text-[10px]"],
+[role="dialog"] [class*="text-[11px]"] { font-size: 12px !important; }
+
+/* ---- Shared typographic pieces ------------------------------------------- */
+.maison-wordmark { margin: 0; display: flex; flex-direction: column; align-items: center; gap: 4px; line-height: 1; }
+.maison-wordmark span { font: 400 21px/1 var(--m-serif); letter-spacing: .42em; text-transform: uppercase; color: var(--m-bone); padding-left: .42em; }
+.maison-wordmark small { font: 400 10px/1 var(--m-sans); letter-spacing: .3em; text-transform: uppercase; color: var(--m-stone); }
+
+.maison-chapter { display: flex; align-items: baseline; gap: 14px; margin: 0; font: 400 12px/1.4 var(--m-sans); letter-spacing: .28em; text-transform: uppercase; color: var(--m-stone); }
+.maison-chapter > span:first-child:not(.maison-dot) { font: italic 400 19px/1 var(--m-serif); letter-spacing: 0; text-transform: none; color: var(--m-gold); min-width: 1.6em; }
+.maison-chapter-rule { width: 100%; max-width: 80rem; margin: clamp(56px, 9vw, 120px) auto 28px; padding: 22px var(--m-gutter) 0; border-top: 1px solid var(--m-line); box-sizing: border-box; }
+.maison-dot { color: var(--m-gold); }
+
+.maison-bar-link { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; padding: 0; border: 0; background: none; color: var(--m-bone); font: 400 12px/1 var(--m-sans); letter-spacing: .24em; text-transform: uppercase; cursor: pointer; position: relative; }
+.maison-bar-link::after { content: ''; position: absolute; left: 0; right: 100%; bottom: 10px; height: 1px; background: var(--m-gold); transition: right .5s var(--m-ease); }
+.maison-bar-link:hover::after, .maison-bar-link:focus-visible::after { right: 0; }
+.maison-bar-link sup { font-size: 10px; letter-spacing: 0; color: var(--m-gold); margin-left: 2px; }
+.maison-menu-glyph { display: inline-flex; flex-direction: column; gap: 5px; width: 22px; }
+.maison-menu-glyph i { display: block; height: 1px; background: currentColor; }
+.maison-menu-glyph i:last-child { width: 62%; transition: width .5s var(--m-ease); }
+.maison-bar-link:hover .maison-menu-glyph i:last-child { width: 100%; }
+
+/* ---- Masthead and opening chapter ---------------------------------------- */
+.maison-masthead { position: relative; width: 100%; }
+.maison-bar { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding: 18px var(--m-gutter); border-bottom: 1px solid var(--m-line); }
+.maison-bar-end { display: flex; justify-content: flex-end; gap: clamp(18px, 3vw, 40px); }
+
+.maison-opening { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); grid-template-areas: "chapter chapter" "title field"; column-gap: clamp(32px, 6vw, 110px); row-gap: 40px; align-items: end; max-width: 80rem; margin: 0 auto; padding: clamp(64px, 11vw, 150px) var(--m-gutter) clamp(24px, 4vw, 48px); box-sizing: border-box; text-align: left; transition: opacity .6s var(--m-ease); }
+.maison-opening.is-quiet { opacity: .35; }
+.maison-opening.is-quiet:hover, .maison-opening.is-quiet:focus-within { opacity: 1; }
+.maison-opening .maison-chapter { grid-area: chapter; }
+.maison-opening h1 { grid-area: title; margin: 0; font: 400 clamp(44px, 7.4vw, 108px)/.98 var(--m-serif); letter-spacing: -.035em; color: var(--m-bone); }
+.maison-opening h1 em { font-style: italic; font-weight: 400; color: var(--m-gold-light); }
+.maison-question { grid-area: field; padding-bottom: 10px; }
+.maison-question label { display: flex; justify-content: space-between; font: 400 12px var(--m-sans); letter-spacing: .24em; text-transform: uppercase; color: var(--m-stone); }
+.maison-question label span { letter-spacing: .12em; text-transform: none; font-style: italic; font-family: var(--m-serif); font-size: 15px; color: var(--m-stone-quiet); }
+.maison-question-field { display: flex; align-items: flex-end; gap: 16px; margin-top: 18px; border-bottom: 1px solid var(--m-line-strong); transition: border-color .5s var(--m-ease); }
+.maison-question-field:focus-within { border-color: var(--m-gold); }
+.maison-question input { flex: 1; min-width: 0; padding: 0 0 12px; border: 0 !important; background: transparent !important; color: var(--m-bone); font: italic 400 clamp(22px, 2.2vw, 30px)/1.25 var(--m-serif); outline: none; }
+.maison-question input::placeholder { color: var(--m-stone-quiet); }
+.maison-question input:focus-visible { outline: none; }
+.maison-question-field button { padding: 0 0 14px; border: 0; background: none; color: var(--m-stone); font: 400 11px var(--m-sans); letter-spacing: .2em; text-transform: uppercase; }
+.maison-question-field button:hover { color: var(--m-bone); }
+.maison-question > p { margin: 14px 0 0; font: italic 400 16px/1.5 var(--m-serif); color: var(--m-stone-quiet); }
+
+/* ---- Full-screen index ----------------------------------------------------- */
+.maison-menu { width: 100vw; max-width: none; height: 100dvh; max-height: none; margin: 0; padding: 0; border: 0; background: var(--m-ink); color: var(--m-bone); }
+.maison-menu::backdrop { background: var(--m-ink); }
+.maison-menu[open] { animation: maison-curtain .7s var(--m-ease) both; }
+@keyframes maison-curtain { from { opacity: 0; clip-path: inset(0 0 100% 0); } to { opacity: 1; clip-path: inset(0); } }
+.maison-menu-inner { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 4fr); grid-template-rows: auto 1fr; column-gap: clamp(32px, 7vw, 120px); min-height: 100%; padding: 18px var(--m-gutter) 40px; box-sizing: border-box; }
+.maison-menu-top { grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: center; padding-bottom: 18px; border-bottom: 1px solid var(--m-line); margin-bottom: clamp(32px, 6vh, 72px); }
+.maison-index { display: flex; flex-direction: column; align-self: start; }
+.maison-index > * { display: grid; grid-template-columns: 3.2em minmax(0, 1fr) auto; align-items: baseline; gap: 18px; padding: 16px 0; border: 0; border-bottom: 1px solid var(--m-line); background: none; color: var(--m-bone); text-align: left; text-decoration: none; cursor: pointer; }
+.maison-index-number { font: italic 400 16px var(--m-serif); color: var(--m-gold); }
+.maison-index-label { font: 400 clamp(30px, 4.2vw, 58px)/1.05 var(--m-serif); letter-spacing: -.02em; transition: transform .6s var(--m-ease), color .4s; }
+.maison-index-note { font: 400 12px var(--m-sans); letter-spacing: .08em; color: var(--m-stone); text-align: right; max-width: 22ch; }
+.maison-index > *:hover .maison-index-label, .maison-index > *:focus-visible .maison-index-label { transform: translateX(14px); color: var(--m-gold-light); }
+.maison-index > *:nth-child(n) { animation: maison-rise .8s var(--m-ease) both; }
+.maison-index > *:nth-child(2) { animation-delay: .05s; } .maison-index > *:nth-child(3) { animation-delay: .1s; }
+.maison-index > *:nth-child(4) { animation-delay: .15s; } .maison-index > *:nth-child(5) { animation-delay: .2s; }
+.maison-index > *:nth-child(6) { animation-delay: .25s; } .maison-index > *:nth-child(7) { animation-delay: .3s; }
+@keyframes maison-rise { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
+.maison-preferences { align-self: start; display: flex; flex-direction: column; }
+.maison-preferences .maison-chapter { margin-bottom: 18px; }
+.maison-preferences > button { display: flex; justify-content: space-between; gap: 16px; min-height: 52px; padding: 0; border: 0; border-bottom: 1px solid var(--m-line); background: none; color: var(--m-bone); font: 400 15px var(--m-sans); text-align: left; cursor: pointer; }
+.maison-preferences > button span:last-child { font: italic 400 17px var(--m-serif); color: var(--m-stone); }
+.maison-preferences > button[aria-pressed="true"] span:last-child { color: var(--m-gold-light); }
+.maison-preferences > button:hover span:first-child { color: var(--m-gold-light); }
+.maison-volume { display: flex; align-items: center; gap: 16px; padding: 16px 0; border-bottom: 1px solid var(--m-line); font: 400 13px var(--m-sans); color: var(--m-stone); }
+.maison-volume input { flex: 1; accent-color: var(--m-gold); }
+.maison-menu-foot { margin-top: 28px; font: 400 11px var(--m-sans); letter-spacing: .24em; text-transform: uppercase; color: var(--m-stone); text-decoration: none; }
+.maison-menu-foot:hover { color: var(--m-bone); }
+
+/* ---- Main column: spread index, table, deck -------------------------------- */
+.sanctuary-table > main { max-width: none !important; padding-left: 0 !important; padding-right: 0 !important; }
+.sanctuary-table > main > *:not(.maison-masthead):not(.maison-chapter-rule) { width: 100%; max-width: 80rem; margin-left: auto; margin-right: auto; padding-left: var(--m-gutter); padding-right: var(--m-gutter); box-sizing: border-box; }
+.spread-navigation { border: 0 !important; }
+.spread-navigation button { font-family: var(--m-sans) !important; font-weight: 400 !important; font-size: 13px !important; letter-spacing: .06em; color: var(--m-stone) !important; }
+.spread-navigation button svg { display: none; }
+.spread-navigation button[aria-pressed="true"] { color: var(--m-bone) !important; }
+.spread-navigation button[aria-pressed="true"] > div { border-bottom-color: var(--m-gold) !important; }
+.spread-navigation button > span:last-child { font: italic 400 14px var(--m-serif) !important; color: var(--m-gold) !important; }
+
+.altar-instrument { opacity: .05 !important; }
+.reading-area h2 { font: 400 clamp(34px, 4vw, 56px)/1.05 var(--m-serif) !important; letter-spacing: -.025em !important; color: var(--m-bone) !important; }
+.reading-area h2 + p, .reading-area h2 ~ p { font-family: var(--m-serif); font-style: italic; font-size: 18px !important; color: var(--m-stone) !important; }
+.reading-area .spread-slot > div:first-child > div span { font-size: 12px !important; letter-spacing: .22em !important; color: var(--m-stone) !important; }
+.reading-area .border-dashed { border-color: var(--m-line-strong) !important; background: transparent !important; }
+.reading-area .border-dashed:hover { border-color: var(--m-gold-line) !important; }
+
+.ritual-button { gap: 20px; min-height: 56px; padding: 18px 34px; border: 1px solid var(--m-bone); background: transparent; color: var(--m-bone); font: 400 12px var(--m-sans); letter-spacing: .26em; transition: background .6s var(--m-ease), color .6s var(--m-ease); }
+.ritual-button svg { display: none; }
+.ritual-button:hover { background: var(--m-bone); color: var(--m-ink); box-shadow: none; }
+
+.deck-controls { border: 0 !important; box-shadow: none !important; background: transparent !important; padding-left: 0 !important; padding-right: 0 !important; }
+.deck-controls h3 { font: 400 clamp(30px, 3.4vw, 46px)/1 var(--m-serif) !important; letter-spacing: -.02em; color: var(--m-bone) !important; }
+.maison-count { font: italic 400 18px var(--m-serif); color: var(--m-stone); margin-left: 10px; letter-spacing: 0; }
+.deck-controls button:not(.ritual-button) { border-radius: 0 !important; border: 0 !important; border-bottom: 1px solid var(--m-line-strong) !important; background: transparent !important; color: var(--m-stone) !important; font: 400 12px var(--m-sans) !important; letter-spacing: .14em; text-transform: uppercase; padding: 10px 2px !important; box-shadow: none !important; }
+.deck-controls button:not(.ritual-button):hover, .deck-controls button[aria-pressed="true"] { color: var(--m-bone) !important; border-bottom-color: var(--m-gold) !important; }
+.deck-controls button svg { display: none; }
+.deck-controls [role="status"] { font: italic 400 17px var(--m-serif) !important; color: var(--m-stone) !important; }
+.deck-destiny-action > span:last-child { display: none; }
+
+/* ---- Footer ------------------------------------------------------------------ */
+.maison-footer { position: relative; z-index: 10; display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: start; gap: 12px clamp(32px, 6vw, 96px); margin-top: clamp(80px, 12vw, 160px); padding: 48px var(--m-gutter) 56px; border-top: 1px solid var(--m-line); }
+.maison-footer .maison-wordmark { align-items: flex-start; grid-row: span 2; }
+.maison-footer > p { margin: 0; max-width: 60ch; font: 400 13px/1.7 var(--m-sans); color: var(--m-stone); }
+.maison-footer-meta { display: flex; flex-wrap: wrap; gap: 10px; font-size: 12px !important; color: var(--m-stone-quiet) !important; }
+.maison-footer-meta a { color: var(--m-stone); text-decoration: none; letter-spacing: .2em; text-transform: uppercase; font-size: 11px; }
+.maison-footer-meta a:hover { color: var(--m-bone); }
+
+/* ---- The reading, as a printed page ---------------------------------------- */
+.maison-reading { background: var(--m-ink) !important; border: 1px solid var(--m-line) !important; border-radius: 0 !important; box-shadow: 0 40px 120px #000 !important; }
+.maison-reading-bar { position: sticky; top: 0; z-index: 20; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding: 10px clamp(20px, 4vw, 48px); border-bottom: 1px solid var(--m-line); background: var(--m-ink); }
+.maison-reading-bar .maison-wordmark { grid-column: 2; }
+.maison-reading-bar .maison-wordmark span { font-size: 16px; }
+.maison-reading-bar .maison-bar-link { grid-column: 3; justify-self: end; }
+.maison-reading-scroll { padding: 0 clamp(20px, 6vw, 88px) 40px; }
+.maison-reading-scroll > * + * { margin-top: 48px; }
+.maison-reading-title { padding-top: clamp(40px, 7vw, 88px); max-width: 46rem; }
+.maison-reading-title h2 { margin: 22px 0 0; font: 400 clamp(34px, 4.6vw, 64px)/1.04 var(--m-serif); letter-spacing: -.03em; color: var(--m-bone); }
+.maison-reading-title h2 em { font-style: italic; font-weight: 400; }
+.maison-reading-meta { margin: 20px 0 0; font: 400 12px var(--m-sans); letter-spacing: .2em; text-transform: uppercase; color: var(--m-stone); }
+.maison-reading-meta span { color: var(--m-gold); margin: 0 6px; }
+.maison-prose { padding: 0 !important; border: 0 !important; max-width: 40rem; }
+.maison-sections { display: flex; flex-direction: column; }
+.maison-section { padding: 34px 0; border-top: 1px solid var(--m-line); }
+.maison-section-title { display: flex; align-items: baseline; gap: 16px; margin: 0 0 18px; font: 400 12px var(--m-sans); letter-spacing: .26em; text-transform: uppercase; color: var(--m-stone); }
+.maison-section-title span { font: italic 400 20px/1 var(--m-serif); letter-spacing: 0; text-transform: none; color: var(--m-gold); min-width: 1.6em; }
+.maison-section-text { margin: 0; font: 400 clamp(18px, 1.6vw, 21px)/1.7 var(--m-serif); color: var(--m-bone); hyphens: auto; }
+.maison-dropcap::first-letter { float: left; margin: .08em .12em 0 -.02em; font: 400 4.1em/.8 var(--m-serif); color: var(--m-gold-light); }
+.maison-advice { font-style: italic; font-size: clamp(21px, 2vw, 26px); line-height: 1.55; padding-left: 22px; border-left: 1px solid var(--m-gold); }
+.maison-loading-text { font: italic 400 20px var(--m-serif); color: var(--m-stone); }
+.maison-reading .oracle-quill { color: var(--m-gold); text-shadow: none; }
+@keyframes oracle-emerge {
+  0% { opacity: 0; filter: blur(6px); }
+  60% { opacity: 1; filter: blur(0); }
+  100% { opacity: 1; filter: none; }
+}
+.maison-reading .reading-editorial { border-color: var(--m-line) !important; }
+.maison-reading .reading-editorial:hover { box-shadow: none !important; border-color: var(--m-gold-line) !important; }
+.maison-reading .reading-card-text h4 { font-weight: 300 !important; color: var(--m-bone) !important; }
+.maison-reading .reading-card-text p { font: 400 17px/1.65 var(--m-serif) !important; color: var(--m-stone) !important; }
+.maison-reading .reading-card-text > div:last-child { background: transparent !important; border: 0 !important; border-left: 1px solid var(--m-gold-line) !important; border-radius: 0 !important; font: italic 400 17px/1.6 var(--m-serif) !important; color: var(--m-bone) !important; }
+.maison-reading h3, .maison-reading h4 { color: var(--m-bone); }
+.maison-reading div.glass-panel-subtle { background: transparent !important; border: 0 !important; border-top: 1px solid var(--m-line) !important; border-radius: 0 !important; padding-left: 0 !important; padding-right: 0 !important; }
+.maison-reading div.glass-panel-subtle [class*="bg-"][class*="-950"] { background: transparent !important; border-color: var(--m-line-strong) !important; color: var(--m-stone) !important; border-radius: 0 !important; }
+.maison-reading div.glass-panel-subtle svg { display: none; }
+.maison-reading > div:last-child { background: var(--m-ink) !important; border-top: 1px solid var(--m-line) !important; backdrop-filter: none !important; }
+.maison-reading > div:last-child button { border-radius: 0 !important; background: transparent !important; border-color: var(--m-line-strong) !important; color: var(--m-bone) !important; font-family: var(--m-sans) !important; font-weight: 400 !important; letter-spacing: .08em; text-transform: uppercase; font-size: 11px !important; box-shadow: none !important; padding-left: 12px !important; padding-right: 12px !important; white-space: nowrap; }
+.maison-reading > div:last-child button:hover:not(:disabled) { border-color: var(--m-bone) !important; }
+.maison-reading > div:last-child button svg { color: var(--m-gold) !important; }
+.maison-reading > div:last-child > div:last-child > button:last-child { background: var(--m-bone) !important; color: var(--m-ink) !important; border-color: var(--m-bone) !important; }
+
+/* ---- Other windows share the same quiet surface ------------------------------ */
+.responsive-dialog:not(.maison-reading) { background: var(--m-ink) !important; border-color: var(--m-line-strong) !important; border-radius: 0 !important; box-shadow: 0 40px 120px #000 !important; }
+.responsive-dialog h2 { font-weight: 300 !important; letter-spacing: -.02em; color: var(--m-bone) !important; }
+
+/* ---- Mobile ------------------------------------------------------------------ */
+@media (max-width: 767px) {
+  .maison-bar { padding: 12px 18px; }
+  .maison-wordmark span { font-size: 17px; letter-spacing: .34em; padding-left: .34em; }
+  .maison-wordmark small { display: none; }
+  .maison-hide-mobile { display: none !important; }
+  .maison-opening { grid-template-columns: 1fr; grid-template-areas: "chapter" "title" "field"; row-gap: 28px; padding-top: 48px; }
+  .maison-opening h1 { font-size: clamp(40px, 12vw, 56px); }
+  .maison-chapter-rule { margin-top: 56px; margin-bottom: 18px; }
+  .maison-menu-inner { grid-template-columns: 1fr; row-gap: 40px; }
+  .maison-index > * { grid-template-columns: 2.4em minmax(0, 1fr); padding: 14px 0; }
+  .maison-index-note { display: none; }
+  .maison-index-label { font-size: 32px; }
+  .maison-footer { grid-template-columns: 1fr; margin-bottom: 76px; }
+  .maison-footer .maison-wordmark { grid-row: auto; }
+  .maison-reading-scroll { padding: 0 20px 28px; }
+  .mobile-reading-dock { background: var(--m-ink) !important; border-top: 1px solid var(--m-line) !important; box-shadow: none !important; backdrop-filter: none !important; }
+  .mobile-reading-dock button { font-family: var(--m-sans) !important; letter-spacing: .14em; text-transform: uppercase; font-size: 10px !important; color: var(--m-stone) !important; }
+  .mobile-reading-dock button svg { color: var(--m-bone) !important; }
+  .mobile-reading-dock .dock-destiny { background: transparent !important; border: 0 !important; color: var(--m-bone) !important; box-shadow: none !important; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .maison-menu[open], .maison-index > * { animation: none; }
+  .maison-bar-link::after, .maison-index-label { transition: none; }
+}
+
+/* ---- Spread header: title, quiet description, count as plain text ------------ */
+.maison-spread-description { font: italic 400 19px/1.45 var(--m-serif) !important; color: var(--m-stone) !important; max-width: 46ch; }
+.maison-progress { padding: 0 !important; border: 0 !important; border-radius: 0 !important; background: transparent !important; font: 400 12px var(--m-sans) !important; letter-spacing: .22em; text-transform: uppercase; color: var(--m-stone) !important; }
+.maison-progress svg { display: none; }
+.maison-text-button { padding: 0 0 4px !important; border: 0 !important; border-bottom: 1px solid var(--m-line-strong) !important; border-radius: 0 !important; background: transparent !important; font: 400 12px var(--m-sans) !important; letter-spacing: .22em; text-transform: uppercase; color: var(--m-stone) !important; box-shadow: none !important; }
+.maison-text-button:hover { color: var(--m-bone) !important; border-bottom-color: var(--m-gold) !important; }
+.maison-text-button svg { display: none; }
+
+/* ---- The deck laid out like cards fanned on cloth, in long ordered ribbons ---- */
+@media (min-width: 768px) {
+  .ritual-deck { --deck-cols: 18; --deck-cell-scale: 2.3; padding: 36px calc(16px + (var(--deck-cell-scale) - 1) * 100% / var(--deck-cols)) 96px 16px; row-gap: 0; }
+  .ritual-deck:has(> :nth-child(37)) { --deck-cols: 26; --deck-cell-scale: 2.5; }
+  .ritual-deck .deck-card-cell { rotate: none !important; margin-bottom: 55%; transition: translate .5s var(--m-ease); }
+  .ritual-deck .deck-card-cell:hover, .ritual-deck .deck-card-cell:focus-within { translate: 0 -16px; }
+}
+.deck-layout-switch { border: 0 !important; background: transparent !important; box-shadow: none !important; gap: 18px !important; }
+.deck-controls input { border: 0 !important; border-bottom: 1px solid var(--m-line-strong) !important; background: transparent !important; border-radius: 0 !important; font: italic 400 16px var(--m-serif) !important; padding-left: 32px !important; }
+
+.maison-reading .reading-editorial > div:first-child > div { padding: 0 !important; border: 0 !important; border-radius: 0 !important; background: transparent !important; font: 400 12px var(--m-sans) !important; letter-spacing: .22em; text-transform: uppercase; color: var(--m-gold) !important; }
+.maison-reading .reading-editorial > div:first-child > span { font: 400 11px var(--m-sans) !important; letter-spacing: .2em; text-transform: uppercase; color: var(--m-stone) !important; }
+.maison-reading .reading-editorial svg { display: none; }
+.maison-reading .reading-editorial > p { font: italic 400 16px var(--m-serif) !important; color: var(--m-stone) !important; }
+.maison-reading .reading-card-text > div:last-child > span { font: 400 11px var(--m-sans) !important; letter-spacing: .22em; text-transform: uppercase; color: var(--m-stone) !important; margin-bottom: 6px; }
+.maison-reading .reading-card-text > span { font: 400 11px var(--m-sans) !important; letter-spacing: .22em; text-transform: uppercase; color: var(--m-stone) !important; }
+.maison-reading h3.font-cinzel { font: 400 12px var(--m-sans) !important; letter-spacing: .26em; color: var(--m-stone) !important; }
+.maison-reading h3.font-cinzel svg, .maison-reading h3.font-cinzel + span { display: none !important; }

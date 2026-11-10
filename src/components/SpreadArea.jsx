@@ -150,7 +150,7 @@ export const SpreadArea = ({
         <div className="flex flex-col items-center">
           <div className="text-center mb-3">
             <span className="text-xs font-cinzel text-amber-300 font-bold uppercase tracking-wider">
-              A Cruz Sagrada (Presente & Circunstâncias)
+              A cruz · presente e circunstâncias
             </span>
           </div>
 
@@ -188,7 +188,7 @@ export const SpreadArea = ({
         <div className="flex flex-col items-center border-t lg:border-t-0 lg:border-l border-amber-500/20 pt-6 lg:pt-0 lg:pl-10">
           <div className="text-center mb-3">
             <span className="text-xs font-cinzel text-amber-300 font-bold uppercase tracking-wider">
-              O Báculo (Caminho do Destino)
+              O bastão · o caminho
             </span>
           </div>
 
@@ -392,19 +392,18 @@ export const SpreadArea = ({
         <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-4 pb-4 mb-4 border-b border-amber-500/20">
           <div>
             <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-amber-400" />
               <h2 className="font-cinzel text-lg md:text-2xl font-bold text-amber-200 tracking-wide">
                 {spreadConfig.name}
               </h2>
             </div>
-            <p className="text-xs md:text-sm text-slate-300 mt-1">
+            <p className="maison-spread-description text-xs md:text-sm text-slate-300 mt-1">
               {spreadConfig.description}
             </p>
           </div>
 
           {/* Progress Indicator and Reset */}
           <div className="flex items-center gap-3">
-            <div className={`px-3.5 py-1.5 rounded-full border text-xs font-semibold flex items-center gap-1.5 transition-colors
+            <div className={`maison-progress px-3.5 py-1.5 rounded-full border text-xs font-semibold flex items-center gap-1.5 transition-colors
               ${isComplete 
                 ? 'bg-emerald-950/80 border-emerald-400 text-emerald-300 shadow-[0_0_15px_rgba(52,211,153,0.3)]' 
                 : 'bg-stone-950/60 border-amber-500/40 text-amber-200'
@@ -421,11 +420,11 @@ export const SpreadArea = ({
                   audio.playClearTable();
                   onResetSpread();
                 }}
-                className="px-3 py-1.5 rounded-full bg-slate-900/80 hover:bg-slate-800 text-slate-300 hover:text-amber-300 border border-slate-700 hover:border-amber-400/50 text-xs flex items-center gap-1.5 transition-all cursor-pointer active:scale-95 shadow-sm"
+                className="maison-text-button px-3 py-1.5 rounded-full bg-slate-900/80 hover:bg-slate-800 text-slate-300 hover:text-amber-300 border border-slate-700 hover:border-amber-400/50 text-xs flex items-center gap-1.5 transition-all cursor-pointer active:scale-95 shadow-sm"
                 title="Limpar mesa"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Limpar Mesa</span>
+                <span className="hidden sm:inline">Recolher</span>
               </button>
             )}
           </div>
@@ -482,14 +481,14 @@ export const SpreadArea = ({
 
                   <BookOpen className="w-5 h-5 text-amber-300 shrink-0" />
                   <span className="font-outfit text-xs uppercase tracking-widest">
-                    Revelar interpretação
+                    Ler as cartas
                   </span>
                   <Compass className="w-5 h-5 text-amber-400/90 group-hover:rotate-90 transition-transform duration-700 shrink-0" />
                 </motion.button>
               </div>
 
               <p className="text-sm text-amber-200/80 mt-2.5 font-almendra italic text-center tracking-wide">
-                Todas as {totalSlots} cartas foram consagradas na mesa. Consulte a síntese do oráculo.
+                {totalSlots === 1 ? 'A carta está na mesa.' : `As ${totalSlots} cartas estão na mesa.`}
               </p>
             </motion.div>
           )}

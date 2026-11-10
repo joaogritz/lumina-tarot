@@ -47,10 +47,10 @@ export const LoadingScreen = ({ onLoaded }) => {
   }, [isReady, handleEnter]);
 
   const getStatusText = () => {
-    if (progress < 30) return 'Sintonizando o Oráculo Sagrado...';
-    if (progress < 65) return 'Preparando os baralhos...';
-    if (progress < 95) return 'Alinhando as Constelações & Energias...';
-    return 'O santuário dos arcanos está aberto';
+    if (progress < 30) return 'Preparando as cartas';
+    if (progress < 65) return 'Embaralhando';
+    if (progress < 95) return 'Quase lá';
+    return 'Pronto';
   };
 
   return (
@@ -74,7 +74,7 @@ export const LoadingScreen = ({ onLoaded }) => {
           <span className="instrument-note micro-label">AS ABOVE · SO BELOW</span>
         </div>
       </div>
-      <div className="entry-footer"><span>Sabedoria Ancestral & Arcanos do Destino</span><span className="micro-label">UM INSTANTE DE SILÊNCIO. UMA NOVA PERSPECTIVA.</span></div>
+      <div className="entry-footer"><span>Tarot &amp; Baralho Cigano</span><span className="micro-label">UM INSTANTE DE SILÊNCIO. UMA NOVA PERSPECTIVA.</span></div>
     </motion.main>
   );
 };

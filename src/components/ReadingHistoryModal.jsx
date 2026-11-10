@@ -408,7 +408,7 @@ export const ReadingHistoryModal = ({
                   {stats.totalCardsDrawn}
                 </span>
                 <span className="block text-[11px] font-cinzel text-slate-400 mt-1">
-                  Cartas Consagradas
+                  Cartas
                 </span>
               </div>
 

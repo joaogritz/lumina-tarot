@@ -82,7 +82,7 @@ export const DailyCardModal = ({
       if (permission === 'granted') {
         setNotificationEnabled(true);
         setNotifyFeedback('Lembrete diário ativado com sucesso!');
-        new Notification('Lumina Tarot • Conselho Sagrado', {
+        new Notification('Lumina · Carta do dia', {
           body: 'Seu lembrete oracular matinal está pronto para despertar sua clareza todos os dias.',
           icon: './icon.svg'
         });
