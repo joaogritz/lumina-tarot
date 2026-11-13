@@ -198,6 +198,8 @@ export default {
       'Content-Type': 'application/json',
       'Cache-Control': 'no-store',
       'X-Content-Type-Options': 'nosniff',
+      // The API answers over HTTPS only; browsers should never try plain HTTP for it.
+      'Strict-Transport-Security': 'max-age=63072000; includeSubDomains',
       Vary: 'Origin',
     };
     if (isAllowed) {

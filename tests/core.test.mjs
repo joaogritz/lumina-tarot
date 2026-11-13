@@ -88,6 +88,7 @@ test('worker aceita origens listadas, curinga de subdomínio, localhost opcional
     assert.equal(ok.status, 200);
     assert.equal(ok.headers.get('Access-Control-Allow-Origin'), 'https://example.com');
     assert.equal(ok.headers.get('Access-Control-Allow-Headers'), 'Content-Type');
+    assert.equal(ok.headers.get('Strict-Transport-Security'), 'max-age=63072000; includeSubDomains');
     const wildEnv = { ...env, ALLOWED_ORIGINS: 'https://*.example.com' };
     assert.equal((await worker.fetch(req(payload,{Origin:'https://preview-1.example.com'}), wildEnv)).status, 200);
     assert.equal((await worker.fetch(req(payload,{Origin:'https://a.b.example.com'}), wildEnv)).status, 403);
