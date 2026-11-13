@@ -6,6 +6,9 @@ Não abra uma issue pública para falhas de segurança. Use o **reporte privado*
 aba **Security** do repositório → **Report a vulnerability**. Inclua os passos para reproduzir,
 o impacto esperado e, se possível, uma sugestão de correção.
 
+O mesmo canal está em [`/.well-known/security.txt`](public/.well-known/security.txt) (RFC 9116). O campo
+`Expires` vale até 13 de novembro de 2027 e precisa ser renovado antes disso.
+
 Você deve receber uma primeira resposta em até 7 dias. Correções confirmadas são publicadas
 na `main` e registradas no [CHANGELOG](CHANGELOG.md).
 
@@ -38,6 +41,7 @@ na `main` e registradas no [CHANGELOG](CHANGELOG.md).
 - **Arquivos importados são validados** antes de entrar no armazenamento: backups do diário e
   mesas da Mesa 3D passam por checagem de estrutura, tipos e tamanhos.
 - **Dependências e actions** são acompanhadas pelo Dependabot; as actions ficam fixadas por SHA.
+- **HTTPS obrigatório:** o site e a API enviam HSTS de dois anos, incluindo subdomínios.
 
 ## Limitações conhecidas
 
