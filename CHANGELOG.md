@@ -12,6 +12,15 @@ e as versões seguem [SemVer](https://semver.org/lang/pt-BR/).
 - Música de fundo e modo foco.
 
 ### Adicionado
+- **Inglês, espanhol e francês.** O site abre no idioma do navegador (português, inglês, espanhol ou
+  francês; os demais caem no inglês), e o menu ganhou um seletor de idioma. Estão traduzidos a
+  interface, os significados das 78 cartas de Tarot e das 36 do Baralho Cigano, as tiragens, o Sim ou
+  Não, o diário, a imagem para compartilhar e a política de privacidade. Os textos das cartas em outro
+  idioma só são baixados por quem usa esse idioma.
+- O site envia o idioma ao Worker, que responde nele mantendo os emojis das seções e os rótulos
+  VEREDITO/RESPOSTA/DICA. Um Worker antigo ignora o campo e continua respondendo em português.
+- As salvaguardas reconhecem pedidos de autolesão e de contato com falecidos nos quatro idiomas e
+  indicam linhas de apoio do idioma de quem pergunta (CVV 188, 988, Samaritans, 024, 3114 e outras).
 - Mesa 3D: **Do fundo** (Shift D) puxa a carta de baixo do monte, que desliza para fora por baixo
   dele. Como Devolver põe a carta no fundo, ela também recupera a última carta devolvida.
 - A interpretação surge enquanto é escrita: as primeiras palavras aparecem em cerca de 1 s, cada uma

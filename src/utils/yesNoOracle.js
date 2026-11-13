@@ -1,60 +1,80 @@
 // Yes / No Oracle Polarity, Context & Practical Conditions Engine
 // Provides direct verdicts, concise answers, and actionable conditional tips ("Sim, mas depende...", "Não, a não ser que...")
 
+import { t } from '../i18n/index.js';
+import { SELF_HARM_REGEX, NECROMANCY_REGEX } from './safety.js';
+
+// The raw text keeps the VEREDITO / RESPOSTA / DICA labels in every language: they are the
+// format shared with the oracle Worker and parseYesNoAiResponse, not text shown to the visitor.
+const rawYesNo = (verdict, answer, tip) => `VEREDITO: ${verdict}\nRESPOSTA: ${answer}\nDICA: ${tip}`;
+const lowerFirst = (text) => text.charAt(0).toLocaleLowerCase() + text.slice(1);
+const safeguard = (verdict, answer, tip) => ({
+  source: 'ethical_safeguard',
+  isAi: false,
+  verdict,
+  answer,
+  tip,
+  type: 'maybe',
+  color: 'text-amber-400',
+  badgeBg: 'bg-amber-500/20 border-amber-400/60',
+  percentage: 50,
+  rawText: rawYesNo(verdict, answer, tip),
+});
+
 export const getYesNoEvaluation = (card, isReversed = false) => {
   if (!card) {
     return {
-      verdict: 'TALVEZ',
+      verdict: t('yn.v.maybe'),
       type: 'maybe',
       percentage: 50,
       color: 'text-amber-400',
       badgeBg: 'bg-amber-500/20 border-amber-400/60',
-      summary: 'O momento pede reflexão e observação antes de qualquer definição.',
-      tip: 'Depende de você analisar os fatos com calma e não se precipitar.'
+      summary: t('yn.none.summary'),
+      tip: t('yn.none.tip')
     };
   }
 
   if (card.deckId === 'lenormand') {
     const positive = [1,2,9,16,17,18,24,25,30,31,33,34,35].includes(card.number);
     const negative = [6,7,8,10,11,21,23,36].includes(card.number);
-    return { verdict: positive ? 'SIM, COM CONDIÇÃO' : negative ? 'NÃO / ALERTA' : 'DEPENDE DE VOCÊ', type: positive ? 'conditional_yes' : negative ? 'no' : 'maybe', percentage: 50, color: 'text-emerald-300', badgeBg: 'bg-emerald-500/20 border-emerald-400/60', summary: 'Como reflexão simbólica: ' + card.light, tip: card.advice };
+    return { verdict: positive ? t('yn.v.condYes') : negative ? t('yn.v.noAlert') : t('yn.v.depends'), type: positive ? 'conditional_yes' : negative ? 'no' : 'maybe', percentage: 50, color: 'text-emerald-300', badgeBg: 'bg-emerald-500/20 border-emerald-400/60', summary: t('yn.lenormand.summary', { light: card.light }), tip: card.advice };
   }
   // --- REVERSED CARDS ---
   if (isReversed) {
     // Highly positive majors when reversed (delays rather than absolute "No")
     if (['major_0', 'major_1', 'major_19', 'major_21'].includes(card.id) || [0, 1, 19, 21].includes(card.number)) {
       return {
-        verdict: 'SIM, COM CONDIÇÃO',
+        verdict: t('yn.v.condYes'),
         type: 'conditional_yes',
         percentage: 60,
         color: 'text-amber-300',
         badgeBg: 'bg-amber-500/20 border-amber-400/60',
-        summary: `A essência de ${card.name} permanece favorável, mas a inversão alerta para atrasos ou falta de alinhamento.`,
-        tip: 'Sim, mas depende de você ajustar o foco, ter paciência e não forçar os acontecimentos antes da hora.'
+        summary: t('yn.revGood.summary', { name: card.name }),
+        tip: t('yn.revGood.tip')
       };
     }
 
     // Heavy majors reversed (deep blockage or inner resistance)
     if (['major_13', 'major_15', 'major_16', 'major_18'].includes(card.id) || [13, 15, 16, 18].includes(card.number)) {
       return {
-        verdict: 'NÃO / ALERTA',
+        verdict: t('yn.v.noAlert'),
         type: 'no',
         percentage: 15,
         color: 'text-rose-400',
         badgeBg: 'bg-rose-500/20 border-rose-400/60',
-        summary: `A energia invertida de ${card.name} aponta para apegos, ilusões ou risco de frustração se insistir agora.`,
-        tip: 'Não, a não ser que você faça uma limpeza profunda e rompa de vez com velhos padrões.'
+        summary: t('yn.revHeavy.summary', { name: card.name }),
+        tip: t('yn.revHeavy.tip')
       };
     }
 
     return {
-      verdict: 'NÃO / BLOQUEIO',
+      verdict: t('yn.v.noBlock'),
       type: 'no',
       percentage: 25,
       color: 'text-rose-400',
       badgeBg: 'bg-rose-500/20 border-rose-400/60',
-      summary: `A inversão de ${card.name} indica resistências internas, falta de clareza ou momento inoportuno.`,
-      tip: 'Não no momento. A não ser que você reveja suas premissas e mude de estratégia radicalmente.'
+      summary: t('yn.revDefault.summary', { name: card.name }),
+      tip: t('yn.revDefault.tip')
     };
   }
 
@@ -67,111 +87,111 @@ export const getYesNoEvaluation = (card, isReversed = false) => {
 
     if (card.number === 0) { // O Louco
       return {
-        verdict: 'SIM, COM CORAGEM',
+        verdict: t('yn.v.yesCourage'),
         type: 'conditional_yes',
         percentage: 85,
         color: 'text-emerald-400',
         badgeBg: 'bg-emerald-500/20 border-emerald-400/60',
-        summary: 'Os caminhos estão abertos para o novo e a energia é de liberdade e recomeço.',
-        tip: 'Sim, mas depende de você dar o primeiro passo sem medo, cuidando para não ser imprudente com os detalhes práticos.'
+        summary: t('yn.fool.summary'),
+        tip: t('yn.fool.tip')
       };
     }
 
     if (card.number === 19) { // O Sol
       return {
-        verdict: 'SIM CONVICTO',
+        verdict: t('yn.v.yesSure'),
         type: 'yes',
         percentage: 98,
         color: 'text-emerald-400',
         badgeBg: 'bg-emerald-500/20 border-emerald-400/60',
-        summary: 'Clareza total, sucesso, vitalidade e verdade absoluta a seu favor.',
-        tip: 'Sim! Seja autêntico, aja com transparência e aproveite o momento favorável com confiança.'
+        summary: t('yn.sun.summary'),
+        tip: t('yn.sun.tip')
       };
     }
 
     if (card.number === 21) { // O Mundo
       return {
-        verdict: 'SIM CONVICTO',
+        verdict: t('yn.v.yesSure'),
         type: 'yes',
         percentage: 95,
         color: 'text-emerald-400',
         badgeBg: 'bg-emerald-500/20 border-emerald-400/60',
-        summary: 'Ciclo favorável de realização, coroação e expansão plena.',
-        tip: 'Sim! Conclua o que começou e confie na plenitude dos seus resultados.'
+        summary: t('yn.world.summary'),
+        tip: t('yn.world.tip')
       };
     }
 
     if (majorAbsoluteYes.includes(card.number)) {
       return {
-        verdict: 'SIM',
+        verdict: t('yn.v.yes'),
         type: 'yes',
         percentage: 90,
         color: 'text-emerald-400',
         badgeBg: 'bg-emerald-500/20 border-emerald-400/60',
-        summary: `A energia de ${card.name} favorece diretamente a sua intenção e impulsiona seu caminho.`,
-        tip: card.advice 
-          ? `Sim, mas lembre-se: ${card.advice.toLowerCase().replace(/^[a-z]/, (c) => c.toUpperCase())}`
-          : 'Sim, mas depende de você manter a constância e agir com firmeza.'
+        summary: t('yn.majorYes.summary', { name: card.name }),
+        tip: card.advice
+          ? t('yn.majorYes.tipAdvice', { advice: card.advice })
+          : t('yn.majorYes.tip')
       };
     }
 
     if (card.number === 11) { // A Justiça
       return {
-        verdict: 'DEPENDE DE VOCÊ',
+        verdict: t('yn.v.depends'),
         type: 'maybe',
         percentage: 50,
         color: 'text-amber-400',
         badgeBg: 'bg-amber-500/20 border-amber-400/60',
-        summary: 'O desfecho será a consequência exata das suas escolhas e do seu senso ético.',
-        tip: 'Depende de você agir com total retidão, analisar contratos ou acordos e ser 100% justo.'
+        summary: t('yn.justice.summary'),
+        tip: t('yn.justice.tip')
       };
     }
 
     if (card.number === 2) { // A Sacerdotisa
       return {
-        verdict: 'SIM, COM SIGILO',
+        verdict: t('yn.v.yesSecret'),
         type: 'conditional_yes',
         percentage: 65,
         color: 'text-amber-300',
         badgeBg: 'bg-amber-500/20 border-amber-400/60',
-        summary: 'As respostas estão se maturando no oculto; a intuição aponta para uma direção favorável.',
-        tip: 'Sim, mas depende de você guardar segredo sobre seus planos e confiar mais no seu pressentimento.'
+        summary: t('yn.priestess.summary'),
+        tip: t('yn.priestess.tip')
       };
     }
 
     if (card.number === 9) { // O Eremita
       return {
-        verdict: 'NÃO POR AGORA',
+        verdict: t('yn.v.notNow'),
         type: 'conditional_no',
         percentage: 40,
         color: 'text-amber-400',
         badgeBg: 'bg-amber-500/20 border-amber-400/60',
-        summary: 'O momento pede pausa, reflexão solitária e prudência antes de qualquer avanço público.',
-        tip: 'Não de imediato. Depende de você amadurecer a ideia sozinho antes de tomar a decisão final.'
+        summary: t('yn.hermit.summary'),
+        tip: t('yn.hermit.tip')
       };
     }
 
     if (card.number === 12) { // O Enforcado
       return {
-        verdict: 'PAUSA / TALVEZ',
+        verdict: t('yn.v.pause'),
         type: 'maybe',
         percentage: 45,
         color: 'text-amber-400',
         badgeBg: 'bg-amber-500/20 border-amber-400/60',
-        summary: 'Há um compasso de espera necessário para mudar a sua perspectiva sobre o assunto.',
-        tip: 'Depende de você abrir mão da teimosia e enxergar a situação por outro ângulo.'
+        summary: t('yn.hanged.summary'),
+        tip: t('yn.hanged.tip')
       };
     }
 
     if (majorCautionNo.includes(card.number)) {
       return {
-        verdict: 'NÃO / CAUTELA',
+        verdict: t('yn.v.noCaution'),
         type: 'no',
         percentage: 15,
         color: 'text-rose-400',
         badgeBg: 'bg-rose-500/20 border-rose-400/60',
-        summary: `A energia de ${card.name} avisa sobre riscos, desilusões, rompimentos ou conflitos ocultos.`,
-        tip: 'Não, a não ser que você esteja disposto a enfrentar verdades duras e mudar tudo do zero.'
+        summary: t('yn.majorNo.summary', { name: card.name }),
+        tip: t('yn.majorNo.tip')
       };
     }
   }
@@ -181,34 +201,34 @@ export const getYesNoEvaluation = (card, isReversed = false) => {
   if (card.suit === 'swords') {
     if (['ace', 'six'].includes(card.rank)) {
       return {
-        verdict: 'SIM, COM CLAREZA',
+        verdict: t('yn.v.yesClarity'),
         type: 'yes',
         percentage: 80,
         color: 'text-emerald-400',
         badgeBg: 'bg-emerald-500/20 border-emerald-400/60',
-        summary: 'A lucidez mental, a verdade e a razão apontam para uma resolução favorável.',
-        tip: 'Sim, mas depende de você ter uma conversa honesta e não alimentar meias-palavras.'
+        summary: t('yn.swordsYes.summary'),
+        tip: t('yn.swordsYes.tip')
       };
     }
     if (['three', 'seven', 'eight', 'nine', 'ten', 'five'].includes(card.rank)) {
       return {
-        verdict: 'NÃO / TENSÃO',
+        verdict: t('yn.v.noTension'),
         type: 'no',
         percentage: 20,
         color: 'text-rose-400',
         badgeBg: 'bg-rose-500/20 border-rose-400/60',
-        summary: 'O cenário aponta para desgastes, desconfiança, frustração ou excesso de preocupação.',
-        tip: 'Não. A não ser que você se proteja de influências tóxicas e evite agir no calor da emoção.'
+        summary: t('yn.swordsNo.summary'),
+        tip: t('yn.swordsNo.tip')
       };
     }
     return {
-      verdict: 'DEPENDE DA RAZÃO',
+      verdict: t('yn.v.dependsReason'),
       type: 'maybe',
       percentage: 50,
       color: 'text-amber-400',
       badgeBg: 'bg-amber-500/20 border-amber-400/60',
-      summary: 'A resposta exige estratégia, equilíbrio emocional e análise lógica da realidade.',
-      tip: 'Depende de você decidir com a cabeça, cortando dúvidas que estão te paralisando.'
+      summary: t('yn.swordsMaybe.summary'),
+      tip: t('yn.swordsMaybe.tip')
     };
   }
 
@@ -216,23 +236,23 @@ export const getYesNoEvaluation = (card, isReversed = false) => {
   if (card.suit === 'wands') {
     if (['five', 'nine', 'ten'].includes(card.rank)) {
       return {
-        verdict: 'SIM, COM ESFORÇO',
+        verdict: t('yn.v.yesEffort'),
         type: 'conditional_yes',
         percentage: 65,
         color: 'text-amber-300',
         badgeBg: 'bg-amber-500/20 border-amber-400/60',
-        summary: 'Há potencial positivo, porém acompanhado de sobrecarga, concorrência ou cansaço.',
-        tip: 'Sim, mas depende de você delegar tarefas e não carregar o peso do mundo nas costas.'
+        summary: t('yn.wandsEffort.summary'),
+        tip: t('yn.wandsEffort.tip')
       };
     }
     return {
-      verdict: 'SIM ENÉRGICO',
+      verdict: t('yn.v.yesEnergy'),
       type: 'yes',
       percentage: 90,
       color: 'text-emerald-400',
       badgeBg: 'bg-emerald-500/20 border-emerald-400/60',
-      summary: 'Entusiasmo, motivação e movimento direto aceleram os acontecimentos a seu favor.',
-      tip: 'Sim! Tome a iniciativa agora e não deixe a chama da sua motivação esfriar.'
+      summary: t('yn.wandsYes.summary'),
+      tip: t('yn.wandsYes.tip')
     };
   }
 
@@ -240,23 +260,23 @@ export const getYesNoEvaluation = (card, isReversed = false) => {
   if (card.suit === 'cups') {
     if (['five', 'seven', 'eight'].includes(card.rank)) {
       return {
-        verdict: 'NÃO / DESILUSÃO',
+        verdict: t('yn.v.noDisillusion'),
         type: 'no',
         percentage: 30,
         color: 'text-rose-400',
         badgeBg: 'bg-rose-500/20 border-rose-400/60',
-        summary: 'Expectativas irreais, apego ao passado ou ilusões emocionais estão bloqueando o fluxo.',
-        tip: 'Não por enquanto. A não ser que você supere as frustrações antigas e encare a realidade como ela é.'
+        summary: t('yn.cupsNo.summary'),
+        tip: t('yn.cupsNo.tip')
       };
     }
     return {
-      verdict: 'SIM AFETIVO',
+      verdict: t('yn.v.yesHeart'),
       type: 'yes',
       percentage: 90,
       color: 'text-emerald-400',
       badgeBg: 'bg-emerald-500/20 border-emerald-400/60',
-      summary: 'Harmonia nos sentimentos, acolhimento sincero e sintonia positiva para o seu pedido.',
-      tip: 'Sim, mas depende de você expressar o que sente com sinceridade e empatia.'
+      summary: t('yn.cupsYes.summary'),
+      tip: t('yn.cupsYes.tip')
     };
   }
 
@@ -264,96 +284,69 @@ export const getYesNoEvaluation = (card, isReversed = false) => {
   if (card.suit === 'pentacles') {
     if (['five'].includes(card.rank)) {
       return {
-        verdict: 'NÃO / ESCASSEZ',
+        verdict: t('yn.v.noScarcity'),
         type: 'no',
         percentage: 20,
         color: 'text-rose-400',
         badgeBg: 'bg-rose-500/20 border-rose-400/60',
-        summary: 'Sensação de desamparo, aperto financeiro ou falta de apoio no momento.',
-        tip: 'Não neste instante. A não ser que você busque ajuda e reestruture suas bases materiais primeiro.'
+        summary: t('yn.pentNo.summary'),
+        tip: t('yn.pentNo.tip')
       };
     }
     if (['four', 'seven'].includes(card.rank)) {
       return {
-        verdict: 'SIM, COM PACIÊNCIA',
+        verdict: t('yn.v.yesPatience'),
         type: 'conditional_yes',
         percentage: 70,
         color: 'text-amber-300',
         badgeBg: 'bg-amber-500/20 border-amber-400/60',
-        summary: 'A semente foi plantada com segurança, mas o resultado precisa de tempo para amadurecer.',
-        tip: 'Sim, mas depende de você ter paciência para colher no tempo certo, sem tentar apressar o ritmo natural.'
+        summary: t('yn.pentPatience.summary'),
+        tip: t('yn.pentPatience.tip')
       };
     }
     return {
-      verdict: 'SIM CONCRETO',
+      verdict: t('yn.v.yesSolid'),
       type: 'yes',
       percentage: 90,
       color: 'text-emerald-400',
       badgeBg: 'bg-emerald-500/20 border-emerald-400/60',
-      summary: 'Estabilidade, ganho prático e solo firme para a concretização dos seus planos.',
-      tip: 'Sim! Mantenha a disciplina, organize seus recursos e avance com pés no chão.'
+      summary: t('yn.pentYes.summary'),
+      tip: t('yn.pentYes.tip')
     };
   }
 
   // Default fallback
   return {
-    verdict: 'SIM',
+    verdict: t('yn.v.yes'),
     type: 'yes',
     percentage: 80,
     color: 'text-emerald-400',
     badgeBg: 'bg-emerald-500/20 border-emerald-400/60',
-    summary: 'As correntes energéticas sopram favoravelmente para a sua questão.',
-    tip: 'Sim, mas depende de você manter a dedicação e focar nas suas metas.'
+    summary: t('yn.default.summary'),
+    tip: t('yn.default.tip')
   };
 };
 
-const SELF_HARM_REGEX = /\b(suic[ií]d\w*|me\s+matar|morrer|automutila\w*|tirar\s+a\s+(minha\s+)?vida|cortar\s+os\s+pulsos|acabar\s+com\s+a\s+(minha\s+)?vida|acabar\s+com\s+tudo|me\s+enforcar|quero\s+morrer)\b/i;
-const NECROMANCY_REGEX = /\b(parente\s+morto|parente\s+falecid|falar\s+com\s+(o\s+|a\s+)?(morto|falecid|morta|falecida|espirito|espírito)|psicograf|alma\s+do\s+meu|alma\s+da\s+minha|falar\s+com\s+quem\s+morreu|esp[ií]rito\s+do\s+meu|m[eé]dium|incorporar)\b/i;
 
 // Generate an ultra-direct, concise local fallback response matching the AI format
 export const generateOfflineYesNoReading = ({ card, userQuestion, evaluation }) => {
   const q = (userQuestion || '').trim();
 
-  // Ethical Safeguard: Suicide and Self-Harm Prevention
+  // Ethical safeguards: no reading for self-harm (crisis lines instead) or contact with the dead.
   if (SELF_HARM_REGEX.test(q)) {
-    return {
-      source: 'ethical_safeguard',
-      isAi: false,
-      verdict: 'BUSQUE APOIO PROFISSIONAL',
-      answer: 'O Tarot não realiza leituras sobre morte ou autodestruição. Sua vida tem valor sagrado e inestimável, e você não precisa enfrentar essa dor sozinho.',
-      tip: 'Por favor, procure ajuda humana imediata: no Brasil, ligue gratuitamente para o CVV no número 188 ou consulte um profissional de saúde mental.',
-      type: 'maybe',
-      color: 'text-amber-400',
-      badgeBg: 'bg-amber-500/20 border-amber-400/60',
-      percentage: 50,
-      rawText: 'VEREDITO: BUSQUE APOIO PROFISSIONAL\nRESPOSTA: O Tarot não realiza leituras sobre morte ou autodestruição. Sua vida tem valor sagrado e inestimável, e você não precisa enfrentar essa dor sozinho.\nDICA: Por favor, procure ajuda humana imediata: no Brasil, ligue gratuitamente para o CVV no número 188 ou consulte um profissional de saúde mental.'
-    };
+    return safeguard(t('yn.v.support'), t('safety.yn.answer'), t('safety.yn.tip', { crisis: t('safety.crisis') }));
   }
-
-  // Ethical Safeguard: Necromancy and Contact with Deceased
   if (NECROMANCY_REGEX.test(q)) {
-    return {
-      source: 'ethical_safeguard',
-      isAi: false,
-      verdict: 'FOCO NO AUTOCONHECIMENTO',
-      answer: 'O Tarot é um espelho de orientação e autoconhecimento para os vivos no plano terreno, não uma ferramenta mediúnica de contato com os mortos.',
-      tip: 'Honre a memória e o amor de quem partiu, focando na sua própria cura emocional, no luto e no momento presente.',
-      type: 'maybe',
-      color: 'text-amber-400',
-      badgeBg: 'bg-amber-500/20 border-amber-400/60',
-      percentage: 50,
-      rawText: 'VEREDITO: FOCO NO AUTOCONHECIMENTO\nRESPOSTA: O Tarot é um espelho de orientação e autoconhecimento para os vivos no plano terreno, não uma ferramenta mediúnica de contato com os mortos.\nDICA: Honre a memória e o amor de quem partiu, focando na sua própria cura emocional, no luto e no momento presente.'
-    };
+    return safeguard(t('yn.v.self'), t('safety.ynNecro.answer'), t('safety.ynNecro.tip'));
   }
 
   const evalData = evaluation || getYesNoEvaluation(card, card?.isReversed);
 
-  let directAnswer;
-  if (q) {
-    directAnswer = `Para a sua dúvida ("${q}"): o arcano ${card?.name || 'revelado'} ${card?.isReversed ? '(Invertido)' : ''} indica ${evalData.summary.toLowerCase()}`;
-  } else {
-    directAnswer = `O arcano ${card?.name || 'revelado'} ${card?.isReversed ? '(Invertido)' : ''} mostra que ${evalData.summary.toLowerCase()}`;
-  }
+  const name = card ? `${card.name}${card.isReversed ? ` (${t('common.reversed')})` : ''}` : t('yn.offline.revealed');
+  const summary = lowerFirst(evalData.summary);
+  let directAnswer = q
+    ? t('yn.offline.withQuestion', { question: q, name, summary })
+    : t('yn.offline.noQuestion', { name, summary });
 
   if (card?.deckId === 'lenormand') directAnswer = `${card.name}: ${card.light}`;
 
@@ -367,6 +360,6 @@ export const generateOfflineYesNoReading = ({ card, userQuestion, evaluation }) 
     color: evalData.color,
     badgeBg: evalData.badgeBg,
     percentage: evalData.percentage,
-    rawText: `VEREDITO: ${evalData.verdict}\nRESPOSTA: ${directAnswer}\nDICA: ${evalData.tip}`
+    rawText: rawYesNo(evalData.verdict, directAnswer, evalData.tip)
   };
 };

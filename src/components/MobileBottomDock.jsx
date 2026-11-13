@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Layers, BookOpen, Bookmark, Palette, Oracle, Destiny, X } from './icons/ArcaneIcons';
 import { audio } from '../utils/audio';
 import { useModalAccessibility } from '../utils/useModalAccessibility';
+import { t } from '../i18n';
 
 export const MobileBottomDock = ({
   onScrollToAltar, onOpenDestiny, onOpenYesNo, onOpenGrimoire, onOpenHistory, onOpenThemes,
@@ -21,20 +22,20 @@ export const MobileBottomDock = ({
     callback?.();
   };
   return <>
-    <nav aria-label="Navegação Rápida Mobile" className="mobile-reading-dock md:hidden">
-      <button type="button" onClick={() => { audio.playHover(); onScrollToAltar?.(); }}><Layers /><span>Mesa</span></button>
-      <button type="button" onClick={onOpenDestiny} className="dock-destiny"><Destiny /><span>Ao acaso</span></button>
-      <button type="button" onClick={() => { audio.playHover(); onOpenGrimoire?.(); }}><BookOpen /><span>Grimório</span></button>
-      <button type="button" aria-haspopup="dialog" aria-expanded={toolsOpen} onClick={() => setToolsOpen(true)}><Palette /><span>Mais</span></button>
+    <nav aria-label={t('dock.label')} className="mobile-reading-dock md:hidden">
+      <button type="button" onClick={() => { audio.playHover(); onScrollToAltar?.(); }}><Layers /><span>{t('dock.table')}</span></button>
+      <button type="button" onClick={onOpenDestiny} className="dock-destiny"><Destiny /><span>{t('dock.random')}</span></button>
+      <button type="button" onClick={() => { audio.playHover(); onOpenGrimoire?.(); }}><BookOpen /><span>{t('menu.grimoire')}</span></button>
+      <button type="button" aria-haspopup="dialog" aria-expanded={toolsOpen} onClick={() => setToolsOpen(true)}><Palette /><span>{t('dock.more')}</span></button>
     </nav>
     {toolsOpen && <div className="mobile-tools-layer md:hidden">
       <div className="mobile-tools-backdrop" onClick={() => setToolsOpen(false)} />
-      <section ref={modalRef} role="dialog" aria-modal="true" aria-label="Ferramentas do santuário" className="mobile-tools-sheet">
-        <div className="mobile-sheet-heading"><h2>Mais</h2><button type="button" aria-label="Fechar ferramentas" onClick={() => setToolsOpen(false)}><X /></button></div>
-        <p>Outras consultas e preferências.</p>
-        <button type="button" onClick={() => openTool(onOpenYesNo)}><Oracle /><span>Sim ou Não<small>Uma carta para sua pergunta</small></span></button>
-        <button type="button" onClick={() => openTool(onOpenHistory)}><Bookmark /><span>Diário de leituras<small>{historyCount ? `${historyCount} leituras guardadas` : 'Revisite suas reflexões'}</small></span></button>
-        <button type="button" onClick={() => openTool(onOpenThemes)}><Palette /><span>Atmosferas<small>Escolha a atmosfera da sua mesa</small></span></button>
+      <section ref={modalRef} role="dialog" aria-modal="true" aria-label={t('dock.sheetLabel')} className="mobile-tools-sheet">
+        <div className="mobile-sheet-heading"><h2>{t('dock.more')}</h2><button type="button" aria-label={t('dock.closeSheet')} onClick={() => setToolsOpen(false)}><X /></button></div>
+        <p>{t('dock.sheetText')}</p>
+        <button type="button" onClick={() => openTool(onOpenYesNo)}><Oracle /><span>{t('header.yesNo')}<small>{t('dock.yesNoNote')}</small></span></button>
+        <button type="button" onClick={() => openTool(onOpenHistory)}><Bookmark /><span>{t('dock.journal')}<small>{historyCount ? t('menu.journalCount', { count: historyCount }) : t('dock.journalNote')}</small></span></button>
+        <button type="button" onClick={() => openTool(onOpenThemes)}><Palette /><span>{t('menu.themes')}<small>{t('dock.themesNote')}</small></span></button>
       </section>
     </div>}
   </>;

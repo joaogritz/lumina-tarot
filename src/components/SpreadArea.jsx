@@ -4,6 +4,7 @@ import { SpreadSlot } from './SpreadSlot';
 import { CardArt } from './CardArt';
 import { Sparkles, BookOpen, RotateCcw, CheckCircle2, ArrowRight, Crown, Star, Compass, X } from './icons/ArcaneIcons';
 import { audio } from '../utils/audio';
+import { t } from '../i18n';
 
 export const SpreadArea = ({ 
   spreadConfig, 
@@ -97,12 +98,12 @@ export const SpreadArea = ({
                 <div 
                   className="w-24 sm:w-28 md:w-32 lg:w-36 aspect-[7/12] cursor-pointer relative transform-gpu animate-card-reveal group/cross"
                 >
-                  <button type="button" className="card-inspect-action" aria-label={`Ver detalhes de ${card2.name}`} onClick={() => onCardClick?.(card2, pos2)}>
+                  <button type="button" className="card-inspect-action" aria-label={t('common.viewDetails', { name: card2.name })} onClick={() => onCardClick?.(card2, pos2)}>
                   <CardArt card={card2} isMini={true} showKeywords={false} />
                   
                   {/* Crossing Marker Badge */}
                   <div className="absolute -top-2 left-1/2 -translate-x-1/2 px-1.5 py-0.2 rounded bg-red-950/95 border border-red-400 text-[10px] font-cinzel text-red-200 font-bold uppercase tracking-wider shadow-md">
-                    Cruzada
+                    {t('area.crossed')}
                   </div>
 
                   </button>
@@ -116,7 +117,7 @@ export const SpreadArea = ({
                         audio.playRemoveCard();
                         onRemoveCard(1);
                       }}
-                      aria-label="Remover carta cruzada" title="Remover carta cruzada"
+                      aria-label={t('area.removeCrossed')} title={t('area.removeCrossed')}
                       className="spread-remove-action"
                     >
                       <X aria-hidden="true" className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
@@ -127,7 +128,7 @@ export const SpreadArea = ({
                 /* Slot 2 Waiting for pick - Horizontal Pulsing Receptor */
                 <div className="w-24 sm:w-28 md:w-32 lg:w-36 aspect-[7/12] rounded-sm border-2 border-dashed border-amber-400 bg-amber-500/20 shadow-[0_0_25px_rgba(251,191,36,0.6)] animate-gold-pulse flex flex-col items-center justify-center p-1 text-center">
                   <Sparkles className="w-4 h-4 text-amber-300 animate-spin mb-1" style={{ animationDuration: '4s' }} />
-                  <span className="font-cinzel text-[11px] text-amber-200 font-bold">2. Cruzar</span>
+                  <span className="font-cinzel text-[11px] text-amber-200 font-bold">{t('area.cross')}</span>
                 </div>
               ) : (
                 /* Slot 2 Inactive Ghost receptor outline */
@@ -150,7 +151,7 @@ export const SpreadArea = ({
         <div className="flex flex-col items-center">
           <div className="text-center mb-3">
             <span className="text-xs font-cinzel text-amber-300 font-bold uppercase tracking-wider">
-              A cruz · presente e circunstâncias
+              {t('area.crossTitle')}
             </span>
           </div>
 
@@ -188,7 +189,7 @@ export const SpreadArea = ({
         <div className="flex flex-col items-center border-t lg:border-t-0 lg:border-l border-amber-500/20 pt-6 lg:pt-0 lg:pl-10">
           <div className="text-center mb-3">
             <span className="text-xs font-cinzel text-amber-300 font-bold uppercase tracking-wider">
-              O bastão · o caminho
+              {t('area.staffTitle')}
             </span>
           </div>
 
@@ -213,7 +214,7 @@ export const SpreadArea = ({
         <div className="flex flex-col items-center">
           <div className="mb-1 flex items-center gap-1 text-emerald-400 text-xs font-cinzel font-bold">
             <Crown className="w-3.5 h-3.5" />
-            <span>Vértice: Resultado</span>
+            <span>{t('area.apex')}</span>
           </div>
           {renderSlot(2, 'md', false, true)}
         </div>
@@ -381,7 +382,7 @@ export const SpreadArea = ({
   };
 
   return (
-    <section data-layout={spreadConfig.layoutType} aria-label="Mesa de leitura" className="reading-area w-full max-w-6xl mx-auto mb-10">
+    <section data-layout={spreadConfig.layoutType} aria-label={t('area.label')} className="reading-area w-full max-w-6xl mx-auto mb-10">
       {/* Altar Velvet Mat Container */}
       <div className="altar-surface relative p-4 sm:p-6 md:p-8 overflow-hidden shadow-2xl border border-amber-500/30">
         
@@ -410,7 +411,7 @@ export const SpreadArea = ({
               }
             `}>
               {isComplete ? <CheckCircle2 className="w-4 h-4 text-emerald-400" /> : <Sparkles className="w-4 h-4 text-amber-400" />}
-              <span>{filledSlotsCount} de {totalSlots} cartas na mesa</span>
+              <span>{t('area.progress', { filled: filledSlotsCount, total: totalSlots })}</span>
             </div>
 
             {filledSlotsCount > 0 && (
@@ -421,17 +422,17 @@ export const SpreadArea = ({
                   onResetSpread();
                 }}
                 className="maison-text-button px-3 py-1.5 rounded-full bg-slate-900/80 hover:bg-slate-800 text-slate-300 hover:text-amber-300 border border-slate-700 hover:border-amber-400/50 text-xs flex items-center gap-1.5 transition-all cursor-pointer active:scale-95 shadow-sm"
-                title="Limpar mesa"
+                title={t('area.clearTitle')}
               >
                 <RotateCcw className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Recolher</span>
+                <span className="hidden sm:inline">{t('area.clear')}</span>
               </button>
             )}
           </div>
         </div>
 
         {['timeline', 'celtic_cross', 'pentagram'].includes(spreadConfig.layoutType) && (
-          <p className="mobile-spread-guidance md:hidden">Deslize a mesa para explorar todas as posições. Toque nas cartas reveladas para ampliar.</p>
+          <p className="mobile-spread-guidance md:hidden">{t('area.mobileGuidance')}</p>
         )}
         {/* Dynamic Sacred Mat Spatial Layout */}
         <div className="relative z-10 min-h-[300px] flex items-center justify-center">
@@ -451,8 +452,8 @@ export const SpreadArea = ({
 
         {spreadConfig.layoutType === 'celtic_cross' && (
           <div className="mobile-celtic-focus md:hidden">
-            <h3>As dez posições</h3>
-            <p>O mapa acima preserva a cruz e o bastão. Explore cada posição abaixo; toque em uma carta para ampliar ou use × para recolhê-la.</p>
+            <h3>{t('area.celticTitle')}</h3>
+            <p>{t('area.celticHint')}</p>
             <div className="mobile-celtic-positions">{spreadConfig.positions.map((_, index) => renderSlot(index))}</div>
           </div>
         )}
@@ -481,14 +482,14 @@ export const SpreadArea = ({
 
                   <BookOpen className="w-5 h-5 text-amber-300 shrink-0" />
                   <span className="font-outfit text-xs uppercase tracking-widest">
-                    Ler as cartas
+                    {t('area.read')}
                   </span>
                   <Compass className="w-5 h-5 text-amber-400/90 group-hover:rotate-90 transition-transform duration-700 shrink-0" />
                 </motion.button>
               </div>
 
               <p className="text-sm text-amber-200/80 mt-2.5 font-almendra italic text-center tracking-wide">
-                {totalSlots === 1 ? 'A carta está na mesa.' : `As ${totalSlots} cartas estão na mesa.`}
+                {t('area.complete', { count: totalSlots })}
               </p>
             </motion.div>
           )}

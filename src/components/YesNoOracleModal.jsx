@@ -8,13 +8,14 @@ import { CardDetailModal } from './CardDetailModal';
 import { TAROT_DECK } from '../data/tarotDeck';
 import { aiOracleService } from '../utils/aiOracle';
 import { audio } from '../utils/audio';
+import { t } from '../i18n';
 
 const QUICK_QUESTIONS = [
-  'Devo tomar essa iniciativa agora?',
-  'É uma oportunidade favorável?',
-  'Esse projeto vai dar certo?',
-  'Devo ter cautela e esperar?',
-  'Essa pessoa é sincera comigo?'
+  t('yesno.s1'),
+  t('yesno.s2'),
+  t('yesno.s3'),
+  t('yesno.s4'),
+  t('yesno.s5')
 ];
 
 export const YesNoOracleModal = ({ 
@@ -96,7 +97,16 @@ export const YesNoOracleModal = ({
   const handleCopyResult = () => {
     if (!aiReading || !drawnCard) return;
     audio.playPaperRustle();
-    const shareText = `🔮 LUMINA TAROT — SIM OU NÃO\n${question ? `Pergunta: "${question}"\n` : ''}Arcano: ${drawnCard.name} ${drawnCard.isReversed ? '(Invertida)' : ''}\nVeredito: ${aiReading.verdict}\n\nResposta: ${aiReading.answer}\n\n💡 Dica do Oráculo: ${aiReading.tip}`;
+    const shareText = [
+      t('yesno.text.header'),
+      question ? t('yesno.text.question', { question }) : '',
+      t('yesno.text.card', { name: `${drawnCard.name}${drawnCard.isReversed ? ` (${t('common.reversed')})` : ''}` }),
+      t('yesno.text.verdict', { verdict: aiReading.verdict }),
+      '',
+      t('yesno.text.answer', { answer: aiReading.answer }),
+      '',
+      t('yesno.text.tip', { tip: aiReading.tip }),
+    ].filter((line, i) => line !== '' || i > 2).join('\n');
     navigator.clipboard.writeText(shareText);
     setCopied(true);
     setTimeout(() => setCopied(false), 2500);
@@ -118,7 +128,7 @@ export const YesNoOracleModal = ({
       {/* Modal Dialog Card */}
       <motion.div 
         ref={modalRef}
-        aria-label="Oráculo sim ou não"
+        aria-label={t('yesno.dialog')}
         role="dialog"
         aria-modal="true"
         initial={{ opacity: 0, scale: 0.92, y: 20 }}
@@ -130,7 +140,7 @@ export const YesNoOracleModal = ({
         {/* Close Button */}
         <button
           type="button"
-          aria-label="Fechar" onClick={handleClose}
+          aria-label={t('common.close')} onClick={handleClose}
           className="absolute top-4 right-4 p-2 rounded-full bg-slate-900/80 border border-slate-700 text-slate-400 hover:text-amber-300 hover:border-amber-400/50 transition-all cursor-pointer z-20"
         >
           <X aria-hidden="true" className="w-5 h-5" />
@@ -140,13 +150,13 @@ export const YesNoOracleModal = ({
         <div className="mb-4">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-stone-950/80 border border-amber-500/30 text-amber-300 text-xs font-cinzel font-semibold mb-2">
             <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-            <span>Uma carta, uma resposta</span>
+            <span>{t('yesno.kicker')}</span>
           </div>
           <h3 className="font-cinzel text-xl sm:text-2xl md:text-3xl font-black text-slate-100 gold-gradient-text tracking-wide">
-            Sim ou Não
+            {t('yesno.title')}
           </h3>
           <p className="text-xs text-slate-400 mt-1 max-w-md mx-auto">
-            Faça sua pergunta e explore uma orientação simbólica com conselhos práticos. O resultado não é uma certeza sobre os fatos.
+            {t('yesno.intro')}
           </p>
         </div>
 
@@ -157,7 +167,7 @@ export const YesNoOracleModal = ({
               <div className="flex items-center gap-2">
                 <Feather className="w-4 h-4 text-amber-400 shrink-0" />
                 <input
-                  aria-label="Pergunta para o oráculo sim ou não"
+                  aria-label={t('yesno.inputLabel')}
                   maxLength={1000}
                   type="text"
                   value={question}
@@ -165,7 +175,7 @@ export const YesNoOracleModal = ({
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') handleDraw();
                   }}
-                  placeholder="Mentalize ou digite sua pergunta objetiva..."
+                  placeholder={t('yesno.placeholder')}
                   className="w-full bg-transparent text-xs sm:text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none"
                   autoFocus
                 />
@@ -184,7 +194,7 @@ export const YesNoOracleModal = ({
             {/* Quick Question Chips */}
             <div className="mt-3">
               <span className="text-[10px] font-cinzel text-amber-400/80 font-semibold uppercase block mb-1.5">
-                Sugestões
+                {t('yesno.suggestions')}
               </span>
               <div className="flex flex-wrap gap-1.5">
                 {QUICK_QUESTIONS.map((q, idx) => (
@@ -213,7 +223,7 @@ export const YesNoOracleModal = ({
               `}
             >
               <Dices className={`w-5 h-5 ${isDrawing ? 'animate-spin' : ''}`} />
-              <span>{isDrawing ? 'Embaralhando' : 'Tirar a carta'}</span>
+              <span>{isDrawing ? t('yesno.drawing') : t('yesno.draw')}</span>
             </button>
           </div>
         )}
@@ -230,10 +240,10 @@ export const YesNoOracleModal = ({
             </div>
             <div className="space-y-1">
               <h4 className="font-cinzel text-base font-bold text-amber-300 animate-pulse">
-                Sintonizando a energia das cartas...
+                {t('yesno.loading')}
               </h4>
               <p className="text-xs text-slate-400">
-                Interpretando o arcano <span className="text-slate-200 font-semibold">{drawnCard.name}</span> para a sua dúvida
+                {t('yesno.interpreting', { name: drawnCard.name })}
               </p>
             </div>
           </motion.div>
@@ -247,9 +257,9 @@ export const YesNoOracleModal = ({
             animate={{ opacity: 1 }}
             className="py-8 flex flex-col items-center justify-center gap-3 text-center"
           >
-            <p className="font-cinzel text-sm text-amber-200">Não foi possível consultar o oráculo agora.</p>
+            <p className="font-cinzel text-sm text-amber-200">{t('reading.unavailable')}</p>
             <p className="text-xs text-slate-400 max-w-sm">
-              O arcano <span className="text-slate-200 font-semibold">{drawnCard.name}</span> continua reservado para a sua pergunta. Tente de novo em alguns instantes.
+              {t('yesno.unavailableHint', { name: drawnCard.name })}
             </p>
             <div className="flex flex-wrap justify-center gap-2 mt-1">
               <button
@@ -258,14 +268,14 @@ export const YesNoOracleModal = ({
                 className="py-2.5 px-4 rounded-sm bg-amber-500/15 hover:bg-amber-500/25 border border-amber-400/60 text-amber-200 text-xs font-semibold flex items-center gap-1.5 cursor-pointer transition-all active:scale-95"
               >
                 <RotateCcw className="w-4 h-4" aria-hidden="true" />
-                <span>Tentar novamente</span>
+                <span>{t('common.retry')}</span>
               </button>
               <button
                 type="button"
                 onClick={handleReset}
                 className="py-2.5 px-4 rounded-sm bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300 hover:text-amber-300 text-xs font-semibold cursor-pointer transition-all active:scale-95"
               >
-                Outra pergunta
+                {t('yesno.another')}
               </button>
             </div>
           </motion.div>
@@ -283,7 +293,7 @@ export const YesNoOracleModal = ({
             {question && (
               <div className="px-3 py-1.5 rounded-sm bg-stone-950/40 border border-amber-500/20 max-w-md">
                 <span className="text-[10px] font-cinzel text-amber-400/80 font-bold uppercase block">
-                  Sua Pergunta:
+                  {t('yesno.yourQuestion')}
                 </span>
                 <p className="text-xs text-amber-100 italic font-cinzel">
                   "{question}"
@@ -305,14 +315,14 @@ export const YesNoOracleModal = ({
                   type="button"
                   onClick={() => setSelectedCardDetail(drawnCard)}
                   className="w-32 sm:w-36 aspect-[7/12] shadow-2xl rounded-sm cursor-pointer hover:scale-105 transition-transform group relative"
-                  title="Clique para ver detalhes do Arcano"
+                  title={t('yesno.cardTitle')}
                 >
                   <CardArt card={drawnCard} isMini={false} showKeywords={false} />
                   <div className="absolute inset-0 rounded-sm bg-amber-400/0 group-hover:bg-amber-400/10 transition-colors border border-transparent group-hover:border-amber-400/50" />
                 </button>
                 <span className="text-[10px] text-slate-400 mt-1.5 flex items-center gap-1 font-cinzel">
                   <Compass className="w-3 h-3 text-amber-400" />
-                  {drawnCard.name} {drawnCard.isReversed ? '(Invertida)' : ''}
+                  {drawnCard.name} {drawnCard.isReversed ? `(${t('common.reversed')})` : ''}
                 </span>
               </div>
 
@@ -323,7 +333,7 @@ export const YesNoOracleModal = ({
                   <div className="flex items-center gap-2 mb-1.5">
                     <span className="font-cinzel font-bold text-amber-300 flex items-center gap-1.5 text-[11px] uppercase tracking-wider">
                       <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                      Resposta Direta do Oráculo:
+                      {t('yesno.answer')}
                     </span>
                   </div>
                   <p className="text-slate-200 leading-relaxed font-normal">
@@ -335,7 +345,7 @@ export const YesNoOracleModal = ({
                 <div className="p-3.5 rounded-sm bg-gradient-to-br from-stone-950/80 to-slate-950/90 border border-amber-500/40 shadow-md relative overflow-hidden">
                   <div className="flex items-center gap-1.5 mb-1 text-amber-300 font-cinzel font-bold text-[11px] uppercase tracking-wider">
                     <Lightbulb className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                    <span>Dica Prática / Condição:</span>
+                    <span>{t('yesno.tip')}</span>
                   </div>
                   <p className="text-amber-100/90 italic leading-relaxed text-xs">
                     "{evaluation.tip || drawnCard.advice}"
@@ -352,7 +362,7 @@ export const YesNoOracleModal = ({
                 className="flex-1 min-w-[130px] py-2.5 px-3 rounded-sm bg-stone-950/50 hover:bg-stone-900/70 border border-amber-500/30 text-amber-200 hover:text-amber-100 text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition-all active:scale-95"
               >
                 {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4 text-amber-400" />}
-                <span>{copied ? 'Copiado!' : 'Copiar Resposta'}</span>
+                <span>{copied ? t('common.copied') : t('yesno.copy')}</span>
               </button>
 
               <button
@@ -361,15 +371,15 @@ export const YesNoOracleModal = ({
                 className="flex-1 min-w-[130px] py-2.5 px-3 rounded-sm bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300 hover:text-amber-300 text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition-all active:scale-95"
               >
                 <RotateCcw className="w-4 h-4" />
-                <span>Outra pergunta</span>
+                <span>{t('yesno.another')}</span>
               </button>
 
               <button
                 type="button"
-                aria-label="Fechar" onClick={handleClose}
+                aria-label={t('common.close')} onClick={handleClose}
                 className="py-2.5 px-5 rounded-sm bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-950 font-cinzel font-bold text-xs cursor-pointer transition-all shadow-md active:scale-95"
               >
-                Concluir
+                {t('yesno.done')}
               </button>
             </div>
           </motion.div>
@@ -380,7 +390,7 @@ export const YesNoOracleModal = ({
       {selectedCardDetail && (
         <CardDetailModal
           card={selectedCardDetail}
-          positionInfo={{ name: 'Oráculo do Sim ou Não', meaning: 'Resposta Direta e Conselho' }}
+          positionInfo={{ name: t('yesno.positionName'), meaning: t('yesno.positionMeaning') }}
           onClose={() => setSelectedCardDetail(null)}
         />
       )}

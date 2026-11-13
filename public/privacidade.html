@@ -27,13 +27,15 @@
     th, td { text-align: left; vertical-align: top; padding: 10px 8px; border-bottom: 1px solid var(--line); }
     th { color: var(--ivory); font-weight: 500; }
     td { color: var(--parchment); }
+    .top { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; }
+    .langs { font-size: 14px; color: var(--parchment); }
   </style>
 </head>
 <body>
 <main>
-  <a class="back" href="./">← Voltar ao Lumina</a>
+  <div class="top"><a class="back" href="./">← Voltar ao Lumina</a><nav class="langs" aria-label="Idiomas"><a href="./privacidade.html" lang="pt-BR">Português</a> · <a href="./privacy.html" lang="en">English</a> · <a href="./privacidad.html" lang="es">Español</a> · <a href="./confidentialite.html" lang="fr">Français</a></nav></div>
   <h1>Privacidade</h1>
-  <p class="updated">Última atualização: 10 de novembro de 2026</p>
+  <p class="updated">Última atualização: 13 de novembro de 2026</p>
 
   <p>O Lumina Tarot é um projeto pessoal e de código aberto. Ele não tem contas, não usa cookies de rastreamento e não tem ferramentas de análise ou anúncios. Esta página explica quais dados passam pelo site, para onde vão e como controlá-los.</p>
 
@@ -43,18 +45,20 @@
     <tbody>
       <tr><td>Diário de leituras: perguntas, cartas, interpretações e notas</td><td><code>localStorage</code> do navegador (até 100 leituras)</td></tr>
       <tr><td>Mesas salvas da Mesa Livre 3D</td><td>IndexedDB do navegador</td></tr>
-      <tr><td>Preferências: tema, baralho e som</td><td><code>localStorage</code> do navegador</td></tr>
+      <tr><td>Preferências: tema, baralho, idioma e som</td><td><code>localStorage</code> do navegador</td></tr>
       <tr><td>Arquivos do site para uso offline</td><td>Cache do service worker</td></tr>
     </tbody>
   </table>
   <p>Esses dados não são enviados a nenhum servidor e não são criptografados. Quem usa o mesmo navegador pode vê-los. Limpar os dados do site apaga tudo; para guardar o diário, use <strong>Exportar</strong> no Diário.</p>
+  <p>O idioma do site é escolhido a partir das preferências de idioma do seu navegador, lidas no próprio aparelho. Se você trocar o idioma no menu, a escolha fica guardada no navegador.</p>
 
   <h2>O que é enviado para gerar a interpretação</h2>
   <p>As interpretações são geradas por inteligência artificial. Ao pedir uma interpretação (tiragem ou Sim ou Não), o site envia:</p>
   <ul>
     <li>a pergunta que você digitou, se houver;</li>
     <li>as cartas sorteadas, com posição, orientação e significados;</li>
-    <li>o nome e as posições da tiragem.</li>
+    <li>o nome e as posições da tiragem;</li>
+    <li>o idioma do site, para que a resposta venha nele.</li>
   </ul>
   <p>Esses dados vão ao nosso servidor de interpretação, hospedado na <strong>Cloudflare</strong> (Cloudflare Workers), que gera o texto com o <strong>Cloudflare Workers AI</strong>, na própria rede da Cloudflare, usando modelos de linguagem abertos. Nenhuma outra empresa recebe a consulta. O servidor não grava a pergunta nem a resposta, e a Cloudflare processa os dados conforme a própria política.</p>
   <p><strong>Evite incluir nomes completos, documentos, endereços ou detalhes de saúde nas perguntas.</strong></p>

@@ -1,5 +1,6 @@
 import React from 'react';
 import { Sparkles, RotateCcw, ShieldAlert, Home } from './icons/ArcaneIcons';
+import { t } from '../i18n';
 
 export class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -42,11 +43,11 @@ export class ErrorBoundary extends React.Component {
             </div>
 
             <h1 className="font-cinzel text-xl sm:text-2xl font-bold text-amber-200 mb-2">
-              Os Véus Cósmicos Oscilaram
+              {t('error.title')}
             </h1>
 
             <p className="font-outfit text-sm sm:text-base text-slate-300 mb-6 leading-relaxed">
-              Uma oscilação sutil desestabilizou o fluxo do altar. Não se preocupe: a sua jornada e o seu histórico sagrado permanecem preservados.
+              {t('error.text')}
             </p>
 
             {/* Action Buttons */}
@@ -56,7 +57,7 @@ export class ErrorBoundary extends React.Component {
                 className="w-full sm:w-auto px-5 py-2.5 rounded-sm bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-cinzel font-bold text-xs uppercase tracking-wider transition-all duration-300 flex items-center justify-center gap-2 shadow-lg shadow-amber-500/20 cursor-pointer"
               >
                 <RotateCcw className="w-4 h-4" />
-                Realinhar a Mesa
+                {t('error.reload')}
               </button>
 
               <button
@@ -64,7 +65,7 @@ export class ErrorBoundary extends React.Component {
                 className="w-full sm:w-auto px-4 py-2.5 rounded-sm bg-slate-800/80 hover:bg-slate-700/80 text-slate-300 hover:text-amber-200 border border-amber-500/30 font-cinzel text-xs uppercase tracking-wider transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer"
               >
                 <Home className="w-4 h-4" />
-                Reiniciar Altar
+                {t('error.reset')}
               </button>
             </div>
 
@@ -73,7 +74,7 @@ export class ErrorBoundary extends React.Component {
               <details className="mt-6 text-left border-t border-slate-800/80 pt-4">
                 <summary className="text-[11px] font-mono text-slate-300 hover:text-slate-200 cursor-pointer flex items-center gap-1.5 select-none">
                   <ShieldAlert className="w-3.5 h-3.5" />
-                  Detalhes Técnicos da Oscilação
+                  {t('error.details')}
                 </summary>
                 <pre className="mt-2 p-3 bg-black/50 border border-slate-800 rounded-sm text-[10px] font-mono text-rose-300 overflow-x-auto max-h-32">
                   {this.state.error.toString()}

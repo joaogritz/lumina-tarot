@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { artworkUrl } from '../../data/cardArtwork.js';
 
 import './tarot-card.css';
+import { t } from '../../i18n';
 
 // Collections whose scans already show the card number.
 const PRINTED_RANK = new Set(['rider-waite', 'lenormand-hope']);
@@ -18,7 +19,7 @@ function ArtworkImage({ artwork, name, priority, size }) {
     <div className="tarot-artwork-window" data-status={status}>
       <div className="tarot-image-placeholder" aria-hidden="true">
         <img src={artworkUrl('tarot/backs/lumina-observatory.svg')} alt="" draggable={false} />
-        {status === 'error' && <span>Arte indisponível</span>}
+        {status === 'error' && <span>{t('card.artUnavailable')}</span>}
       </div>
       <img
         className="tarot-artwork-image"
@@ -94,10 +95,10 @@ export const TarotCard = React.memo(function TarotCard({
             {/* Both scanned decks print the numeral; repeating it above the art reads as a typo. */}
             <div className="tarot-card-numeral">{rank}</div>
             <div className="tarot-card-picture" data-reversed={Boolean(card?.isReversed)}>
-              {artwork ? <ArtworkImage key={artwork.src} artwork={artwork} name={card?.name || 'Carta'} priority={priority} size={size} /> : (
-                <div className="tarot-image-placeholder tarot-image-missing" role="img" aria-label={`Artwork de ${card?.name || 'carta'} indisponível`}>
+              {artwork ? <ArtworkImage key={artwork.src} artwork={artwork} name={card?.name || t('card.fallbackName')} priority={priority} size={size} /> : (
+                <div className="tarot-image-placeholder tarot-image-missing" role="img" aria-label={t('card.artUnavailableFor', { name: card?.name || t('card.fallbackName') })}>
                   <img src={artworkUrl('tarot/backs/lumina-observatory.svg')} alt="" draggable={false} />
-                  <span>Arte indisponível</span>
+                  <span>{t('card.artUnavailable')}</span>
                 </div>
               )}
             </div>

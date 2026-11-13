@@ -4,6 +4,7 @@ import { CardArt } from './CardArt';
 import { TarotCard } from './cards/TarotCard.jsx';
 import { Sparkles, X, ZoomIn } from './icons/ArcaneIcons';
 import { audio } from '../utils/audio';
+import { t } from '../i18n';
 
 export const SpreadSlot = React.memo(({ 
   slotIndex, 
@@ -89,14 +90,14 @@ export const SpreadSlot = React.memo(({
               <div className="absolute -inset-2 rounded-sm bg-amber-500/20 blur-xl opacity-0 group-hover/slot:opacity-100 transition-opacity duration-300 pointer-events-none" />
               
               {/* Inspect and remove remain separate keyboard controls. */}
-              <button type="button" className="card-inspect-action" aria-label={`Ver detalhes de ${card.name}`} onClick={() => onCardClick?.(card, positionInfo)}>
+              <button type="button" className="card-inspect-action" aria-label={t('common.viewDetails', { name: card.name })} onClick={() => onCardClick?.(card, positionInfo)}>
               {/* Card Content */}
               <CardArt card={card} isMini={isMiniArt} size={isLarge ? 'lg' : isMiniArt ? 'sm' : 'md'} priority showKeywords={!isMiniArt} />
 
               {/* Crossing Tag if applicable */}
               {isCrossing && (
                 <div className="absolute -top-2 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded bg-red-950/95 border border-red-500/50 text-[11px] font-cinzel text-red-300 font-bold uppercase tracking-wider z-20 shadow-lg">
-                  Cruzamento
+                  {t('slot.crossing')}
                 </div>
               )}
 
@@ -106,7 +107,7 @@ export const SpreadSlot = React.memo(({
                   <ZoomIn className="w-4 h-4" />
                 </div>
                 <span className="text-[11px] font-cinzel text-amber-200 font-semibold tracking-wide">
-                  Ver Detalhes
+                  {t('slot.details')}
                 </span>
               </div>
 
@@ -121,7 +122,7 @@ export const SpreadSlot = React.memo(({
                     audio.playRemoveCard();
                     onRemoveCard(slotIndex);
                   }}
-                  aria-label={`Remover ${card.name} da posição ${slotIndex + 1}`} title="Remover carta da posição"
+                  aria-label={t('slot.remove', { name: card.name, position: slotIndex + 1 })} title={t('slot.removeTitle')}
                   className="spread-remove-action"
                 >
                   <X aria-hidden="true" className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
@@ -158,10 +159,10 @@ export const SpreadSlot = React.memo(({
               </div>
 
               <span className="font-cinzel text-[11px] sm:text-xs text-amber-200/90 font-semibold mb-0.5">
-                {isLarge ? 'Carta Focal' : `Posição ${slotIndex + 1}`}
+                {isLarge ? t('slot.focal') : t('slot.position', { position: slotIndex + 1 })}
               </span>
               <span className="text-[11px] sm:text-xs text-slate-400 leading-tight px-1 truncate max-w-full">
-                {isActive ? 'Escolha no baralho' : (positionInfo.name.split('.')[1] || positionInfo.name)}
+                {isActive ? t('slot.choose') : (positionInfo.name.split('.')[1] || positionInfo.name)}
               </span>
             </motion.div>
           )}

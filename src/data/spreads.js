@@ -2,21 +2,29 @@
 
 export const FREE_SPREAD_ID = 'free_reading';
 
+// Texts of the free spread. src/data/localize.js replaces them for other languages.
+export const FREE_SPREAD_TEXT = {
+  name: 'Tiragem Livre',
+  compactName: 'Livre',
+  description: 'De 1 a 10 cartas para uma leitura aberta, sem temas ou significados fixos por posição. Leia cada mensagem e as relações entre elas.',
+  position: 'Carta {n}',
+};
+
 export function createFreeSpread(count = 3) {
   const value = Number(count);
   const cardCount = Number.isFinite(value) ? Math.max(1, Math.min(10, Math.trunc(value))) : 3;
   return {
     id: FREE_SPREAD_ID,
-    name: 'Tiragem Livre',
-    shortName: 'Tiragem Livre',
-    compactName: 'Livre',
+    name: FREE_SPREAD_TEXT.name,
+    shortName: FREE_SPREAD_TEXT.name,
+    compactName: FREE_SPREAD_TEXT.compactName,
     cardCount,
     layoutType: 'free',
     icon: 'Sparkles',
-    description: 'De 1 a 10 cartas para uma leitura aberta, sem temas ou significados fixos por posição. Leia cada mensagem e as relações entre elas.',
+    description: FREE_SPREAD_TEXT.description,
     positions: Array.from({ length: cardCount }, (_, index) => ({
       index,
-      name: `Carta ${index + 1}`,
+      name: FREE_SPREAD_TEXT.position.replace('{n}', String(index + 1)),
       subtitle: '',
       icon: 'Sparkles',
       color: '#C9A45C',
