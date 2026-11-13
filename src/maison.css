@@ -132,6 +132,12 @@ body { background: var(--m-ink); color: var(--m-bone); }
 .maison-preferences > button span:last-child { font: italic 400 17px var(--m-serif); color: var(--m-stone); }
 .maison-preferences > button[aria-pressed="true"] span:last-child { color: var(--m-gold-light); }
 .maison-preferences > button:hover span:first-child { color: var(--m-gold-light); }
+.maison-lang { display: flex; justify-content: space-between; align-items: center; gap: 16px; min-height: 52px; border-bottom: 1px solid var(--m-line); color: var(--m-bone); font: 400 15px var(--m-sans); }
+.maison-lang-options { display: inline-flex; gap: 4px; }
+.maison-lang-options button { min-width: 38px; height: 30px; padding: 0 8px; border: 1px solid transparent; background: none; color: var(--m-stone); font: 500 11px var(--m-sans); letter-spacing: .14em; cursor: pointer; transition: color .3s, border-color .3s; }
+.maison-lang-options button:hover { color: var(--m-gold-light); }
+.maison-lang-options button[aria-pressed="true"] { color: var(--m-gold-light); border-color: var(--m-gold); }
+.maison-lang-options button:focus-visible { outline: 1px solid var(--m-gold-light); outline-offset: 2px; }
 .maison-menu-foot { margin-top: 28px; font: 400 11px var(--m-sans); letter-spacing: .24em; text-transform: uppercase; color: var(--m-stone); text-decoration: none; }
 .maison-menu-foot:hover { color: var(--m-bone); }
 

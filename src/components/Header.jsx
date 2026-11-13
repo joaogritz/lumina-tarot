@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { audio } from '../utils/audio';
 import { CelestialRing } from './CelestialRing';
+import { t, privacyUrl, LOCALES, getLocale, setLocale } from '../i18n';
 
 // Maison masthead: a quiet bar (menu, wordmark, journal) and an editorial opening chapter.
 // Every tool lives in one full-screen index instead of a row of competing buttons.
@@ -51,17 +52,17 @@ export const Header = ({
   };
 
   const index = [
-    ['Sim ou Não', 'Uma carta para uma pergunta direta', onOpenYesNo],
-    ['Carta do dia', 'Um arcano para acompanhar o dia', onOpenDaily],
-    ['Grimório', 'O significado de cada carta', onOpenGrimoire],
-    ['Diário', historyCount ? `${historyCount} ${historyCount === 1 ? 'leitura guardada' : 'leituras guardadas'}` : 'Suas leituras guardadas', onOpenHistory],
-    ['Como ler', 'O método, passo a passo', onOpenGuide],
-    ['Atmosferas', currentTheme?.name || 'A cor do altar', onOpenThemes],
+    [t('header.yesNo'), t('menu.yesNoNote'), onOpenYesNo],
+    [t('menu.daily'), t('menu.dailyNote'), onOpenDaily],
+    [t('menu.grimoire'), t('menu.grimoireNote'), onOpenGrimoire],
+    [t('header.journal'), historyCount ? t('menu.journalCount', { count: historyCount }) : t('menu.journalNote'), onOpenHistory],
+    [t('menu.guide'), t('menu.guideNote'), onOpenGuide],
+    [t('menu.themes'), currentTheme?.name || t('menu.themesNote'), onOpenThemes],
   ];
 
   const preferences = [
-    ['Cartas invertidas', reversalsSupported ? (allowReversed ? 'Sim' : 'Não') : 'Indisponível no Cigano', () => { audio.playSelect(); setAllowReversed(!allowReversed); }, !reversalsSupported, allowReversed],
-    ['Efeitos sonoros', isMuted ? 'Desligados' : 'Ligados', toggleSound, false, !isMuted],
+    [t('menu.reversed'), reversalsSupported ? (allowReversed ? t('common.yes') : t('common.no')) : t('menu.reversedNA'), () => { audio.playSelect(); setAllowReversed(!allowReversed); }, !reversalsSupported, allowReversed],
+    [t('menu.sound'), isMuted ? t('menu.off') : t('menu.on'), toggleSound, false, !isMuted],
   ];
 
   return (
@@ -77,25 +78,25 @@ export const Header = ({
           onClick={() => { audio.playHover(); setMenuOpen(true); }}
         >
           <span className="maison-menu-glyph" aria-hidden="true"><i /><i /></span>
-          Menu
+          {t('header.menu')}
         </button>
         <p className="maison-wordmark" aria-label="Lumina">
           <span>Lumina</span>
-          <small>Tarot &amp; Baralho Cigano</small>
+          <small>{t('common.tagline')}</small>
         </p>
         <div className="maison-bar-end">
-          <button type="button" className="maison-bar-link maison-hide-mobile" onClick={go(onOpenYesNo)}>Sim ou Não</button>
+          <button type="button" className="maison-bar-link maison-hide-mobile" onClick={go(onOpenYesNo)}>{t('header.yesNo')}</button>
           <button type="button" className="maison-bar-link" onClick={go(onOpenHistory)}>
-            Diário{historyCount > 0 && <sup>{historyCount}</sup>}
+            {t('header.journal')}{historyCount > 0 && <sup>{historyCount}</sup>}
           </button>
         </div>
       </div>
 
       <section className="maison-opening" aria-labelledby="maison-question-title">
-        <p className="maison-chapter"><span>I</span>A pergunta</p>
-        <h1 id="maison-question-title">Sobre o que<br /><em>deseja refletir?</em></h1>
+        <p className="maison-chapter"><span>I</span>{t('opening.chapter')}</p>
+        <h1 id="maison-question-title">{t('opening.title1')}<br /><em>{t('opening.title2')}</em></h1>
         <div className="maison-question">
-          <label htmlFor="reading-intention">Sua pergunta <span>opcional</span></label>
+          <label htmlFor="reading-intention">{t('opening.label')} <span>{t('opening.optional')}</span></label>
           <div className="maison-question-field">
             <input
               id="reading-intention"
@@ -104,14 +105,14 @@ export const Header = ({
               type="text"
               value={userQuestion}
               onChange={(e) => setUserQuestion(e.target.value)}
-              placeholder="Escreva com suas palavras"
+              placeholder={t('opening.placeholder')}
               autoComplete="off"
             />
             {userQuestion && (
-              <button type="button" onClick={() => { audio.playCloseModal(); setUserQuestion(''); }}>Apagar</button>
+              <button type="button" onClick={() => { audio.playCloseModal(); setUserQuestion(''); }}>{t('opening.clear')}</button>
             )}
           </div>
-          <p>Sem pergunta, as cartas oferecem uma leitura aberta do momento.</p>
+          <p>{t('opening.hint')}</p>
         </div>
       </section>
 
@@ -119,20 +120,20 @@ export const Header = ({
         ref={menuRef}
         id="maison-menu"
         className="maison-menu"
-        aria-label="Menu"
+        aria-label={t('header.menu')}
         onCancel={(e) => { e.preventDefault(); closeMenu(); }}
         onClick={(e) => { if (e.target === e.currentTarget) closeMenu(); }}
       >
         <CelestialRing className="maison-menu-ring" />
         <div className="maison-menu-inner">
           <div className="maison-menu-top">
-            <p className="maison-menu-kicker">Índice</p>
-            <p className="maison-wordmark"><span>Lumina</span><small>Tarot &amp; Baralho Cigano</small></p>
+            <p className="maison-menu-kicker">{t('menu.kicker')}</p>
+            <p className="maison-wordmark"><span>Lumina</span><small>{t('common.tagline')}</small></p>
             <button type="button" className="maison-bar-link maison-menu-close" onClick={closeMenu}>
-              Fechar <span className="maison-close-glyph" aria-hidden="true" />
+              {t('common.close')} <span className="maison-close-glyph" aria-hidden="true" />
             </button>
           </div>
-          <nav className="maison-index" aria-label="Consultas e ferramentas">
+          <nav className="maison-index" aria-label={t('menu.navLabel')}>
             {index.map(([label, note, action], i) => (
               <button key={label} type="button" onClick={go(action)}>
                 <span className="maison-index-number">{String(i + 1).padStart(2, '0')}</span>
@@ -142,12 +143,12 @@ export const Header = ({
             ))}
             <a href={`${import.meta.env.BASE_URL}mesa-3d/`}>
               <span className="maison-index-number">{String(index.length + 1).padStart(2, '0')}</span>
-              <span className="maison-index-label">Mesa 3D</span>
-              <span className="maison-index-note">Uma mesa livre para dispor as cartas</span>
+              <span className="maison-index-label">{t('menu.table3d')}</span>
+              <span className="maison-index-note">{t('menu.table3dNote')}</span>
             </a>
           </nav>
-          <section className="maison-preferences" aria-label="Preferências">
-            <p className="maison-chapter">Preferências</p>
+          <section className="maison-preferences" aria-label={t('menu.preferences')}>
+            <p className="maison-chapter">{t('menu.preferences')}</p>
             {preferences.map(([label, state, action, disabled, on]) => (
               <button key={label} type="button" disabled={disabled} aria-pressed={Boolean(on)} onClick={action}>
                 <span>{label}</span>
@@ -157,10 +158,22 @@ export const Header = ({
                 </span>
               </button>
             ))}
+            <div className="maison-lang" role="group" aria-label={t('menu.language')}>
+              <span>{t('menu.language')}</span>
+              <span className="maison-lang-options">
+                {LOCALES.map((locale) => (
+                  <button key={locale.id} type="button" lang={locale.htmlLang} title={locale.label}
+                    aria-pressed={locale.id === getLocale()}
+                    onClick={() => { if (locale.id !== getLocale()) setLocale(locale.id); }}>
+                    {locale.id.toUpperCase()}
+                  </button>
+                ))}
+              </span>
+            </div>
           </section>
           <footer className="maison-menu-footer">
-            <span>Leituras simbólicas, para reflexão.</span>
-            <a href="./privacidade.html" target="_blank" rel="noopener">Privacidade</a>
+            <span>{t('menu.footer')}</span>
+            <a href={privacyUrl()} target="_blank" rel="noopener">{t('common.privacy')}</a>
           </footer>
         </div>
       </dialog>

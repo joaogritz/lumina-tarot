@@ -5,6 +5,7 @@ import { X, Sparkles, BookOpen, Search, Layers, Flame, Droplets, Wind, Mountain 
 import { CardArt } from './CardArt';
 import { TAROT_DECK, SUITS } from '../data/tarotDeck';
 import { audio } from '../utils/audio';
+import { t } from '../i18n';
 
 export const GrimoireModal = ({ 
   cards = TAROT_DECK,
@@ -16,13 +17,13 @@ export const GrimoireModal = ({
   const [activeFilter, setActiveFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
 
-  const filterTabs = cards[0]?.deckId === 'lenormand' ? [{ id: 'all', label: 'Todas as 36', count: 36, icon: Layers }] : [
-    { id: 'all', label: 'Todas as 78', count: 78, icon: Layers },
-    { id: 'major', label: '22 Maiores', count: 22, icon: Sparkles, color: 'text-amber-400' },
-    { id: 'wands', label: 'Paus (Fogo)', count: 14, icon: Flame, color: 'text-orange-400' },
-    { id: 'cups', label: 'Copas (Água)', count: 14, icon: Droplets, color: 'text-cyan-400' },
-    { id: 'swords', label: 'Espadas (Ar)', count: 14, icon: Wind, color: 'text-slate-300' },
-    { id: 'pentacles', label: 'Ouros (Terra)', count: 14, icon: Mountain, color: 'text-emerald-400' },
+  const filterTabs = cards[0]?.deckId === 'lenormand' ? [{ id: 'all', label: t('grimoire.all', { count: 36 }), count: 36, icon: Layers }] : [
+    { id: 'all', label: t('grimoire.all', { count: 78 }), count: 78, icon: Layers },
+    { id: 'major', label: t('grimoire.major'), count: 22, icon: Sparkles, color: 'text-amber-400' },
+    { id: 'wands', label: t('grimoire.wands'), count: 14, icon: Flame, color: 'text-orange-400' },
+    { id: 'cups', label: t('grimoire.cups'), count: 14, icon: Droplets, color: 'text-cyan-400' },
+    { id: 'swords', label: t('grimoire.swords'), count: 14, icon: Wind, color: 'text-slate-300' },
+    { id: 'pentacles', label: t('grimoire.pentacles'), count: 14, icon: Mountain, color: 'text-emerald-400' },
   ];
 
   const filteredCards = useMemo(() => {
@@ -63,7 +64,7 @@ export const GrimoireModal = ({
       {/* Modal Dialog Card with Solid High-Contrast Background */}
       <motion.div 
         ref={modalRef}
-        aria-label="Grimório"
+        aria-label={t('grimoire.dialog')}
         role="dialog"
         aria-modal="true"
         initial={{ opacity: 0, scale: 0.95, y: 15 }}
@@ -80,17 +81,17 @@ export const GrimoireModal = ({
             </div>
             <div>
               <h3 className="font-cinzel text-base sm:text-xl md:text-2xl font-bold text-slate-100 gold-gradient-text">
-                Grimório · {cards.length} cartas
+                {t('grimoire.title', { count: cards.length })}
               </h3>
               <p className="text-[11px] text-slate-400 hidden sm:block">
-                Significados, correspondências e símbolos de cada carta
+                {t('grimoire.subtitle')}
               </p>
             </div>
           </div>
 
           <button
             type="button"
-            aria-label="Fechar" onClick={handleClose}
+            aria-label={t('common.close')} onClick={handleClose}
             className="p-2 rounded-full bg-slate-900/80 border border-slate-700 text-slate-400 hover:text-amber-300 hover:border-amber-400/50 transition-all cursor-pointer"
           >
             <X aria-hidden="true" className="w-5 h-5" />
@@ -130,7 +131,7 @@ export const GrimoireModal = ({
             <Search className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
-              aria-label="Buscar no grimório" placeholder="Buscar por nome, arquétipo ou palavra-chave..."
+              aria-label={t('grimoire.search')} placeholder={t('grimoire.searchPlaceholder')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-9 pr-4 py-1.5 rounded-sm bg-slate-950/70 border border-amber-500/30 focus:border-amber-400/70 text-xs text-slate-200 placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-amber-400/30 transition-all"
@@ -142,12 +143,12 @@ export const GrimoireModal = ({
         <div className="flex-1 min-h-0 overflow-y-auto pr-1">
           {filteredCards.length === 0 ? (
             <div className="text-center py-16 text-slate-500 font-cinzel text-sm">
-              Nenhuma carta encontrada para os filtros selecionados.
+              {t('deck.none')}
             </div>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4 p-1">
               {filteredCards.map((card) => (
-                <button type="button" aria-label={`Ver detalhes de ${card.name}`}
+                <button type="button" aria-label={t('common.viewDetails', { name: card.name })}
                   key={card.id}
                   onClick={() => {
                     audio.playInspectZoom();
@@ -166,7 +167,7 @@ export const GrimoireModal = ({
                       {card.archetype}
                     </span>
                     <span className="text-[8.5px] text-amber-400/90 mt-1 font-sans">
-                      Clique para inspecionar
+                      {t('grimoire.inspect')}
                     </span>
                   </div>
                 </button>

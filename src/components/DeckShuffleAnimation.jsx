@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, Shuffle } from './icons/ArcaneIcons';
 import { TarotCard } from './cards/TarotCard.jsx';
+import { t } from '../i18n';
 
 export const DeckShuffleAnimation = ({ onComplete }) => {
   const [phase, setPhase] = useState('cut'); // 'cut' | 'riffle' | 'fan' | 'gather'
@@ -60,10 +61,10 @@ export const DeckShuffleAnimation = ({ onComplete }) => {
       >
         <Sparkles className="w-4 h-4 text-amber-400 animate-spin" style={{ animationDuration: '3s' }} />
         <span className="font-cinzel text-xs md:text-sm font-bold text-amber-200 tracking-wider">
-          {phase === 'cut' && 'Cortando o Baralho Arcano...'}
-          {phase === 'riffle' && 'Embaralhando'}
-          {phase === 'fan' && 'Alinhando as cartas...'}
-          {phase === 'gather' && 'Pronto'}
+          {phase === 'cut' && t('shuffle.cut')}
+          {phase === 'riffle' && t('shuffle.riffle')}
+          {phase === 'fan' && t('shuffle.fan')}
+          {phase === 'gather' && t('shuffle.ready')}
         </span>
         <Sparkles className="w-4 h-4 text-amber-400 animate-spin" style={{ animationDuration: '3s' }} />
       </motion.div>
@@ -198,7 +199,7 @@ export const DeckShuffleAnimation = ({ onComplete }) => {
             className="relative w-32 sm:w-36 aspect-[7/12] rounded-sm shadow-2xl flex items-center justify-center"
           >
             <TarotCard face="back" size="md" />
-            <span className="sr-only">Baralho embaralhado</span>
+            <span className="sr-only">{t('shuffle.sr')}</span>
           </motion.div>
         )}
 

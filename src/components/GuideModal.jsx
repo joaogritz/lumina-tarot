@@ -3,6 +3,7 @@ import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Sparkles, Compass, Layers, Flame, Droplets, Wind, Mountain, Eye, HelpCircle } from './icons/ArcaneIcons';
 import { audio } from '../utils/audio';
+import { t } from '../i18n';
 
 export const GuideModal = ({ isOpen, onClose }) => {
   const modalRef = useModalAccessibility(isOpen, onClose);
@@ -24,7 +25,7 @@ export const GuideModal = ({ isOpen, onClose }) => {
 
       <motion.div 
         ref={modalRef}
-        aria-label="Guia de leitura"
+        aria-label={t('guide.dialog')}
         role="dialog"
         aria-modal="true"
         initial={{ opacity: 0, scale: 0.92, y: 20 }}
@@ -35,7 +36,7 @@ export const GuideModal = ({ isOpen, onClose }) => {
       >
         <button
           type="button"
-          aria-label="Fechar" onClick={handleClose}
+          aria-label={t('common.close')} onClick={handleClose}
           className="absolute top-4 right-4 p-2 rounded-full bg-slate-900/80 border border-slate-700 text-slate-400 hover:text-amber-300 hover:border-amber-400/50 transition-all cursor-pointer z-20"
         >
           <X aria-hidden="true" className="w-5 h-5" />
@@ -44,55 +45,55 @@ export const GuideModal = ({ isOpen, onClose }) => {
         <div className="flex items-center gap-2 mb-2 text-amber-400">
           <HelpCircle className="w-5 h-5" />
           <h3 className="font-cinzel text-lg sm:text-xl font-bold text-amber-200">
-            Como ler
+            {t('guide.title')}
           </h3>
         </div>
 
         <p className="text-xs text-slate-300 mb-6 leading-relaxed">
-          O Tarot é um espelho simbólico. Formule a pergunta com calma e escolha as cartas sem pressa: a leitura é um convite à reflexão, não uma previsão.
+          {t('guide.intro')}
         </p>
 
         <div className="space-y-4 text-xs text-slate-300">
           <div className="p-3.5 rounded-sm bg-emerald-950/40 border border-emerald-500/30">
-            <h4 className="font-bold text-emerald-200 mb-2">Baralho Cigano · Petit Lenormand</h4>
-            <p>Selecione o baralho antes da tiragem. Suas 36 cartas usam símbolos cotidianos e são lidas sem inversões. Na linha de três cartas, leia também os pares vizinhos como uma sequência; na carta única, use o símbolo como foco de reflexão. A Torre representa estruturas e autonomia; a Lua, emoção e reconhecimento. Seus significados diferem do Tarot. Aqui, Sim ou Não é uma adaptação simbólica, não uma probabilidade.</p>
+            <h4 className="font-bold text-emerald-200 mb-2">{t('guide.lenormandTitle')}</h4>
+            <p>{t('guide.lenormandText')}</p>
           </div>
           
           <div className="p-3.5 rounded-sm bg-stone-950/40 border border-amber-500/30">
             <h4 className="font-cinzel font-bold text-amber-300 mb-1 flex items-center gap-1.5">
               <Compass className="w-4 h-4" />
-              <span>1. Como Mentalizar sua Pergunta</span>
+              <span>{t('guide.q.title')}</span>
             </h4>
             <p className="leading-relaxed text-slate-300">
-              Prefira perguntas abertas que convidem à reflexão: <em>"Quais energias devo cultivar para resolver este impasse?"</em> ou <em>"O que preciso compreender sobre esta fase?"</em>.
+              {t('guide.q.text')} <em>{t('guide.q.ex1')}</em> {t('guide.q.or')} <em>{t('guide.q.ex2')}</em>
             </p>
           </div>
 
           <div className="p-3.5 rounded-sm bg-slate-900/60 border border-amber-500/20">
             <h4 className="font-cinzel font-bold text-amber-300 mb-1 flex items-center gap-1.5">
               <Layers className="w-4 h-4" />
-              <span>2. A Estrutura das 78 Cartas</span>
+              <span>{t('guide.s.title')}</span>
             </h4>
             <ul className="space-y-1.5 mt-2">
               <li className="flex items-start gap-1.5">
                 <Sparkles className="w-3.5 h-3.5 text-amber-400 shrink-0 mt-0.5" />
-                <span><strong>22 Arcanos Maiores:</strong> Grandes lições kármicas, marcos espirituais e transformações profundas de vida.</span>
+                <span><strong>{t('guide.s.major')}</strong> {t('guide.s.majorText')}</span>
               </li>
               <li className="flex items-start gap-1.5">
                 <Flame className="w-3.5 h-3.5 text-orange-400 shrink-0 mt-0.5" />
-                <span><strong>14 de Paus (Fogo):</strong> Vontade, energia criativa, paixão, trabalho e novos projetos.</span>
+                <span><strong>{t('guide.s.wands')}</strong> {t('guide.s.wandsText')}</span>
               </li>
               <li className="flex items-start gap-1.5">
                 <Droplets className="w-3.5 h-3.5 text-cyan-400 shrink-0 mt-0.5" />
-                <span><strong>14 de Copas (Água):</strong> Emoções, amor, intuição, família e relacionamentos.</span>
+                <span><strong>{t('guide.s.cups')}</strong> {t('guide.s.cupsText')}</span>
               </li>
               <li className="flex items-start gap-1.5">
                 <Wind className="w-3.5 h-3.5 text-slate-300 shrink-0 mt-0.5" />
-                <span><strong>14 de Espadas (Ar):</strong> Clareza mental, desafios, verdade, justiça e decisões intelectuais.</span>
+                <span><strong>{t('guide.s.swords')}</strong> {t('guide.s.swordsText')}</span>
               </li>
               <li className="flex items-start gap-1.5">
                 <Mountain className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
-                <span><strong>14 de Ouros (Terra):</strong> Prosperidade material, finanças, saúde física e paciência na colheita.</span>
+                <span><strong>{t('guide.s.pentacles')}</strong> {t('guide.s.pentaclesText')}</span>
               </li>
             </ul>
           </div>
@@ -100,10 +101,10 @@ export const GuideModal = ({ isOpen, onClose }) => {
           <div className="p-3.5 rounded-sm bg-slate-900/60 border border-amber-500/20">
             <h4 className="font-cinzel font-bold text-amber-300 mb-1 flex items-center gap-1.5">
               <Eye className="w-4 h-4" />
-              <span>3. A Tiragem de 3 Cartas (Padrão)</span>
+              <span>{t('guide.t.title')}</span>
             </h4>
             <p className="leading-relaxed text-slate-300">
-              Na leitura de 3 cartas, a primeira representa as <strong>raízes e causas passadas</strong>; a segunda o <strong>momento presente e suas forças ativas</strong>; e a terceira a <strong>tendência futura e conselho de ação</strong>.
+              {t('guide.t.a')} <strong>{t('guide.t.b')}</strong>{t('guide.t.c')} <strong>{t('guide.t.d')}</strong>{t('guide.t.e')} <strong>{t('guide.t.f')}</strong>.
             </p>
           </div>
 
@@ -115,7 +116,7 @@ export const GuideModal = ({ isOpen, onClose }) => {
             onClick={onClose}
             className="w-full sm:w-auto px-5 py-2.5 rounded-sm bg-amber-500 hover:bg-amber-400 text-slate-950 font-cinzel font-bold text-xs cursor-pointer transition-colors active:scale-95 text-center"
           >
-            Compreendi, Voltar à Mesa
+            {t('guide.done')}
           </button>
         </div>
       </motion.div>

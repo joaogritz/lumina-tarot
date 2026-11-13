@@ -3,6 +3,7 @@ import React, { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Layers, ArrowRight } from './icons/ArcaneIcons';
 import { audio } from '../utils/audio';
+import { t } from '../i18n';
 
 export const ConfirmSpreadChangeModal = ({ 
   isOpen, 
@@ -49,7 +50,7 @@ export const ConfirmSpreadChangeModal = ({
       {/* Modal Dialog Box with Spring Physics */}
       <motion.div 
         ref={modalRef}
-        aria-label="Trocar tiragem"
+        aria-label={t('confirm.dialog')}
         role="dialog" 
         aria-modal="true"
         initial={{ opacity: 0, scale: 0.9, y: 15 }}
@@ -62,7 +63,7 @@ export const ConfirmSpreadChangeModal = ({
         <button
           type="button"
           onClick={handleCancel}
-          aria-label="Cancelar troca de tiragem"
+          aria-label={t('confirm.cancelAria')}
           className="absolute top-4 right-4 p-2 rounded-full bg-slate-900/80 border border-slate-700 text-slate-400 hover:text-amber-300 hover:border-amber-400/50 transition-all cursor-pointer"
         >
           <X aria-hidden="true" className="w-4 h-4" />
@@ -75,7 +76,7 @@ export const ConfirmSpreadChangeModal = ({
 
         {/* Title */}
         <h3 className="font-cinzel text-xl font-bold text-slate-100 gold-gradient-text mb-2">
-          Alterar Tipo de Tiragem
+          {t('confirm.title')}
         </h3>
 
         {/* Subtitle / Transition Info */}
@@ -87,7 +88,7 @@ export const ConfirmSpreadChangeModal = ({
 
         {/* Description */}
         <p className="text-xs sm:text-sm text-slate-300 leading-relaxed mb-6">
-          As cartas da mesa serão recolhidas e o baralho, embaralhado de novo. Deseja continuar?
+          {t('confirm.text')}
         </p>
 
         {/* Action Buttons */}
@@ -97,7 +98,7 @@ export const ConfirmSpreadChangeModal = ({
             onClick={onCancel}
             className="w-full sm:w-1/2 py-2.5 px-4 rounded-sm bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300 hover:text-amber-300 text-xs font-semibold transition-all cursor-pointer active:scale-95"
           >
-            Manter Mesa Atual
+            {t('confirm.keep')}
           </button>
 
           <button
@@ -105,7 +106,7 @@ export const ConfirmSpreadChangeModal = ({
             onClick={handleConfirm}
             className="w-full sm:w-1/2 py-2.5 px-4 rounded-sm bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 hover:from-amber-500 hover:to-amber-400 text-slate-950 font-cinzel font-bold text-xs tracking-wider transition-all cursor-pointer shadow-lg active:scale-95 border border-amber-300/60"
           >
-            Confirmar Mudança
+            {t('confirm.ok')}
           </button>
         </div>
       </motion.div>

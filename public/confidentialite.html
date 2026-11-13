@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self'; base-uri 'self'; form-action 'none'" />
+  <meta name="referrer" content="strict-origin-when-cross-origin" />
+  <meta name="color-scheme" content="dark" />
+  <title>Confidentialité · Lumina Tarot</title>
+  <link rel="icon" type="image/svg+xml" href="./icon.svg" />
+  <style>
+    @font-face { font-family: "Cormorant Garamond"; font-weight: 400 600; font-display: swap; src: url(./fonts/cormorant.woff2) format("woff2"); }
+    @font-face { font-family: "Outfit"; font-weight: 300 600; font-display: swap; src: url(./fonts/outfit.woff2) format("woff2"); }
+    :root { color-scheme: dark; --gold: #c9a45c; --ivory: #e9e3d6; --parchment: #beb5a3; --line: rgb(214 182 107 / .22); }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #030303; color: var(--ivory); font: 300 16px/1.75 Outfit, Arial, sans-serif; }
+    main { max-width: 760px; margin: 0 auto; padding: 56px 24px 80px; }
+    a { color: var(--gold); text-underline-offset: 3px; }
+    .back { font-size: 14px; letter-spacing: .08em; }
+    h1, h2 { font-family: "Cormorant Garamond", Georgia, serif; font-weight: 500; letter-spacing: -.01em; }
+    h1 { font-size: clamp(40px, 7vw, 60px); line-height: 1.05; margin: 28px 0 8px; }
+    h2 { font-size: 28px; margin: 44px 0 8px; padding-top: 20px; border-top: 1px solid var(--line); }
+    .updated { color: var(--parchment); font-size: 14px; }
+    p, li { color: var(--parchment); }
+    strong { color: var(--ivory); font-weight: 500; }
+    table { width: 100%; border-collapse: collapse; font-size: 15px; margin-top: 12px; }
+    th, td { text-align: left; vertical-align: top; padding: 10px 8px; border-bottom: 1px solid var(--line); }
+    th { color: var(--ivory); font-weight: 500; }
+    td { color: var(--parchment); }
+    .top { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; }
+    .langs { font-size: 14px; color: var(--parchment); }
+  </style>
+</head>
+<body>
+<main>
+  <div class="top"><a class="back" href="./">← Retour à Lumina</a><nav class="langs" aria-label="Langues"><a href="./privacidade.html" lang="pt-BR">Português</a> · <a href="./privacy.html" lang="en">English</a> · <a href="./privacidad.html" lang="es">Español</a> · <a href="./confidentialite.html" lang="fr">Français</a></nav></div>
+  <h1>Confidentialité</h1>
+  <p class="updated">Dernière mise à jour : 13 novembre 2026</p>
+
+  <p>Lumina Tarot est un projet personnel et open source. Il n’a pas de comptes, n’utilise pas de cookies de suivi et n’a ni outils d’analyse ni publicités. Cette page explique quelles données passent par le site, où elles vont et comment les contrôler.</p>
+
+  <h2>Ce qui reste sur votre appareil</h2>
+  <table>
+    <thead><tr><th>Donnée</th><th>Où</th></tr></thead>
+    <tbody>
+      <tr><td>Journal des lectures : questions, cartes, interprétations et notes</td><td><code>localStorage</code> du navigateur (jusqu’à 100 lectures)</td></tr>
+      <tr><td>Tables enregistrées de la Table Libre 3D</td><td>IndexedDB du navigateur</td></tr>
+      <tr><td>Préférences : thème, jeu, langue et son</td><td><code>localStorage</code> du navigateur</td></tr>
+      <tr><td>Fichiers du site pour l’usage hors ligne</td><td>Cache du service worker</td></tr>
+    </tbody>
+  </table>
+  <p>Ces données ne sont envoyées à aucun serveur et ne sont pas chiffrées. Toute personne utilisant le même navigateur peut les voir. Effacer les données du site supprime tout ; pour conserver votre journal, utilisez <strong>Exporter</strong> dans le Journal.</p>
+  <p>La langue du site est choisie d’après les préférences de langue de votre navigateur, lues sur votre appareil. Si vous changez de langue dans le menu, votre choix est conservé dans le navigateur.</p>
+
+  <h2>Ce qui est envoyé pour générer l’interprétation</h2>
+  <p>Les interprétations sont générées par intelligence artificielle. Lorsque vous demandez une interprétation (tirage ou Oui ou Non), le site envoie :</p>
+  <ul>
+    <li>la question que vous avez saisie, le cas échéant ;</li>
+    <li>les cartes tirées, avec leur position, leur orientation et leurs significations ;</li>
+    <li>le nom et les positions du tirage ;</li>
+    <li>la langue du site, pour que la réponse arrive dans cette langue.</li>
+  </ul>
+  <p>Ces données vont à notre serveur d’interprétation, hébergé chez <strong>Cloudflare</strong> (Cloudflare Workers), qui rédige le texte avec <strong>Cloudflare Workers AI</strong> au sein du réseau de Cloudflare, à l’aide de modèles de langage ouverts. Aucune autre entreprise ne reçoit la question. Le serveur n’enregistre ni la question ni la réponse, et Cloudflare traite les données selon sa propre politique.</p>
+  <p><strong>Évitez d’inclure des noms complets, des numéros de documents, des adresses ou des informations de santé dans vos questions.</strong></p>
+  <p>La question est facultative : si le champ reste vide, seules les cartes et le tirage sont envoyés. Si le service est indisponible, le site vous prévient et propose de réessayer ; vos cartes restent sur la table. Les questions sur des sujets sensibles, comme l’automutilation, reçoivent une réponse de soutien préparée sur votre appareil, sans rien envoyer.</p>
+
+  <h2>Hébergement</h2>
+  <p>Le site est servi par Vercel. Comme tout serveur web, Vercel enregistre des données techniques d’accès, comme l’adresse IP, pour faire fonctionner et protéger le service. Les polices et les images des cartes sont servies par le site lui-même, sans appel à des tiers.</p>
+
+  <h2>À propos des lectures</h2>
+  <p>Les lectures sont des réflexions symboliques, pas des prédictions. Elles ne remplacent pas un avis médical, psychologique, juridique ou financier. Si vous souffrez ou pensez à vous faire du mal, parlez à une personne de confiance ou à une ligne d’écoute : le 3114 en France, le 0800 32 123 en Belgique, le 143 en Suisse, le 988 au Canada, ou une ligne de votre pays sur <a href="https://findahelpline.com">findahelpline.com</a>. En cas de danger immédiat, appelez le numéro d’urgence local.</p>
+
+  <h2>Vos droits</h2>
+  <p>Comme le projet ne conserve aucune donnée personnelle sur ses propres serveurs, vous contrôlez les données stockées sur votre appareil : vous pouvez les exporter, les supprimer dans le Journal ou effacer les données du site dans votre navigateur. Pour toute question sur cette politique, ouvrez une issue dans le <a href="https://github.com/joaogritz/lumina-tarot/issues">dépôt du projet</a>.</p>
+
+  <h2>Modifications</h2>
+  <p>Les modifications de cette page sont consignées dans l’historique du dépôt.</p>
+</main>
+</body>
+</html>

@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self'; base-uri 'self'; form-action 'none'" />
+  <meta name="referrer" content="strict-origin-when-cross-origin" />
+  <meta name="color-scheme" content="dark" />
+  <title>Privacidad · Lumina Tarot</title>
+  <link rel="icon" type="image/svg+xml" href="./icon.svg" />
+  <style>
+    @font-face { font-family: "Cormorant Garamond"; font-weight: 400 600; font-display: swap; src: url(./fonts/cormorant.woff2) format("woff2"); }
+    @font-face { font-family: "Outfit"; font-weight: 300 600; font-display: swap; src: url(./fonts/outfit.woff2) format("woff2"); }
+    :root { color-scheme: dark; --gold: #c9a45c; --ivory: #e9e3d6; --parchment: #beb5a3; --line: rgb(214 182 107 / .22); }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #030303; color: var(--ivory); font: 300 16px/1.75 Outfit, Arial, sans-serif; }
+    main { max-width: 760px; margin: 0 auto; padding: 56px 24px 80px; }
+    a { color: var(--gold); text-underline-offset: 3px; }
+    .back { font-size: 14px; letter-spacing: .08em; }
+    h1, h2 { font-family: "Cormorant Garamond", Georgia, serif; font-weight: 500; letter-spacing: -.01em; }
+    h1 { font-size: clamp(40px, 7vw, 60px); line-height: 1.05; margin: 28px 0 8px; }
+    h2 { font-size: 28px; margin: 44px 0 8px; padding-top: 20px; border-top: 1px solid var(--line); }
+    .updated { color: var(--parchment); font-size: 14px; }
+    p, li { color: var(--parchment); }
+    strong { color: var(--ivory); font-weight: 500; }
+    table { width: 100%; border-collapse: collapse; font-size: 15px; margin-top: 12px; }
+    th, td { text-align: left; vertical-align: top; padding: 10px 8px; border-bottom: 1px solid var(--line); }
+    th { color: var(--ivory); font-weight: 500; }
+    td { color: var(--parchment); }
+    .top { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; }
+    .langs { font-size: 14px; color: var(--parchment); }
+  </style>
+</head>
+<body>
+<main>
+  <div class="top"><a class="back" href="./">← Volver a Lumina</a><nav class="langs" aria-label="Idiomas"><a href="./privacidade.html" lang="pt-BR">Português</a> · <a href="./privacy.html" lang="en">English</a> · <a href="./privacidad.html" lang="es">Español</a> · <a href="./confidentialite.html" lang="fr">Français</a></nav></div>
+  <h1>Privacidad</h1>
+  <p class="updated">Última actualización: 13 de noviembre de 2026</p>
+
+  <p>Lumina Tarot es un proyecto personal y de código abierto. No tiene cuentas, no usa cookies de rastreo y no tiene herramientas de análisis ni anuncios. Esta página explica qué datos pasan por el sitio, adónde van y cómo controlarlos.</p>
+
+  <h2>Lo que se queda solo en tu dispositivo</h2>
+  <table>
+    <thead><tr><th>Dato</th><th>Dónde</th></tr></thead>
+    <tbody>
+      <tr><td>Diario de lecturas: preguntas, cartas, interpretaciones y notas</td><td><code>localStorage</code> del navegador (hasta 100 lecturas)</td></tr>
+      <tr><td>Mesas guardadas de la Mesa Libre 3D</td><td>IndexedDB del navegador</td></tr>
+      <tr><td>Preferencias: tema, baraja, idioma y sonido</td><td><code>localStorage</code> del navegador</td></tr>
+      <tr><td>Archivos del sitio para uso sin conexión</td><td>Caché del service worker</td></tr>
+    </tbody>
+  </table>
+  <p>Estos datos no se envían a ningún servidor y no están cifrados. Quien use el mismo navegador puede verlos. Borrar los datos del sitio lo elimina todo; para conservar el diario, usa <strong>Exportar</strong> en el Diario.</p>
+  <p>El idioma del sitio se elige a partir de las preferencias de idioma de tu navegador, leídas en tu propio dispositivo. Si cambias el idioma en el menú, la elección se guarda en el navegador.</p>
+
+  <h2>Lo que se envía para generar la interpretación</h2>
+  <p>Las interpretaciones se generan con inteligencia artificial. Al pedir una interpretación (tirada o Sí o No), el sitio envía:</p>
+  <ul>
+    <li>la pregunta que escribiste, si la hay;</li>
+    <li>las cartas sacadas, con su posición, orientación y significados;</li>
+    <li>el nombre y las posiciones de la tirada;</li>
+    <li>el idioma del sitio, para que la respuesta llegue en él.</li>
+  </ul>
+  <p>Estos datos van a nuestro servidor de interpretación, alojado en <strong>Cloudflare</strong> (Cloudflare Workers), que genera el texto con <strong>Cloudflare Workers AI</strong> dentro de la propia red de Cloudflare, usando modelos de lenguaje abiertos. Ninguna otra empresa recibe la consulta. El servidor no guarda la pregunta ni la respuesta, y Cloudflare trata los datos según su propia política.</p>
+  <p><strong>Evita incluir nombres completos, documentos, direcciones o datos de salud en las preguntas.</strong></p>
+  <p>La pregunta es opcional: si el campo queda vacío, solo se envían las cartas y la tirada. Si el servicio no está disponible, el sitio avisa y ofrece intentarlo de nuevo; las cartas siguen en la mesa. Las preguntas sobre temas sensibles, como la autolesión, reciben una respuesta de apoyo preparada en tu propio dispositivo, sin enviar nada.</p>
+
+  <h2>Alojamiento</h2>
+  <p>El sitio lo sirve Vercel. Como cualquier servidor web, Vercel registra datos técnicos de acceso, como la dirección IP, para operar y proteger el servicio. Las fuentes y las imágenes de las cartas las sirve el propio sitio, sin llamadas a terceros.</p>
+
+  <h2>Sobre las lecturas</h2>
+  <p>Las lecturas son reflexiones simbólicas, no predicciones. No sustituyen la orientación médica, psicológica, jurídica ni financiera. Si estás sufriendo o piensas en hacerte daño, busca a alguien de confianza o una línea de ayuda: el 024 en España, la Línea de la Vida (800 911 2000) en México o una línea de tu país en <a href="https://findahelpline.com">findahelpline.com</a>. En peligro inmediato, llama al número de emergencias local.</p>
+
+  <h2>Tus derechos</h2>
+  <p>Como el proyecto no guarda datos personales en servidores propios, tú controlas los datos guardados en el dispositivo: puedes exportarlos, borrarlos en el Diario o eliminar los datos del sitio en el navegador. Para dudas sobre esta política, abre una issue en el <a href="https://github.com/joaogritz/lumina-tarot/issues">repositorio del proyecto</a>.</p>
+
+  <h2>Cambios</h2>
+  <p>Los cambios en esta página quedan registrados en el historial del repositorio.</p>
+</main>
+</body>
+</html>

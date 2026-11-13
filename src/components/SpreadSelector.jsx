@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { SPREAD_TYPES, FREE_SPREAD_ID } from '../data/spreads';
 import { Layers, Sparkles, Compass, HeartHandshake, PlusCircle, Heart, Briefcase, Star, ChevronLeft, ChevronRight } from './icons/ArcaneIcons';
 import { audio } from '../utils/audio';
+import { t } from '../i18n';
 
 const ICONS_MAP = {
   Layers,
@@ -64,14 +65,14 @@ export const SpreadSelector = ({
   };
 
   return (
-    <nav aria-label="Seletor de Tipo de Tiragem" className="spread-navigation w-full max-w-6xl mx-auto mb-8 px-2 sm:px-4">
+    <nav aria-label={t('spreads.navLabel')} className="spread-navigation w-full max-w-6xl mx-auto mb-8 px-2 sm:px-4">
       <div className="flex items-center gap-1.5 sm:gap-2.5 w-full">
         {/* Left Navigation Chevron Button (separated from pills) */}
         {canScrollLeft && (
           <button
             type="button"
             onClick={() => handleScroll('left')}
-            title="Ver tiragens anteriores" aria-label="Ver tiragens anteriores"
+            title={t('spreads.prev')} aria-label={t('spreads.prev')}
             className="spread-scroll-arrow shrink-0 w-8 h-8 rounded-full bg-slate-950/85 backdrop-blur-md border border-amber-400/50 hover:border-amber-300 text-amber-300 hover:text-white flex items-center justify-center shadow-lg transition-all cursor-pointer active:scale-90"
           >
             <ChevronLeft className="w-4 h-4" />
@@ -139,7 +140,7 @@ export const SpreadSelector = ({
           <button
             type="button"
             onClick={() => handleScroll('right')}
-            title="Ver mais tiragens" aria-label="Ver mais tiragens"
+            title={t('spreads.next')} aria-label={t('spreads.next')}
             className="spread-scroll-arrow shrink-0 w-8 h-8 rounded-full bg-slate-950/85 backdrop-blur-md border border-amber-400/50 hover:border-amber-300 text-amber-300 hover:text-white flex items-center justify-center shadow-lg transition-all cursor-pointer active:scale-90"
           >
             <ChevronRight className="w-4 h-4" />
@@ -148,7 +149,7 @@ export const SpreadSelector = ({
       </div>
       {currentSpread.id === FREE_SPREAD_ID && (
         <div className="free-spread-controls">
-          <label htmlFor="free-spread-count">Quantidade de cartas</label>
+          <label htmlFor="free-spread-count">{t('spreads.freeCount')}</label>
           <select id="free-spread-count" value={currentSpread.cardCount} onChange={event => {
             audio.playTabSwitch();
             onFreeCountChange(Number(event.target.value));
@@ -157,7 +158,7 @@ export const SpreadSelector = ({
               <option key={count} value={count} disabled={count < minimumFreeCount}>{count} {count === 1 ? 'carta' : 'cartas'}</option>
             ))}
           </select>
-          <p>Sem posições fixas. Você pode ampliar a leitura até 10 cartas sem perder as já tiradas.</p>
+          <p>{t('spreads.freeHint')}</p>
         </div>
       )}
     </nav>

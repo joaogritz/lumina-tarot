@@ -5,6 +5,7 @@ import { CardArt } from './CardArt';
 import { X, Sparkles, Compass, RotateCw } from './icons/ArcaneIcons';
 import { SUITS } from '../data/tarotDeck';
 import { audio } from '../utils/audio';
+import { t } from '../i18n';
 
 export const CardDetailModal = ({ 
   card, 
@@ -31,21 +32,23 @@ export const CardDetailModal = ({
   };
 
   // Determine if this is a single card / non-positional inspection
-  const isSingleCardMode = !positionInfo || positionInfo.name === 'O Conselho do Oráculo';
+  // Position names are matched in Portuguese: translated spreads keep the original in ptName.
+  const posName = positionInfo ? (positionInfo.ptName || positionInfo.name || '') : '';
+  const isSingleCardMode = !positionInfo || posName === 'O Conselho do Oráculo';
 
   // Get specific positional context message if applicable
   const getPositionalMessage = () => {
     if (!positionInfo || isSingleCardMode) return null;
 
-    if (positionInfo.name.includes('Passado')) return card.past || card.light;
-    if (positionInfo.name.includes('Presente')) return card.present || card.light;
-    if (positionInfo.name.includes('Futuro')) return card.future || card.light;
-    if (positionInfo.name.includes('Desafio')) return card.shadow;
-    if (positionInfo.name.includes('Ação')) return card.advice;
-    if (positionInfo.name.includes('Desfecho')) return card.future || card.light;
-    if (positionInfo.name.includes('Mental')) return card.light;
-    if (positionInfo.name.includes('Espiritual')) return card.light;
-    if (positionInfo.name.includes('Físico')) return card.light;
+    if (posName.includes('Passado')) return card.past || card.light;
+    if (posName.includes('Presente')) return card.present || card.light;
+    if (posName.includes('Futuro')) return card.future || card.light;
+    if (posName.includes('Desafio')) return card.shadow;
+    if (posName.includes('Ação')) return card.advice;
+    if (posName.includes('Desfecho')) return card.future || card.light;
+    if (posName.includes('Mental')) return card.light;
+    if (posName.includes('Espiritual')) return card.light;
+    if (posName.includes('Físico')) return card.light;
 
     return null;
   };
@@ -66,7 +69,7 @@ export const CardDetailModal = ({
       {/* Modal Dialog Card with Spring Physics */}
       <motion.div 
         ref={modalRef}
-        aria-label={`Detalhes de ${card.name}`}
+        aria-label={t('detail.dialog', { name: card.name })}
         role="dialog"
         aria-modal="true"
         initial={{ opacity: 0, scale: 0.92, y: 20 }}
@@ -79,7 +82,7 @@ export const CardDetailModal = ({
         <button
           type="button"
           onClick={handleClose}
-          aria-label="Fechar detalhes da carta"
+          aria-label={t('detail.close')}
           className="absolute top-4 right-4 p-2 rounded-full bg-slate-900/80 border border-slate-700 text-slate-400 hover:text-amber-300 hover:border-amber-400/50 transition-all cursor-pointer z-20"
         >
           <X className="w-5 h-5" />
@@ -90,14 +93,14 @@ export const CardDetailModal = ({
           {positionInfo && !isSingleCardMode && (
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-stone-950/80 border border-amber-500/30 text-amber-300 text-xs font-cinzel font-semibold">
               <Sparkles className="w-3.5 h-3.5" />
-              <span>Posição: {positionInfo.name}</span>
+              <span>{t('detail.position', { name: positionInfo.name })}</span>
             </div>
           )}
 
           {card.isReversed && (
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-950/90 border border-red-500/60 text-red-300 text-xs font-cinzel font-bold">
               <RotateCw className="w-3.5 h-3.5" />
-              <span>Carta Invertida</span>
+              <span>{t('detail.reversed')}</span>
             </div>
           )}
         </div>
@@ -117,13 +120,13 @@ export const CardDetailModal = ({
           <div className="md:col-span-7 flex flex-col gap-3 text-left">
             <div>
               <span className="text-[11px] font-cinzel tracking-widest uppercase text-amber-400 font-bold">
-                {card.deckId === 'lenormand' ? `Baralho Cigano · Carta ${card.number}` : (card.arcana === 'Major' ? `Arcano Maior ${card.roman}` : suitConfig.name)}
+                {card.deckId === 'lenormand' ? t('common.lenormandCard', { number: card.number }) : (card.arcana === 'Major' ? t('common.majorArcana', { roman: card.roman }) : suitConfig.name)}
               </span>
               <h2 className="font-cinzel text-2xl font-black text-slate-100 mt-0.5">
-                {card.name} {card.isReversed && <span className="text-sm text-red-400 font-normal">(Invertida)</span>}
+                {card.name} {card.isReversed && <span className="text-sm text-red-400 font-normal">({t('common.reversed')})</span>}
               </h2>
               <p className="text-xs font-cinzel text-amber-300/80">
-                {card.nameEn} • {card.archetype}
+                {card.nameEn !== card.name ? `${card.nameEn} • ` : ''}{card.archetype}
               </p>
             </div>
 
@@ -159,7 +162,7 @@ export const CardDetailModal = ({
               <div className="mt-1 p-3 rounded-sm bg-amber-500/10 border border-amber-500/30">
                 <h4 className="text-xs font-cinzel font-bold text-amber-300 flex items-center gap-1.5 mb-1">
                   <Compass className="w-3.5 h-3.5" />
-                  <span>Influência na Posição ({positionInfo.name})</span>
+                  <span>{t('detail.influence', { name: positionInfo.name })}</span>
                 </h4>
                 <p className="text-xs text-slate-200 leading-relaxed">
                   {positionalMessage}
@@ -170,13 +173,13 @@ export const CardDetailModal = ({
             {/* Light & Shadow Interpretations */}
             <div className="space-y-2 text-xs">
               <div className={`p-2.5 rounded-sm border ${card.isReversed ? 'bg-slate-900/40 border-slate-700 opacity-70' : 'bg-slate-900/70 border-emerald-500/30'}`}>
-                <span className="font-semibold text-emerald-400 block mb-0.5">Luz & Potencial Positivo:</span>
+                <span className="font-semibold text-emerald-400 block mb-0.5">{t('detail.light')}</span>
                 <p className="text-slate-300 leading-relaxed">{card.light}</p>
               </div>
 
               <div className={`p-2.5 rounded-sm border ${card.isReversed ? 'bg-red-950/50 border-red-500/60 shadow-[0_0_15px_rgba(239,68,68,0.2)]' : 'bg-slate-900/70 border-red-500/30'}`}>
                 <span className="font-semibold text-red-400 block mb-0.5">
-                  {card.isReversed ? '⚡ Manifestação Invertida (Sombra & Bloqueio Ativo):' : 'Sombra & Ponto de Atenção:'}
+                  {card.isReversed ? t('detail.shadowReversed') : t('detail.shadow')}
                 </span>
                 <p className="text-slate-200 leading-relaxed">{card.shadow}</p>
               </div>
@@ -185,7 +188,7 @@ export const CardDetailModal = ({
             {/* Advice */}
             <div className="p-3 rounded-sm bg-stone-950/50 border border-amber-500/40">
               <span className="font-cinzel text-xs font-bold text-amber-300 block mb-0.5">
-                Conselho do Oráculo:
+                {t('detail.advice')}
               </span>
               <p className="text-xs text-slate-200 italic leading-relaxed">
                 "{card.advice}"

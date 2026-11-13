@@ -6,6 +6,7 @@ import { BackgroundStars } from './BackgroundStars';
 import { CardArt } from './CardArt';
 import { TAROT_DECK } from '../data/tarotDeck';
 import { audio } from '../utils/audio';
+import { t } from '../i18n';
 
 export const LoadingScreen = ({ onLoaded }) => {
   const [progress, setProgress] = useState(0);
@@ -47,10 +48,10 @@ export const LoadingScreen = ({ onLoaded }) => {
   }, [isReady, handleEnter]);
 
   const getStatusText = () => {
-    if (progress < 30) return 'Preparando as cartas';
-    if (progress < 65) return 'Embaralhando';
-    if (progress < 95) return 'Quase lá';
-    return 'Pronto';
+    if (progress < 30) return t('entry.status.cards');
+    if (progress < 65) return t('entry.status.shuffle');
+    if (progress < 95) return t('entry.status.almost');
+    return t('entry.status.ready');
   };
 
   return (
@@ -59,22 +60,22 @@ export const LoadingScreen = ({ onLoaded }) => {
       <div className="entry-nav"><span className="entry-wordmark">LUMINA</span><span className="micro-label">LUMINATAROT.APP</span></div>
       <div className="entry-composition">
         <div className="entry-copy">
-          <p className="micro-label"><span className="gold-rule" /> TAROT &amp; BARALHO CIGANO</p>
+          <p className="micro-label"><span className="gold-rule" /> {t('common.tagline').toUpperCase()}</p>
           <h1>Lumina<br /><em>Tarot.</em></h1>
-          <p className="entry-description">Sua jornada começa com uma pergunta e uma escolha.</p>
+          <p className="entry-description">{t('entry.description')}</p>
           <div className="entry-action" aria-live="polite">
-            {isReady ? <button type="button" className="ritual-button" onClick={handleEnter}>Entrar no Santuário <ArrowRight size={17} /></button> : <div className="entry-progress" role="progressbar" aria-label="Preparando o santuário" aria-valuemin={0} aria-valuemax={100} aria-valuenow={progress}><span style={{ transform: `scaleX(${progress / 100})` }} /></div>}
+            {isReady ? <button type="button" className="ritual-button" onClick={handleEnter}>{t('entry.enter')} <ArrowRight size={17} /></button> : <div className="entry-progress" role="progressbar" aria-label={t('entry.preparing')} aria-valuemin={0} aria-valuemax={100} aria-valuenow={progress}><span style={{ transform: `scaleX(${progress / 100})` }} /></div>}
             <p className="entry-status">{getStatusText()}</p>
           </div>
         </div>
         <div className="entry-art">
           <CelestialRing />
-          <span className="instrument-caption micro-label">FIG. XVII — O ORÁCULO</span>
+          <span className="instrument-caption micro-label">{t('entry.figure')}</span>
           <div className="entry-card"><CardArt card={TAROT_DECK.find(card => card.number === 17 && card.arcana === 'Major')} size="hero" priority showKeywords={false} /></div>
           <span className="instrument-note micro-label">AS ABOVE · SO BELOW</span>
         </div>
       </div>
-      <div className="entry-footer"><span>Tarot &amp; Baralho Cigano</span><span className="micro-label">UM INSTANTE DE SILÊNCIO. UMA NOVA PERSPECTIVA.</span></div>
+      <div className="entry-footer"><span>{t('common.tagline')}</span><span className="micro-label">{t('entry.footer')}</span></div>
     </motion.main>
   );
 };

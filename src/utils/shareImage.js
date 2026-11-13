@@ -2,6 +2,7 @@
 // the question, the cards in their positions and the oracle's advice, signed with the site address.
 // Nothing leaves the device unless the person shares or saves the file.
 import { getCardArtwork, artworkUrl } from '../data/cardArtwork.js';
+import { t } from '../i18n/index.js';
 
 const W = 1080;
 const H = 1920;
@@ -233,7 +234,7 @@ export async function renderReadingImage({ spreadConfig, chosenCards, userQuesti
       ctx.fillStyle = PARCHMENT;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'alphabetic';
-      const name = `${card.name}${card.isReversed ? ' (inv.)' : ''}`.toUpperCase();
+      const name = `${card.name}${card.isReversed ? ` (${t('common.reversedShort')})` : ''}`.toUpperCase();
       wrap(ctx, name, cardW + gap - 6, 2).forEach((line, i) => ctx.fillText(line, x + cardW / 2, y + cardH + labelSize + 14 + i * (labelSize + 6)));
       x += cardW + gap;
       index++;
@@ -246,7 +247,7 @@ export async function renderReadingImage({ spreadConfig, chosenCards, userQuesti
     y += 22;
     setFont(ctx, `400 22px ${SANS}`, 7);
     ctx.fillStyle = GOLD;
-    ctx.fillText('CONSELHO DO ORÁCULO', W / 2, y);
+    ctx.fillText(t('image.advice'), W / 2, y);
     y += 6;
     setFont(ctx, `500 42px ${SERIF}`);
     ctx.fillStyle = IVORY;
@@ -267,12 +268,12 @@ export async function renderReadingImage({ spreadConfig, chosenCards, userQuesti
 // Returns 'shared', 'cancelled' or 'downloaded'.
 export async function shareReadingImage(reading, preRendered) {
   const blob = preRendered || await renderReadingImage(reading);
-  const name = `lumina-leitura-${new Date().toISOString().slice(0, 10)}.png`;
+  const name = `${t('image.fileName')}-${new Date().toISOString().slice(0, 10)}.png`;
   const file = new File([blob], name, { type: 'image/png' });
   const touch = window.matchMedia?.('(pointer: coarse)').matches;
   if (touch && navigator.canShare?.({ files: [file] })) {
     try {
-      await navigator.share({ files: [file], title: 'Lumina Tarot', text: 'Minha leitura no Lumina Tarot · luminatarot.app' });
+      await navigator.share({ files: [file], title: 'Lumina Tarot', text: t('image.shareText') });
       return 'shared';
     } catch (err) {
       if (err?.name === 'AbortError') return 'cancelled';

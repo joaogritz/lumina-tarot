@@ -5,6 +5,7 @@ import { X, Sun, Flame, Bell, Check } from './icons/ArcaneIcons';
 import { CardArt } from './CardArt';
 import { TAROT_DECK, SUITS } from '../data/tarotDeck';
 import { audio } from '../utils/audio';
+import { t, formatDate } from '../i18n';
 
 export const DailyCardModal = ({ 
   cards = TAROT_DECK,
@@ -72,7 +73,7 @@ export const DailyCardModal = ({
   const handleToggleNotifications = async () => {
     audio.playSelect();
     if (!('Notification' in window)) {
-      setNotifyFeedback('Notificações não são suportadas neste navegador.');
+      setNotifyFeedback(t('daily.notifyUnsupported'));
       setTimeout(() => setNotifyFeedback(null), 3000);
       return;
     }
@@ -81,14 +82,14 @@ export const DailyCardModal = ({
       const permission = await Notification.requestPermission();
       if (permission === 'granted') {
         setNotificationEnabled(true);
-        setNotifyFeedback('Lembrete diário ativado com sucesso!');
-        new Notification('Lumina · Carta do dia', {
-          body: 'Seu lembrete oracular matinal está pronto para despertar sua clareza todos os dias.',
+        setNotifyFeedback(t('daily.notifyOn'));
+        new Notification(t('daily.notifyTitle'), {
+          body: t('daily.notifyBody'),
           icon: './icon.svg'
         });
       } else {
         setNotificationEnabled(false);
-        setNotifyFeedback('Permissão para notificações foi recusada.');
+        setNotifyFeedback(t('daily.notifyDenied'));
       }
       setTimeout(() => setNotifyFeedback(null), 3500);
     } catch (e) {
@@ -96,7 +97,7 @@ export const DailyCardModal = ({
     }
   };
 
-  const todayFormatted = new Date().toLocaleDateString('pt-BR', {
+  const todayFormatted = formatDate(new Date(), {
     weekday: 'long',
     day: 'numeric',
     month: 'long',
@@ -118,7 +119,7 @@ export const DailyCardModal = ({
       {/* Modal Dialog Card */}
       <motion.div 
         ref={modalRef}
-        aria-label="Carta do dia"
+        aria-label={t('daily.dialog')}
         role="dialog"
         aria-modal="true"
         initial={{ opacity: 0, scale: 0.92, y: 20 }}
@@ -130,7 +131,7 @@ export const DailyCardModal = ({
         {/* Close Button */}
         <button
           type="button"
-          aria-label="Fechar" onClick={handleClose}
+          aria-label={t('common.close')} onClick={handleClose}
           className="absolute top-4 right-4 p-2 rounded-full bg-slate-900/80 border border-slate-700 text-slate-400 hover:text-amber-300 hover:border-amber-400/50 transition-all cursor-pointer z-20"
         >
           <X aria-hidden="true" className="w-5 h-5" />
@@ -147,16 +148,16 @@ export const DailyCardModal = ({
             {streak > 0 && (
               <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-stone-950/80 border border-amber-400/40 text-amber-200 text-xs font-cinzel font-semibold shadow-sm">
                 <Flame className="w-3.5 h-3.5 text-amber-400 fill-amber-400 animate-pulse" />
-                <span>{streak} {streak === 1 ? 'dia seguido' : 'dias seguidos'}</span>
+                <span>{t('daily.streak', { count: streak })}</span>
               </div>
             )}
           </div>
 
           <h3 className="font-cinzel text-xl sm:text-3xl font-black text-slate-100 gold-gradient-text tracking-wide">
-            <span>Carta do dia</span>
+            <span>{t('daily.title')}</span>
           </h3>
           <p className="text-xs text-amber-200/80 mt-1 max-w-md">
-            Um arcano para acompanhar o seu dia.
+            {t('daily.subtitle')}
           </p>
         </div>
 
@@ -165,11 +166,11 @@ export const DailyCardModal = ({
           
           {/* Card Presentation */}
           <div className="md:col-span-5 flex justify-center">
-            <motion.button type="button" aria-label={`Ver detalhes de ${dailyCard.name}`}
+            <motion.button type="button" aria-label={t('common.viewDetails', { name: dailyCard.name })}
               whileHover={{ scale: 1.02 }}
               onClick={() => onOpenCardDetail && onOpenCardDetail(dailyCard, null)}
               className="w-44 sm:w-52 aspect-[7/12] transform-gpu cursor-pointer shadow-2xl"
-              title="Clique para ver detalhes completos"
+              title={t('daily.cardTitle')}
             >
               <CardArt card={dailyCard} size="lg" priority showKeywords={false} />
             </motion.button>
@@ -179,20 +180,20 @@ export const DailyCardModal = ({
           <div className="md:col-span-7 flex flex-col gap-3">
             <div>
               <span className="text-[10px] font-cinzel tracking-widest uppercase text-amber-400 font-bold">
-                {dailyCard.deckId === 'lenormand' ? `Baralho Cigano · Carta ${dailyCard.number}` : (dailyCard.arcana === 'Major' ? `Arcano Maior ${dailyCard.roman}` : suitConfig.name)}
+                {dailyCard.deckId === 'lenormand' ? t('common.lenormandCard', { number: dailyCard.number }) : (dailyCard.arcana === 'Major' ? t('common.majorArcana', { roman: dailyCard.roman }) : suitConfig.name)}
               </span>
               <h4 className="font-cinzel text-2xl font-bold text-slate-100 mt-0.5">
                 {dailyCard.name}
               </h4>
               <p className="text-xs font-cinzel text-amber-300/80">
-                {dailyCard.nameEn} • {dailyCard.archetype}
+                {dailyCard.nameEn !== dailyCard.name ? `${dailyCard.nameEn} • ` : ''}{dailyCard.archetype}
               </p>
             </div>
 
             {/* Daily Energy Message */}
             <div className="p-3 rounded-sm bg-stone-950/50 border border-amber-500/30">
               <span className="font-cinzel text-[11px] font-bold text-amber-300 block mb-1">
-                Foco e Energia do Dia:
+                {t('daily.focus')}
               </span>
               <p className="text-xs text-slate-200 leading-relaxed">
                 {dailyCard.light}
@@ -202,7 +203,7 @@ export const DailyCardModal = ({
             {/* Daily Advice */}
             <div className="p-3 rounded-sm bg-amber-500/10 border border-amber-500/30">
               <span className="font-cinzel text-[11px] font-bold text-amber-300 block mb-1">
-                Conselho Prático para Hoje:
+                {t('daily.advice')}
               </span>
               <p className="text-xs text-slate-200 italic leading-relaxed">
                 "{dailyCard.advice}"
@@ -232,22 +233,22 @@ export const DailyCardModal = ({
             {notificationEnabled ? (
               <>
                 <Check className="w-3.5 h-3.5 text-emerald-400" />
-                <span>Lembrete Diário Ativado</span>
+                <span>{t('daily.reminderOn')}</span>
               </>
             ) : (
               <>
                 <Bell className="w-3.5 h-3.5 text-amber-400" />
-                <span>Lembrar todos os dias</span>
+                <span>{t('daily.remind')}</span>
               </>
             )}
           </button>
 
           <button
             type="button"
-            aria-label="Fechar" onClick={handleClose}
+            aria-label={t('common.close')} onClick={handleClose}
             className="w-full sm:w-auto px-6 py-2.5 rounded-sm bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-slate-950 font-cinzel font-bold text-xs cursor-pointer transition-all shadow-md active:scale-95 text-center"
           >
-            Fechar
+            {t('common.close')}
           </button>
         </div>
       </motion.div>

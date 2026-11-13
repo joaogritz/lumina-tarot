@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Palette, Check, Sparkles, Moon, Sun, Flame } from './icons/ArcaneIcons';
 import { ALTAR_THEMES } from '../utils/theme';
 import { audio } from '../utils/audio';
+import { t } from '../i18n';
 
 const ICON_MAP = {
   Sparkles,
@@ -44,7 +45,7 @@ export const ThemeSelectorModal = ({
       {/* Modal Dialog Card */}
       <motion.div 
         ref={modalRef}
-        aria-label="Temas"
+        aria-label={t('themes.dialog')}
         role="dialog"
         aria-modal="true"
         initial={{ opacity: 0, scale: 0.92, y: 20 }}
@@ -58,13 +59,13 @@ export const ThemeSelectorModal = ({
           <div className="flex items-center gap-2 text-amber-300">
             <Palette className="w-5 h-5 text-amber-400" />
             <h3 className="font-cinzel text-lg sm:text-xl font-bold text-slate-100 gold-gradient-text">
-              Atmosferas
+              {t('themes.title')}
             </h3>
           </div>
 
           <button
             type="button"
-            aria-label="Fechar" onClick={handleClose}
+            aria-label={t('common.close')} onClick={handleClose}
             className="p-1.5 rounded-full bg-slate-900/80 border border-slate-700 text-slate-400 hover:text-amber-300 hover:border-amber-400/50 transition-all cursor-pointer"
           >
             <X aria-hidden="true" className="w-5 h-5" />
@@ -72,7 +73,7 @@ export const ThemeSelectorModal = ({
         </div>
 
         <p className="text-xs text-slate-400 mt-2 mb-4">
-          O tom de fundo da mesa.
+          {t('themes.subtitle')}
         </p>
 
         {/* Theme List */}
@@ -113,7 +114,7 @@ export const ThemeSelectorModal = ({
                 </div>
 
                 <span className="text-[11px] text-slate-400 group-hover:text-slate-300 transition-colors">
-                  {theme.subtitle}
+                  {t(`themes.${theme.id}`)}
                 </span>
 
                 {/* Subtle Ambient Color Glow Bar */}
@@ -130,10 +131,10 @@ export const ThemeSelectorModal = ({
         <div className="mt-5 pt-3 border-t border-stone-900/30 flex justify-end">
           <button
             type="button"
-            aria-label="Fechar" onClick={handleClose}
+            aria-label={t('common.close')} onClick={handleClose}
             className="px-5 py-2 rounded-sm bg-amber-500 hover:bg-amber-400 text-slate-950 font-cinzel font-bold text-xs cursor-pointer transition-all shadow-md active:scale-95"
           >
-            Aplicar
+            {t('themes.apply')}
           </button>
         </div>
       </motion.div>

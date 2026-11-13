@@ -5,6 +5,7 @@ import { X, Sparkles, BookOpen, Trash2, Calendar, Search, Edit3, Check, Feather,
 import { CardArt } from './CardArt';
 import { historyService } from '../utils/history';
 import { audio } from '../utils/audio';
+import { t, formatDate } from '../i18n';
 
 export const ReadingHistoryModal = ({ 
   isOpen, 
@@ -78,7 +79,7 @@ export const ReadingHistoryModal = ({
     link.click();
     link.remove();
     setTimeout(() => URL.revokeObjectURL(url), 0);
-    setBackupStatus({ tone: 'ok', text: `Backup com ${readings.length} leitura(s) baixado.` });
+    setBackupStatus({ tone: 'ok', text: t('journal.exported', { count: readings.length }) });
   };
 
   const handleImport = async (event) => {
@@ -86,19 +87,19 @@ export const ReadingHistoryModal = ({
     event.target.value = '';
     if (!file) return;
     if (file.size > 5 * 1024 * 1024) {
-      setBackupStatus({ tone: 'error', text: 'O arquivo é grande demais para um backup do diário (máx. 5 MB).' });
+      setBackupStatus({ tone: 'error', text: t('journal.tooBig') });
       return;
     }
     try {
       const result = historyService.importBackup(await file.text());
       setReadings(historyService.getReadings());
       audio.playSelect();
-      const parts = [`${result.added} leitura(s) restaurada(s)`];
-      if (result.ignored) parts.push(`${result.ignored} já existente(s) ou inválida(s) ignorada(s)`);
-      if (result.dropped) parts.push(`${result.dropped} mais antiga(s) ficou(aram) de fora pelo limite de 100`);
+      const parts = [t('journal.restored', { count: result.added })];
+      if (result.ignored) parts.push(t('journal.ignored', { count: result.ignored }));
+      if (result.dropped) parts.push(t('journal.dropped', { count: result.dropped }));
       setBackupStatus({ tone: 'ok', text: `${parts.join(' · ')}.` });
     } catch (error) {
-      setBackupStatus({ tone: 'error', text: error.message || 'Não foi possível ler o backup.' });
+      setBackupStatus({ tone: 'error', text: error.message || t('journal.readFailed') });
     }
   };
 
@@ -125,7 +126,7 @@ export const ReadingHistoryModal = ({
       {/* Modal Dialog Card */}
       <motion.div 
         ref={modalRef}
-        aria-label="Diário de leituras"
+        aria-label={t('journal.dialog')}
         role="dialog"
         aria-modal="true"
         initial={{ opacity: 0, scale: 0.92, y: 20 }}
@@ -139,13 +140,13 @@ export const ReadingHistoryModal = ({
           <div className="flex items-center gap-2 text-amber-300">
             <BookOpen className="w-5 h-5 text-amber-400" />
             <h3 className="font-cinzel text-lg sm:text-2xl font-bold text-slate-100 gold-gradient-text">
-              Diário
+              {t('journal.title')}
             </h3>
           </div>
 
           <button
             type="button"
-            aria-label="Fechar" onClick={handleClose}
+            aria-label={t('common.close')} onClick={handleClose}
             className="p-2 rounded-full bg-slate-900/80 border border-slate-700 text-slate-400 hover:text-amber-300 hover:border-amber-400/50 transition-all cursor-pointer"
           >
             <X aria-hidden="true" className="w-5 h-5" />
@@ -167,7 +168,7 @@ export const ReadingHistoryModal = ({
             }`}
           >
             <BookOpen className="w-4 h-4" />
-            <span>Leituras ({readings.length})</span>
+            <span>{t('journal.tabReadings', { count: readings.length })}</span>
           </button>
 
           <button
@@ -183,7 +184,7 @@ export const ReadingHistoryModal = ({
             }`}
           >
             <BarChart3 className="w-4 h-4 text-amber-400" />
-            <span>Estatísticas</span>
+            <span>{t('journal.tabStats')}</span>
           </button>
         </div>
 
@@ -196,7 +197,7 @@ export const ReadingHistoryModal = ({
                 <Search className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
                 <input
                   type="text"
-                  aria-label="Buscar no diário" placeholder="Pesquisar por carta, pergunta, tiragem ou notas..."
+                  aria-label={t('journal.search')} placeholder={t('journal.searchPlaceholder')}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full pl-9 pr-4 py-2 rounded-sm bg-slate-950/70 border border-amber-500/30 focus:border-amber-400/70 text-xs sm:text-sm text-slate-200 placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-amber-400/30 transition-all"
@@ -206,23 +207,23 @@ export const ReadingHistoryModal = ({
                 <button
                   type="button"
                   onClick={handleExport}
-                  aria-label="Exportar diário"
+                  aria-label={t('journal.exportAria')}
                   disabled={readings.length === 0}
-                  title="Baixar todas as leituras em um arquivo JSON"
+                  title={t('journal.exportTitle')}
                   className="journal-backup-button"
                 >
                   <Download aria-hidden="true" className="w-4 h-4" />
-                  <span>Exportar</span>
+                  <span>{t('journal.export')}</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => importInputRef.current?.click()}
-                  aria-label="Importar backup do diário"
-                  title="Restaurar leituras de um backup JSON"
+                  aria-label={t('journal.importAria')}
+                  title={t('journal.importTitle')}
                   className="journal-backup-button"
                 >
                   <Upload aria-hidden="true" className="w-4 h-4" />
-                  <span>Importar</span>
+                  <span>{t('journal.import')}</span>
                 </button>
                 <input ref={importInputRef} type="file" accept="application/json,.json" hidden onChange={handleImport} />
               </div>
@@ -230,7 +231,7 @@ export const ReadingHistoryModal = ({
             <p className="journal-backup-note">
               {backupStatus
                 ? <span role="status" data-tone={backupStatus.tone}>{backupStatus.text}</span>
-                : 'Suas leituras ficam só neste navegador. Exporte um backup para guardá-las ou levá-las a outro aparelho.'}
+                : t('journal.localNote')}
             </p>
 
             {/* Main List */}
@@ -238,14 +239,14 @@ export const ReadingHistoryModal = ({
               {readings.length === 0 ? (
                 <div className="text-center py-16 text-slate-400 font-cinzel">
                   <Sparkles className="w-8 h-8 text-amber-400/40 mx-auto mb-3 animate-pulse" />
-                  <p className="text-sm font-semibold">Nenhuma leitura guardada ainda.</p>
+                  <p className="text-sm font-semibold">{t('journal.empty')}</p>
                   <p className="text-xs text-slate-500 mt-1">
-                    Use "Salvar no Diário" ao fim de uma leitura para revê-la aqui.
+                    {t('journal.emptyHint')}
                   </p>
                 </div>
               ) : filteredReadings.length === 0 ? (
                 <div className="text-center py-12 text-slate-500 font-cinzel text-xs">
-                  Nenhuma leitura encontrada para a busca informada.
+                  {t('journal.noMatch')}
                 </div>
               ) : (
                 filteredReadings.map((reading) => {
@@ -266,18 +267,18 @@ export const ReadingHistoryModal = ({
                       <div className="journal-entry-heading flex items-center justify-between gap-2 mb-2">
                         <div className="flex items-center gap-2">
                           <span className="px-2.5 py-0.5 rounded-full bg-amber-500/20 border border-amber-500/40 text-[10px] font-cinzel font-bold text-amber-300">
-                            {reading.deckName || 'Tarot'} · {reading.spreadName}
+                            {reading.deckId === 'lenormand' ? t('common.lenormand') : t('common.tarot')} · {reading.spreadName}
                           </span>
                           <span className="text-[11px] text-slate-400 flex items-center gap-1 font-sans">
                             <Calendar className="w-3 h-3 text-slate-500" />
-                            {reading.formattedDate}
+                            {reading.date ? formatDate(new Date(reading.date), { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : reading.formattedDate}
                           </span>
                         </div>
 
                         <button
                           type="button"
                           onClick={(e) => handleDelete(reading.id, e)}
-                          title="Excluir leitura"
+                          title={t('journal.delete')}
                           className="p-1.5 rounded-sm text-slate-500 hover:text-red-400 hover:bg-red-950/40 transition-colors cursor-pointer"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -294,7 +295,7 @@ export const ReadingHistoryModal = ({
                       {/* Cards Mini Thumbnails */}
                       <div className="journal-cards grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 my-2">
                         {reading.cards?.map((card, idx) => (
-                          <button type="button" aria-label={`Ver detalhes de ${card.name}`}
+                          <button type="button" aria-label={t('common.viewDetails', { name: card.name })}
                             key={idx}
                             onClick={() => onOpenCardDetail && onOpenCardDetail(card)}
                             className="p-2 rounded-sm bg-slate-900/90 border border-amber-500/30 hover:border-amber-400 cursor-pointer flex flex-col items-center text-center transition-all group"
@@ -317,15 +318,15 @@ export const ReadingHistoryModal = ({
                         <div className="mt-3 p-3 sm:p-4 rounded-sm bg-stone-950/40 border border-amber-500/30 text-left">
                           <div className="flex items-center gap-1.5 text-amber-300 font-cinzel text-xs font-bold mb-2">
                             <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                            <span>Revelação do Oráculo:</span>
+                            <span>{t('journal.oracle')}</span>
                           </div>
 
                           {reading.aiReading?.diagnosis ? (
                             <div className="space-y-2 text-xs text-slate-200 leading-relaxed font-sans">
-                              <p><strong className="text-amber-300 font-cinzel text-[11px] block">🌌 Diagnóstico:</strong> {reading.aiReading.diagnosis}</p>
-                              <p><strong className="text-amber-300 font-cinzel text-[11px] block">🔮 Forças Ocultas:</strong> {reading.aiReading.dynamics}</p>
+                              <p><strong className="text-amber-300 font-cinzel text-[11px] block">{t('journal.diagnosis')}</strong> {reading.aiReading.diagnosis}</p>
+                              <p><strong className="text-amber-300 font-cinzel text-[11px] block">{t('journal.dynamics')}</strong> {reading.aiReading.dynamics}</p>
                               <p className="p-2 rounded-sm bg-slate-900/80 border border-amber-500/20 text-amber-100 italic">
-                                <strong className="text-amber-300 font-cinzel text-[11px] not-italic block mb-0.5">🗝️ Conselho Sagrado:</strong>
+                                <strong className="text-amber-300 font-cinzel text-[11px] not-italic block mb-0.5">{t('journal.advice')}</strong>
                                 "{reading.aiReading.advice}"
                               </p>
                             </div>
@@ -342,7 +343,7 @@ export const ReadingHistoryModal = ({
                         <div className="flex items-center justify-between">
                           <span className="text-[11px] font-cinzel font-semibold text-slate-400 flex items-center gap-1">
                             <Feather className="w-3 h-3 text-amber-400" />
-                            Anotações Pessoais:
+                            {t('journal.notes')}
                           </span>
                           {!isEditing && (
                             <button
@@ -351,7 +352,7 @@ export const ReadingHistoryModal = ({
                               className="text-[11px] text-amber-400 hover:text-amber-300 flex items-center gap-1 cursor-pointer"
                             >
                               <Edit3 className="w-3 h-3" />
-                              <span>{reading.notes ? 'Editar' : 'Adicionar Nota'}</span>
+                              <span>{reading.notes ? t('journal.edit') : t('journal.addNote')}</span>
                             </button>
                           )}
                         </div>
@@ -362,7 +363,7 @@ export const ReadingHistoryModal = ({
                               type="text"
                               value={editingText}
                               onChange={(e) => setEditingText(e.target.value)}
-                              placeholder="Digite suas percepções, sentimentos ou insights sobre esta tiragem..."
+                              placeholder={t('journal.notePlaceholder')}
                               className="flex-1 px-3 py-1.5 rounded-sm bg-slate-900 border border-amber-400/50 text-xs text-slate-100 focus:outline-none"
                               autoFocus
                             />
@@ -372,12 +373,12 @@ export const ReadingHistoryModal = ({
                               className="px-3 py-1.5 rounded-sm bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs flex items-center gap-1 cursor-pointer"
                             >
                               <Check className="w-3.5 h-3.5" />
-                              <span>Salvar</span>
+                              <span>{t('journal.save')}</span>
                             </button>
                           </div>
                         ) : (
                           <p className="text-xs text-slate-300 italic">
-                            {reading.notes || <span className="text-slate-600 not-italic">Nenhuma anotação inserida.</span>}
+                            {reading.notes || <span className="text-slate-600 not-italic">{t('journal.noNotes')}</span>}
                           </p>
                         )}
                       </div>
@@ -399,7 +400,7 @@ export const ReadingHistoryModal = ({
                   {stats.totalReadings}
                 </span>
                 <span className="block text-[11px] font-cinzel text-slate-400 mt-1">
-                  Tiragens Realizadas
+                  {t('journal.statReadings')}
                 </span>
               </div>
 
@@ -408,7 +409,7 @@ export const ReadingHistoryModal = ({
                   {stats.totalCardsDrawn}
                 </span>
                 <span className="block text-[11px] font-cinzel text-slate-400 mt-1">
-                  Cartas
+                  {t('journal.statCards')}
                 </span>
               </div>
 
@@ -417,7 +418,7 @@ export const ReadingHistoryModal = ({
                   {stats.elementalPercentages.major}%
                 </span>
                 <span className="block text-[11px] font-cinzel text-slate-400 mt-1">
-                  Arcanos Maiores
+                  {t('journal.statMajors')}
                 </span>
               </div>
 
@@ -426,22 +427,22 @@ export const ReadingHistoryModal = ({
                   {stats.topCards[0]?.name?.split(' ')[1] || stats.topCards[0]?.name || '—'}
                 </span>
                 <span className="block text-[11px] font-cinzel text-slate-400 mt-1 truncate">
-                  Arcano Guia Dominante
+                  {t('journal.statGuide')}
                 </span>
               </div>
             </div>
 
-            <p className="text-xs text-emerald-200">Baralho Cigano: {stats.elementalCounts.lenormand || 0} cartas no histórico. As demais categorias representam o Tarot.</p>
+            <p className="text-xs text-emerald-200">{t('journal.lenormandNote', { count: stats.elementalCounts.lenormand || 0 })}</p>
             {/* Top 5 Most Frequent Cards */}
             <div className="p-5 rounded-sm bg-slate-950/70 border border-amber-500/25">
               <h4 className="font-cinzel text-sm font-bold text-amber-200 flex items-center gap-2 mb-4">
                 <Star className="w-4 h-4 text-amber-400" />
-                <span>Seus 5 Arcanos Mais Frequentes</span>
+                <span>{t('journal.top')}</span>
               </h4>
 
               {stats.topCards.length === 0 ? (
                 <p className="text-xs text-slate-500 font-cinzel text-center py-4">
-                  Realize tiragens no altar para traçar seu mapa arquetípico.
+                  {t('journal.topEmpty')}
                 </p>
               ) : (
                 <div className="space-y-3">
@@ -452,7 +453,7 @@ export const ReadingHistoryModal = ({
                         <div className="flex items-center justify-between text-xs font-cinzel">
                           <span className="text-slate-200 flex items-center gap-1.5">
                             <span className="text-amber-400 font-bold">{i + 1}.</span>
-                            <span>{c.name} · {c.arcana === 'Lenormand' ? 'Cigano' : 'Tarot'}</span>
+                            <span>{c.name} · {c.arcana === 'Lenormand' ? t('journal.lenormandShort') : t('common.tarot')}</span>
                           </span>
                           <span className="text-amber-300 font-semibold">
                             {c.count}x ({pct}%)
@@ -475,7 +476,7 @@ export const ReadingHistoryModal = ({
             <div className="p-5 rounded-sm bg-slate-950/70 border border-amber-500/25">
               <h4 className="font-cinzel text-sm font-bold text-amber-200 flex items-center gap-2 mb-4">
                 <Layers className="w-4 h-4 text-amber-400" />
-                <span>Balanço Elemental da Sua Jornada</span>
+                <span>{t('journal.balance')}</span>
               </h4>
 
               <div className="space-y-3 text-xs font-cinzel">
@@ -483,7 +484,7 @@ export const ReadingHistoryModal = ({
                 <div>
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-orange-300 flex items-center gap-1.5">
-                      <Flame className="w-3.5 h-3.5 text-orange-400" /> Fogo / Paus (Ação & Vontade)
+                      <Flame className="w-3.5 h-3.5 text-orange-400" /> {t('journal.fire')}
                     </span>
                     <span className="text-orange-300 font-bold">{stats.elementalPercentages.wands}%</span>
                   </div>
@@ -496,7 +497,7 @@ export const ReadingHistoryModal = ({
                 <div>
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-cyan-300 flex items-center gap-1.5">
-                      <Droplets className="w-3.5 h-3.5 text-cyan-400" /> Água / Copas (Emoções & Intuição)
+                      <Droplets className="w-3.5 h-3.5 text-cyan-400" /> {t('journal.water')}
                     </span>
                     <span className="text-cyan-300 font-bold">{stats.elementalPercentages.cups}%</span>
                   </div>
@@ -509,7 +510,7 @@ export const ReadingHistoryModal = ({
                 <div>
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-slate-300 flex items-center gap-1.5">
-                      <Wind className="w-3.5 h-3.5 text-slate-400" /> Ar / Espadas (Mente & Verdade)
+                      <Wind className="w-3.5 h-3.5 text-slate-400" /> {t('journal.air')}
                     </span>
                     <span className="text-slate-300 font-bold">{stats.elementalPercentages.swords}%</span>
                   </div>
@@ -522,7 +523,7 @@ export const ReadingHistoryModal = ({
                 <div>
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-emerald-300 flex items-center gap-1.5">
-                      <Mountain className="w-3.5 h-3.5 text-emerald-400" /> Terra / Ouros (Matéria & Realização)
+                      <Mountain className="w-3.5 h-3.5 text-emerald-400" /> {t('journal.earth')}
                     </span>
                     <span className="text-emerald-300 font-bold">{stats.elementalPercentages.pentacles}%</span>
                   </div>

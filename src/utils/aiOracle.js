@@ -4,6 +4,8 @@
 
 import { getYesNoEvaluation, generateOfflineYesNoReading } from './yesNoOracle.js';
 import { DEFAULT_ORACLE_URL } from '../config.js';
+import { t, getLocale } from '../i18n/index.js';
+import { SELF_HARM_REGEX, NECROMANCY_REGEX } from './safety.js';
 
 // Must exceed the Worker's shared provider deadline (29 s) so its answer is not cut off.
 const ORACLE_TIMEOUT_MS = 32000;
@@ -58,18 +60,18 @@ const parseAiSections = (text, fallbackData) => {
     } else if (paragraphs.length === 2) {
       diagnosis = paragraphs[0].trim();
       dynamics = paragraphs[1].trim();
-      advice = fallbackData?.advice || 'O conselho principal é manter a calma, ser honesto com você mesmo e não tomar decisões por impulso.';
+      advice = fallbackData?.advice || t('oracle.fill.advice2');
     } else if (paragraphs.length === 1 && paragraphs[0].length > 20) {
       diagnosis = paragraphs[0].trim();
-      dynamics = fallbackData?.dynamics || 'A situação atual pede paciência para enxergar as coisas com mais clareza.';
-      advice = fallbackData?.advice || 'Dê um passo de cada vez e confie na sua intuição.';
+      dynamics = fallbackData?.dynamics || t('oracle.fill.dynamics1');
+      advice = fallbackData?.advice || t('oracle.fill.advice1');
     }
   }
 
   return {
     diagnosis: diagnosis || text.trim(),
-    dynamics: dynamics || (fallbackData?.dynamics || 'A situação atual pede calma e observação atenta.'),
-    advice: advice || (fallbackData?.advice || 'Mantenha os pés no chão e faça escolhas conscientes.'),
+    dynamics: dynamics || (fallbackData?.dynamics || t('oracle.fill.dynamics')),
+    advice: advice || (fallbackData?.advice || t('oracle.fill.advice')),
     text: text.trim()
   };
 };
@@ -114,6 +116,17 @@ export const readOracleStream = async (body, { onText, onActivity } = {}) => {
   }
 };
 
+// Verdict vocabulary in Portuguese, English, Spanish and French (the oracle answers in the
+// visitor's language). \p{L} lookarounds keep accented words whole.
+const wordsIn = (list) => new RegExp(`(?<!\\p{L})(?:${list.join('|')})(?!\\p{L})`, 'iu');
+const NO_WORDS = wordsIn(['NÃO', 'NAO', 'NO', 'NOT', 'NON', 'PAS', 'BLOQUEIO', 'BLOCKED', 'BLOQUEO', 'BLOCAGE', 'CAUTELA', 'CAUTION', 'PRUDENCE']);
+const YES_WORDS = wordsIn(['SIM', 'YES', 'SÍ', 'SI', 'OUI']);
+const MAYBE_WORDS = wordsIn(['DEPENDE', 'DEPENDS', 'DÉPEND', 'TALVEZ', 'MAYBE', 'QUIZÁS', 'QUIZAS', 'PEUT-ÊTRE', 'PEUT-ETRE', 'NEUTRO', 'NEUTRAL', 'NEUTRE', 'PAUSA', 'PAUSE']);
+const CONDITION_WORDS = wordsIn(['CONDIÇÃO', 'CONDICAO', 'CONDITION', 'CONDICIÓN', 'CONDICION', 'MAS', 'BUT', 'PERO', 'MAIS']);
+const ANSWER_OPENS_NO = /^(?:não|nao|no|non)(?!\p{L})/iu;
+const ANSWER_OPENS_YES = /^(?:sim|com certeza|yes|of course|sí|si|claro|oui|bien sûr)(?!\p{L})/iu;
+const SAFEGUARD_VERDICTS = () => [...new Set(['BUSQUE ', 'FOCO NO AUTOCONHECIMENTO', t('yn.v.support'), t('yn.v.self'), t('yn.v.facts')])].map((v) => v.toUpperCase());
+
 // Parse structured Yes/No AI responses with bulletproof format recovery
 export const parseYesNoAiResponse = (text, fallbackData) => {
   if (!text) return fallbackData;
@@ -123,9 +136,9 @@ export const parseYesNoAiResponse = (text, fallbackData) => {
   let tip = '';
 
   // Match structured labels
-  const verdictMatch = text.match(/(?:VEREDITO|VEREDICTO|RESULTADO)\s*:\s*([^\n]+)/i);
-  const answerMatch = text.match(/(?:RESPOSTA|EXPLICAÇÃO|SÍNTESE)\s*:\s*([\s\S]*?)(?=(?:DICA|CONSELHO|VEREDITO|$))/i);
-  const tipMatch = text.match(/(?:DICA|CONSELHO|ORIENTAÇÃO)\s*:\s*([\s\S]*?)$/i);
+  const verdictMatch = text.match(/(?:VEREDITO|VEREDICTO|VERDICT|RESULTADO)\s*:\s*([^\n]+)/i);
+  const answerMatch = text.match(/(?:RESPOSTA|EXPLICAÇÃO|SÍNTESE|ANSWER|RESPUESTA|RÉPONSE|REPONSE)\s*:\s*([\s\S]*?)(?=(?:DICA|CONSELHO|TIP|CONSEJO|CONSEIL|VEREDITO|$))/i);
+  const tipMatch = text.match(/(?:DICA|CONSELHO|ORIENTAÇÃO|TIP|CONSEJO|CONSEIL)\s*:\s*([\s\S]*?)$/i);
 
   if (verdictMatch && verdictMatch[1]) {
     verdict = verdictMatch[1].replace(/[*_#[\]]/g, '').trim();
@@ -157,12 +170,12 @@ export const parseYesNoAiResponse = (text, fallbackData) => {
   }
 
   // Fallback field assignments
-  if (!verdict) verdict = fallbackData?.verdict || 'SIM';
+  if (!verdict) verdict = fallbackData?.verdict || t('yn.v.yes');
   if (!answer) {
     const lines = text.replace(/[*_#]/g, '').split('\n').map(l => l.trim()).filter(Boolean);
-    answer = lines[0] || fallbackData?.answer || 'As cartas mostram um movimento direto para a sua questão.';
+    answer = lines[0] || fallbackData?.answer || t('oracle.fill.ynAnswer');
   }
-  if (!tip) tip = fallbackData?.tip || 'Mantenha a firmeza nas suas decisões e observe os detalhes práticos.';
+  if (!tip) tip = fallbackData?.tip || t('oracle.fill.ynTip');
 
   // Preserve a complete AI answer as a unit; do not append a conflicting local tip.
   // This catches only explicit opening contradictions, not semantic equivalence.
@@ -170,12 +183,13 @@ export const parseYesNoAiResponse = (text, fallbackData) => {
   let vUpper = verdict.toUpperCase();
 
   // If the answer explicitly opens against the verdict, the answer wins: align the verdict.
-  if ((lowerAnswer.startsWith('não') || lowerAnswer.startsWith('nao')) && (vUpper.includes('SIM') && !vUpper.includes('NÃO'))) {
-    verdict = 'NÃO';
-    vUpper = verdict;
-  } else if ((lowerAnswer.startsWith('sim') || lowerAnswer.startsWith('com certeza')) && (vUpper.includes('NÃO') || vUpper.includes('NAO'))) {
-    verdict = 'SIM';
-    vUpper = verdict;
+  const saysNo = NO_WORDS.test(vUpper);
+  if (ANSWER_OPENS_NO.test(lowerAnswer) && YES_WORDS.test(vUpper) && !saysNo) {
+    verdict = t('yn.v.noAlert').split(' /')[0];
+    vUpper = verdict.toUpperCase();
+  } else if (ANSWER_OPENS_YES.test(lowerAnswer) && saysNo) {
+    verdict = t('yn.v.yes');
+    vUpper = verdict.toUpperCase();
   }
 
   // Determine styling based on final verified verdict text
@@ -183,19 +197,19 @@ export const parseYesNoAiResponse = (text, fallbackData) => {
   let color = 'text-emerald-400';
   let badgeBg = 'bg-emerald-500/20 border-emerald-400/60';
 
-  if (vUpper.startsWith('BUSQUE ') || vUpper === 'FOCO NO AUTOCONHECIMENTO') {
+  if (SAFEGUARD_VERDICTS().some((v) => vUpper.startsWith(v))) {
     type = 'maybe';
     color = 'text-amber-400';
     badgeBg = 'bg-amber-500/20 border-amber-400/60';
-  } else if (vUpper.includes('NÃO') || vUpper.includes('NAO') || vUpper.includes('BLOQUEIO') || vUpper.includes('CAUTELA')) {
+  } else if (NO_WORDS.test(vUpper)) {
     type = 'no';
     color = 'text-rose-400';
     badgeBg = 'bg-rose-500/20 border-rose-400/60';
-  } else if (vUpper.includes('DEPENDE') || vUpper.includes('TALVEZ') || vUpper.includes('NEUTRO') || vUpper.includes('PAUSA')) {
+  } else if (MAYBE_WORDS.test(vUpper)) {
     type = 'maybe';
     color = 'text-amber-400';
     badgeBg = 'bg-amber-500/20 border-amber-400/60';
-  } else if (vUpper.includes('CONDIÇÃO') || vUpper.includes('CONDICAO') || vUpper.includes('MAS')) {
+  } else if (CONDITION_WORDS.test(vUpper)) {
     type = 'conditional_yes';
     color = 'text-amber-300';
     badgeBg = 'bg-amber-500/20 border-amber-400/60';
@@ -213,6 +227,10 @@ export const parseYesNoAiResponse = (text, fallbackData) => {
     rawText: text.trim()
   };
 };
+
+const lower = (text) => (text || '').toLocaleLowerCase();
+// The Devil, the Tower, Death, the Moon, the Hanged Man and the hardest minor cards.
+const SHADOW_CARD_IDS = ['major_15', 'major_16', 'major_13', 'major_18', 'major_12', 'swords_3', 'swords_10', 'swords_7', 'pentacles_5', 'cups_5'];
 
 /** Returned when the Worker could not produce a reading; the UI shows a retry instead. */
 export const UNAVAILABLE = Object.freeze({ source: 'unavailable' });
@@ -256,9 +274,10 @@ export const aiOracleService = {
               light: c.light,
               shadow: c.shadow,
               advice: c.advice,
-              positionName: spreadConfig.positions?.[i]?.name || `Posição ${i + 1}`
+              positionName: spreadConfig.positions?.[i]?.name || t('slot.position', { position: i + 1 })
             })),
-            userQuestion: (userQuestion || '').trim()
+            userQuestion: (userQuestion || '').trim(),
+            locale: getLocale()
           })
         });
 
@@ -312,7 +331,7 @@ export const aiOracleService = {
           body: JSON.stringify({
             mode: 'yes_no',
             spreadConfig: {
-              name: 'Sim ou Não',
+              name: t('yesno.title'),
               isYesNo: true
             },
             chosenCards: [{
@@ -328,7 +347,8 @@ export const aiOracleService = {
               traditionalSummary: evalData.summary,
               traditionalTip: evalData.tip
             }],
-            userQuestion: (userQuestion || '').trim()
+            userQuestion: (userQuestion || '').trim(),
+            locale: getLocale()
           })
         });
 
@@ -359,81 +379,67 @@ export const aiOracleService = {
     const last = validCards[validCards.length - 1] || first;
     const q = (userQuestion || '').trim();
 
-    // Ethical Safeguard: Suicide and Self-Harm Prevention
-    const isSelfHarm = /\b(suic[ií]d\w*|me\s+matar|morrer|automutila\w*|tirar\s+a\s+(minha\s+)?vida|cortar\s+os\s+pulsos|acabar\s+com\s+a\s+(minha\s+)?vida|acabar\s+com\s+tudo|me\s+enforcar|quero\s+morrer)\b/i.test(q);
-    if (isSelfHarm) {
-      return {
-        source: 'ethical_safeguard',
-        diagnosis: 'O Lumina Tarot é um oráculo sagrado dedicado à preservação da vida, ao autoconhecimento e à esperança. Não realizamos leituras sobre autodestruição, morte ou ideação suicida. Reconhecemos que o momento pode estar gerando uma dor imensa, mas você não precisa carregar esse sofrimento sozinho.',
-        dynamics: 'Momentos de profunda escuridão e desamparo exigem acolhimento humano real, escuta atenta e apoio profissional especializado. Há caminhos de reconstrução e alívio quando permitimos que pessoas qualificadas nos estendam a mão.',
-        advice: 'Por favor, busque ajuda humana imediata: no Brasil, ligue gratuitamente para o Centro de Valorização da Vida (CVV) pelo telefone 188 (atendimento sigiloso 24 horas) ou procure um serviço de emergência de saúde mental.',
-        text: '### 🌌 O que as cartas mostram\nO Lumina Tarot é um oráculo sagrado dedicado à preservação da vida, ao autoconhecimento e à esperança. Não realizamos leituras sobre autodestruição, morte ou ideação suicida. Reconhecemos que o momento pode estar gerando uma dor imensa, mas você não precisa carregar esse sofrimento sozinho.\n\n### 💡 A Dinâmica das Forças Ocultas\nMomentos de profunda escuridão e desamparo exigem acolhimento humano real, escuta atenta e apoio profissional especializado. Há caminhos de reconstrução e alívio quando permitimos que pessoas qualificadas nos estendam a mão.\n\n### 🧭 O que fazer na prática\nPor favor, busque ajuda humana imediata: no Brasil, ligue gratuitamente para o Centro de Valorização da Vida (CVV) pelo telefone 188 (atendimento sigiloso 24 horas) ou procure um serviço de emergência de saúde mental.'
-      };
+    // Ethical safeguards: no reading for self-harm (crisis lines instead) or contact with the dead.
+    const sectioned = (diagnosis, dynamics, advice) => ({
+      source: 'ethical_safeguard',
+      diagnosis,
+      dynamics,
+      advice,
+      text: `### 🌌 ${t('reading.section1')}\n${diagnosis}\n\n### 💡 ${t('reading.section2')}\n${dynamics}\n\n### 🧭 ${t('reading.section3')}\n${advice}`,
+    });
+    if (SELF_HARM_REGEX.test(q)) {
+      return sectioned(t('safety.read.diagnosis'), t('safety.read.dynamics'), t('safety.read.advice', { crisis: t('safety.crisis') }));
     }
-
-    // Ethical Safeguard: Necromancy and Contact with Deceased
-    const isNecromancy = /\b(parente\s+morto|parente\s+falecid|falar\s+com\s+(o\s+|a\s+)?(morto|falecid|morta|falecida|espirito|espírito)|psicograf|alma\s+do\s+meu|alma\s+da\s+minha|falar\s+com\s+quem\s+morreu|esp[ií]rito\s+do\s+meu|m[eé]dium|incorporar)\b/i.test(q);
-    if (isNecromancy) {
-      return {
-        source: 'ethical_safeguard',
-        diagnosis: 'O Tarot atua como um espelho de reflexão e discernimento para a consciência dos seres vivos no plano terreno. Não operamos como canal mediúnico, psicografia ou necromancia para estabelecer comunicação direta com espíritos ou entes já falecidos.',
-        dynamics: 'O vínculo com quem partiu permanece vivo na memória afetiva, no respeito ao legado e no amor compartilhado. O simbolismo das cartas convida você a acolher as etapas do luto e cuidar das suas próprias emoções no presente.',
-        advice: 'Direcione sua energia para a sua própria cura e paz de espírito. Honre a memória de quem partiu vivendo com dignidade e amor no aqui e agora.',
-        text: '### 🌌 O que as cartas mostram\nO Tarot atua como um espelho de reflexão e discernimento para a consciência dos seres vivos no plano terreno. Não operamos como canal mediúnico, psicografia ou necromancia para estabelecer comunicação direta com espíritos ou entes já falecidos.\n\n### 💡 A Dinâmica das Forças Ocultas\nO vínculo com quem partiu permanece vivo na memória afetiva, no respeito ao legado e no amor compartilhado. O simbolismo das cartas convida você a acolher as etapas do luto e cuidar das suas próprias emoções no presente.\n\n### 🧭 O que fazer na prática\nDirecione sua energia para a sua própria cura e paz de espírito. Honre a memória de quem partiu vivendo com dignidade e amor no aqui e agora.'
-      };
+    if (NECROMANCY_REGEX.test(q)) {
+      return sectioned(t('safety.necro.diagnosis'), t('safety.necro.dynamics'), t('safety.necro.advice'));
     }
 
     if (first.deckId === 'lenormand') {
-      const diagnosis = 'Leitura simbólica de Petit Lenormand: ' + validCards.map(c => c.name + ' — ' + c.light).join(' ');
-      const dynamics = validCards.length > 1 ? validCards.slice(0, -1).map((c, i) => c.name + ' + ' + validCards[i + 1].name + ': observe como ' + c.keywords[0].toLowerCase() + ' se relaciona com ' + validCards[i + 1].keywords[0].toLowerCase() + '.').join(' ') : 'Uma carta oferece um foco de reflexão; combinações ampliam o contexto.';
-      const advice = last.advice + ' Use esta leitura como reflexão, sem tratá-la como previsão garantida.';
+      const diagnosis = t('oracle.fb.lenormandIntro', { cards: validCards.map(c => c.name + ' — ' + c.light).join(' ') });
+      const dynamics = validCards.length > 1
+        ? validCards.slice(0, -1).map((c, i) => t('oracle.fb.lenormandPair', { a: c.name, b: validCards[i + 1].name, x: lower(c.keywords[0]), y: lower(validCards[i + 1].keywords[0]) })).join(' ')
+        : t('oracle.fb.lenormandSingle');
+      const advice = t('oracle.fb.lenormandAdvice', { advice: last.advice });
       return { source: 'local_fallback', diagnosis, dynamics, advice, text: diagnosis + '\n\n' + dynamics + '\n\n' + advice };
     }
     // Clean text helper to prevent double punctuation
     const cleanAttr = (str) => (str || '').replace(/[.!?]+$/, '').trim();
-    const firstLight = cleanAttr(first.light || first.keywords?.slice(0, 2).join(', ') || 'recomeço e clareza');
-    const firstShadow = cleanAttr(first.shadow || 'dúvidas e bloqueios');
-    const middleLight = cleanAttr(middle.light || middle.keywords?.slice(0, 2).join(', ') || 'estabilidade e ação');
+    const firstLight = lower(cleanAttr(first.light || first.keywords?.slice(0, 2).join(', ') || t('oracle.fb.defaultLight')));
+    const firstShadow = lower(cleanAttr(first.shadow || t('oracle.fb.defaultShadow')));
+    const middleLight = lower(cleanAttr(middle.light || middle.keywords?.slice(0, 2).join(', ') || t('oracle.fb.defaultMiddle')));
+    const reversed = t('common.reversed');
 
-    // Identify shadow or warning cards
-    const shadowCard = validCards.find(c => 
-      c.isReversed || 
-      ['O Diabo', 'A Torre', 'A Morte', 'A Lua', 'Três de Espadas', 'Dez de Espadas', 'Sete de Espadas', 'Cinco de Ouros', 'Cinco de Copas', 'O Enforcado'].some(name => c.name.includes(name))
-    );
+    // Shadow or warning cards, by id so it works in every language.
+    const shadowCard = validCards.find(c => c.isReversed || SHADOW_CARD_IDS.includes(c.id));
 
     let diagnosis;
     if (q) {
-      if (first.isReversed) {
-        diagnosis = `Para a sua consulta ("${q}"): o arcano ${first.name} (Invertido) indica que há entraves e falta de transparência no momento. A energia da carta alerta para ${firstShadow.toLowerCase()}.`;
-      } else {
-        diagnosis = `Para a sua consulta ("${q}"): o arcano ${first.name} traz a energia de ${firstLight.toLowerCase()}. As cartas indicam que os acontecimentos estão diretamente ligados a esse movimento.`;
-      }
+      diagnosis = first.isReversed
+        ? t('oracle.fb.qReversed', { question: q, name: first.name, reversed, shadow: firstShadow })
+        : t('oracle.fb.q', { question: q, name: first.name, light: firstLight });
     } else {
-      if (first.isReversed) {
-        diagnosis = `O arcano ${first.name} (Invertido) aponta um momento de atenção no seu caminho. A energia atual reflete ${firstShadow.toLowerCase()}.`;
-      } else {
-        diagnosis = `O arcano ${first.name} destaca que o seu momento atual é movido por ${firstLight.toLowerCase()}.`;
-      }
+      diagnosis = first.isReversed
+        ? t('oracle.fb.reversed', { name: first.name, reversed, shadow: firstShadow })
+        : t('oracle.fb.plain', { name: first.name, light: firstLight });
     }
 
     let dynamics;
     if (shadowCard && shadowCard.id !== first.id) {
-      const sName = shadowCard.name;
-      const sMeaning = cleanAttr(shadowCard.isReversed ? shadowCard.shadow : shadowCard.light || 'desafios operacionais');
-      dynamics = `Por trás desse cenário, a presença de ${sName} ${shadowCard.isReversed ? '(Invertida)' : ''} revela o ponto de maior atenção: ${sMeaning.toLowerCase()}. Em conjunto com ${middle.name}, isso mostra a necessidade de analisar os detalhes antes de agir.`;
+      const name = shadowCard.isReversed ? `${shadowCard.name} (${reversed})` : shadowCard.name;
+      const meaning = lower(cleanAttr(shadowCard.isReversed ? shadowCard.shadow : shadowCard.light || t('oracle.fb.defaultShadowMeaning')));
+      dynamics = t('oracle.fb.shadow', { name, meaning, middle: middle.name });
     } else {
-      dynamics = `Na dinâmica das cartas, ${first.name} e ${middle.name} atuam juntas. Enquanto a primeira carta define o tom da situação, ${middle.name} reforça a importância de focar em ${middleLight.toLowerCase()}.`;
+      dynamics = t('oracle.fb.pair', { first: first.name, middle: middle.name, light: middleLight });
     }
 
-    const cleanAdvice = cleanAttr(last.advice || 'Aja com firmeza, clareza e pés no chão.');
-    let advice = `Orientação prática do arcano ${last.name}: ${cleanAdvice}. Analise a situação com discernimento e tome sua decisão com base nos fatos concretos.`;
+    const advice = t('oracle.fb.advice', { name: last.name, advice: cleanAttr(last.advice || t('oracle.fb.defaultAdvice')) });
 
     return {
       source: 'local_fallback',
       diagnosis,
       dynamics,
       advice,
-      text: `### 🌌 O que as cartas mostram\n${diagnosis}\n\n### 💡 A Dinâmica das Forças Ocultas\n${dynamics}\n\n### 🧭 O que fazer na prática\n${advice}`
+      text: `### 🌌 ${t('reading.section1')}\n${diagnosis}\n\n### 💡 ${t('reading.section2')}\n${dynamics}\n\n### 🧭 ${t('reading.section3')}\n${advice}`
     };
   }
 };

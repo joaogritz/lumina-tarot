@@ -7,7 +7,7 @@
 
 ![Lumina Tarot: a carta A Estrela sobre o verso dourado do baralho](public/og-image.png)
 
-Uma mesa virtual de Tarot e Baralho Cigano para explorar cartas, fazer tiragens e registrar reflexões. A experiência está em português, com artes históricas dos baralhos e uma direção visual editorial: tinta, marfim e filetes dourados, tipografia serifada e movimento contido.
+Uma mesa virtual de Tarot e Baralho Cigano para explorar cartas, fazer tiragens e registrar reflexões. O site está em português, inglês, espanhol e francês e abre no idioma do navegador de quem o visita, com artes históricas dos baralhos e uma direção visual editorial: tinta, marfim e filetes dourados, tipografia serifada e movimento contido.
 
 Desenvolvido com React, Vite e Tailwind CSS. O frontend é estático e é publicado na Vercel; as interpretações online usam um serviço separado em Cloudflare Workers.
 
@@ -24,6 +24,7 @@ Desenvolvido com React, Vite e Tailwind CSS. O frontend é estático e é public
 - **Diário de leituras**, salvo no navegador, com histórico, estatísticas e backup em arquivo JSON.
 - **Mesa Livre 3D**, uma mesa independente para dispor cartas, notas e posições livremente, com caixa de cartas e velas interativas.
 - **Atmosferas:** Noir, Nuit, Ambre, Bordeaux e a clara Ivoire.
+- **Quatro idiomas:** português, inglês, espanhol e francês. O idioma vem das preferências do navegador (idiomas não oferecidos caem no inglês) e pode ser trocado no menu. A interface, os significados das 114 cartas, as tiragens e as interpretações do oráculo seguem o idioma escolhido. A Mesa Livre 3D ainda está só em português.
 - **Efeitos sonoros discretos e interface adaptada a dispositivos móveis.** Tudo fica numa única página: a pergunta, a tiragem, a mesa e o baralho, em capítulos.
 
 As leituras são propostas de reflexão simbólica. O resultado de Sim ou Não não representa uma probabilidade calculada.
@@ -127,12 +128,14 @@ Veja [ARCHITECTURE.md](ARCHITECTURE.md) para entender o fluxo de estado, a inter
 
 ```text
 src/components/             Interface, mesa, cartas e janelas
-src/data/                   Baralhos, artes e configurações das tiragens
+src/data/                   Baralhos, artes e configurações das tiragens (textos em português)
+src/data/i18n/              Textos das cartas e tiragens em inglês, espanhol e francês
+src/i18n/                   Idioma da interface: detecção, t() e catálogos de textos
 src/utils/                  Interpretação, histórico, atmosferas, imagem para compartilhar e efeitos sonoros
 src/maison.css              Direção visual do site
 public/tarot/               Artes dos baralhos e informações de origem
 public/sw.js                Cache para uso offline
-public/privacidade.html     Política de privacidade
+public/privacidade.html     Política de privacidade (e privacy, privacidad, confidentialite)
 src/config.js               Endereço padrão do Worker
 cloudflare_worker_code.js   Serviço de interpretação online
 mesa-3d/                    Mesa Livre 3D (TypeScript + Babylon.js)

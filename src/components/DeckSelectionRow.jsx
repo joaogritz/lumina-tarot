@@ -3,6 +3,7 @@ import { motion, useReducedMotion } from 'framer-motion';
 import { TarotCard } from './cards/TarotCard';
 import { audio } from '../utils/audio';
 import './deck-selection-row.css';
+import { t } from '../i18n';
 
 /** All remaining cards fit in the fan; drawing uses the table's selection rules. */
 export function DeckSelectionRow({ deck, canSelectMore, isShuffling, onSelectCard, onStartShuffle, onShuffleComplete }) {
@@ -119,9 +120,9 @@ export function DeckSelectionRow({ deck, canSelectMore, isShuffling, onSelectCar
   const span = Math.max(0, geometry.width - geometry.cardWidth - 72);
   return <div className="single-row-deck" data-shuffling={isShuffling}>
     <p className="single-row-guidance" id="single-row-guidance">
-      {isMobile ? 'Toque ou arraste para destacar uma carta. Depois, toque em Confirmar carta.' : 'Explore o leque com o mouse e clique para puxar. No celular, arraste para explorar e toque na carta destacada para confirmar.'}
+      {isMobile ? t('fan.guideMobile') : t('fan.guideDesktop')}
     </p>
-    <div ref={rowRef} className="single-row-fan" role="group" aria-label="Baralho em leque" aria-describedby="single-row-guidance" aria-busy={isShuffling} tabIndex={-1}
+    <div ref={rowRef} className="single-row-fan" role="group" aria-label={t('fan.label')} aria-describedby="single-row-guidance" aria-busy={isShuffling} tabIndex={-1}
       onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp}
       onPointerCancel={() => { gesture.current = null; }}
       onPointerLeave={event => { if (!isMobile && event.pointerType === 'mouse') { gesture.current = null; setActiveIndex(null); } }}
@@ -143,7 +144,7 @@ export function DeckSelectionRow({ deck, canSelectMore, isShuffling, onSelectCar
           }}
           transition={{ duration: reducedMotion ? 0 : isShuffling ? 1.05 : .18, ease: 'easeOut' }}>
           <button type="button" className="single-row-card" disabled={blocked} tabIndex={index === focused ? 0 : -1}
-            aria-label={`Puxar carta ${index + 1} de ${cards.length} do leque`}
+            aria-label={t('fan.drawAria', { index: index + 1, total: cards.length })}
             onFocus={() => highlight(index)} onKeyDown={event => onKeyDown(event, index)}
             onClick={event => { if (event.detail === 0) draw(card, index); }}>
             <TarotCard face="back" size="sm" />
@@ -152,12 +153,12 @@ export function DeckSelectionRow({ deck, canSelectMore, isShuffling, onSelectCar
       })}
     </div>
     <div className="single-row-status" aria-live="polite" aria-atomic="true">
-      {isShuffling ? 'Reorganizando o leque…' : active !== null && !blocked ? `Carta ${active + 1} de ${cards.length}` : `${cards.length} cartas no leque`}
+      {isShuffling ? t('fan.reshuffling') : active !== null && !blocked ? t('fan.position', { index: active + 1, total: cards.length }) : t('fan.count', { count: cards.length })}
     </div>
     {isMobile && <button type="button" className="mobile-row-confirm" disabled={blocked || active === null || !cards[active]}
       onClick={() => { if (cards[active]) draw(cards[active], active); }}>
-      {isShuffling ? 'Reorganizando…' : 'Confirmar carta'}
+      {isShuffling ? t('fan.reshufflingShort') : t('fan.confirm')}
     </button>}
-    <p className="single-row-keyboard">Teclado: ← → para explorar · Home / End para ir às pontas · Enter para puxar</p>
+    <p className="single-row-keyboard">{t('fan.keyboard')}</p>
   </div>;
 }

@@ -11,6 +11,7 @@ import { BackgroundStars } from './BackgroundStars';
 import { historyService } from '../utils/history';
 import { themeService } from '../utils/theme';
 import { audio } from '../utils/audio';
+import { t, privacyUrl } from '../i18n';
 
 // Resilient Lazy Loader that automatically recovers from stale chunk hashes on new deployments
 const lazyWithRetry = (componentImport) =>
@@ -353,7 +354,7 @@ export const TarotTable = () => {
     >
       {/* Background Animated Celestial Stars Canvas matching active Theme */}
       <BackgroundStars theme={currentTheme} />
-      <a className="skip-link" href="#reading-altar">Ir para a mesa de leitura</a>
+      <a className="skip-link" href="#reading-altar">{t('table.skip')}</a>
 
       {/* Main Content Container */}
       <main className="relative z-10 flex-1 flex flex-col px-3 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full pb-28 md:pb-20">
@@ -378,7 +379,7 @@ export const TarotTable = () => {
           historyCount={historyCount}
         />
 
-        <p className="maison-chapter maison-chapter-rule"><span>II</span>A tiragem</p>
+        <p className="maison-chapter maison-chapter-rule"><span>II</span>{t('table.chapterSpread')}</p>
         <SpreadSelector
           spreads={availableSpreads}
           currentSpread={activeSpread}
@@ -388,7 +389,7 @@ export const TarotTable = () => {
         />
 
         {/* The Spread Reading Altar (Slots Area) */}
-        <p className="maison-chapter maison-chapter-rule"><span>III</span>A mesa</p>
+        <p className="maison-chapter maison-chapter-rule"><span>III</span>{t('table.chapterTable')}</p>
         <div ref={altarRef} id="reading-altar" className="altar-scene">
           <CelestialRing className="altar-instrument" />
           <SpreadArea
@@ -404,7 +405,7 @@ export const TarotTable = () => {
           />
         </div>
 
-        <p className="maison-chapter maison-chapter-rule"><span>IV</span>O baralho</p>
+        <p className="maison-chapter maison-chapter-rule"><span>IV</span>{t('table.chapterDeck')}</p>
         <DeckSelectionGrid
           key={deckId}
           deck={deck}
@@ -431,11 +432,11 @@ export const TarotTable = () => {
       {/* Footer */}
       <footer className="maison-footer">
         <p className="maison-wordmark"><span>Lumina</span></p>
-        <p>Tarot e Baralho Cigano, para reflexão. As leituras são simbólicas e não substituem orientação médica, psicológica, jurídica ou financeira.</p>
+        <p>{t('table.footerText')}</p>
         <p className="maison-footer-meta">
-          <a href="./privacidade.html" target="_blank" rel="noopener">Privacidade</a>
+          <a href={privacyUrl()} target="_blank" rel="noopener">{t('common.privacy')}</a>
           <span aria-hidden="true">·</span>
-          <span>Atalhos: Espaço embaralha, D tira ao acaso, G grimório, H diário, Esc fecha</span>
+          <span>{t('table.shortcuts')}</span>
         </p>
       </footer>
 
@@ -551,10 +552,10 @@ export const TarotTable = () => {
           onCancel={() => setPendingDeckId(null)}
         >
           <h2 id="deck-dialog-title" className="font-cinzel text-lg font-bold text-amber-200 mb-2">
-            Trocar para {DECKS[pendingDeckId]?.name}?
+            {t('table.deckDialogTitle', { name: DECKS[pendingDeckId]?.name })}
           </h2>
           <p className="text-slate-300 text-sm">
-            As cartas na mesa serão recolhidas. Leituras salvas no diário serão preservadas.
+            {t('table.deckDialogText')}
           </p>
           <div className="flex justify-end gap-3 mt-5">
             <button 
@@ -563,7 +564,7 @@ export const TarotTable = () => {
               onClick={() => setPendingDeckId(null)} 
               className="deck-dialog-cancel"
             >
-              Continuar leitura
+              {t('table.deckDialogCancel')}
             </button>
             <button 
               type="button" 
@@ -574,7 +575,7 @@ export const TarotTable = () => {
               }} 
               className="deck-dialog-confirm"
             >
-              Trocar baralho
+              {t('table.deckDialogConfirm')}
             </button>
           </div>
         </dialog>

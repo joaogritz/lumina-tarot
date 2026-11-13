@@ -1,4 +1,5 @@
 // Reading journal stored in localStorage, with JSON backup/restore and statistics.
+import { t, formatDate } from '../i18n/index.js';
 const STORAGE_KEY = 'lumina_tarot_history_v1';
 const MAX_READINGS = 100;
 const BACKUP_KIND = 'lumina-tarot-diary';
@@ -38,7 +39,7 @@ export const historyService = {
       const newEntry = {
         id: `reading_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
         date: new Date().toISOString(),
-        formattedDate: new Date().toLocaleDateString('pt-BR', {
+        formattedDate: formatDate(new Date(), {
           day: '2-digit',
           month: 'short',
           year: 'numeric',
@@ -46,7 +47,7 @@ export const historyService = {
           minute: '2-digit'
         }),
         deckId: reading.chosenCards[0]?.deckId || 'tarot',
-        deckName: reading.chosenCards[0]?.deckId === 'lenormand' ? 'Baralho Cigano' : 'Tarot',
+        deckName: reading.chosenCards[0]?.deckId === 'lenormand' ? t('common.lenormand') : t('common.tarot'),
         spreadId: reading.spreadConfig.id,
         spreadName: reading.spreadConfig.name,
         spreadShortName: reading.spreadConfig.shortName,
@@ -179,11 +180,11 @@ export const historyService = {
   // that are not Lumina diary backups.
   importBackup(text) {
     let data;
-    try { data = JSON.parse(text); } catch { throw new Error('O arquivo não é um JSON válido.'); }
+    try { data = JSON.parse(text); } catch { throw new Error(t('journal.notJson')); }
     const incoming = Array.isArray(data) ? data : data?.kind === BACKUP_KIND ? data.readings : null;
-    if (!Array.isArray(incoming)) throw new Error('Este arquivo não é um backup do diário do Lumina.');
+    if (!Array.isArray(incoming)) throw new Error(t('journal.notBackup'));
     if (typeof data?.version === 'number' && data.version > BACKUP_VERSION) {
-      throw new Error('Este backup foi criado por uma versão mais nova do Lumina.');
+      throw new Error(t('journal.newer'));
     }
     // Artwork is always resolved from the bundled catalog by card id. Dropping any artwork carried in
     // the file stops an edited backup from making the app load images from other servers.
