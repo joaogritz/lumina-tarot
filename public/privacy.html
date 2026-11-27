@@ -35,7 +35,7 @@
 <main>
   <div class="top"><a class="back" href="./">← Back to Lumina</a><nav class="langs" aria-label="Languages"><a href="./privacidade.html" lang="pt-BR">Português</a> · <a href="./privacy.html" lang="en">English</a> · <a href="./privacidad.html" lang="es">Español</a> · <a href="./confidentialite.html" lang="fr">Français</a></nav></div>
   <h1>Privacy</h1>
-  <p class="updated">Last updated: 13 November 2026</p>
+  <p class="updated">Last updated: 27 November 2026</p>
 
   <p>Lumina Tarot is a personal, open-source project. It has no accounts, uses no tracking cookies and has no analytics or ads. This page explains what data passes through the site, where it goes and how you can control it.</p>
 
@@ -61,6 +61,7 @@
     <li>the site’s language, so the answer comes back in it.</li>
   </ul>
   <p>This data goes to our interpretation server, hosted on <strong>Cloudflare</strong> (Cloudflare Workers), which writes the text with <strong>Cloudflare Workers AI</strong> inside Cloudflare’s own network, using open language models. No other company receives your question. The server does not store the question or the answer, and Cloudflare processes the data under its own policy.</p>
+  <p>To know how many readings are made, the server records one anonymous line per interpretation: the type (spread or Yes or No), the number of cards, the deck, the language, the country the request came from (as reported by Cloudflare), whether it worked and how long it took. This record does not include the question, the cards, the answer or the IP address, and it stays in Cloudflare’s logs for a few days.</p>
   <p><strong>Avoid including full names, ID numbers, addresses or health details in your questions.</strong></p>
   <p>The question is optional: if the field is empty, only the cards and the spread are sent. If the service is unavailable, the site tells you and offers to try again; your cards stay on the table. Questions about sensitive subjects, such as self-harm, get a supportive answer put together on your device, without sending anything.</p>
 

@@ -18,6 +18,11 @@ name = "ORACLE_RATE_LIMITER"
 namespace_id = "1001"
 simple = { limit = 10, period = 60 }
 
+# Workers Logs: guarda a linha anônima de cada leitura (tipo, cartas, baralho, idioma, país,
+# resultado e tempo) para contar as tiragens no painel. Sem pergunta, cartas, resposta ou IP.
+[observability]
+enabled = true
+
 # Workers AI: o provedor das interpretações, na própria Cloudflare. Obrigatório.
 [ai]
 binding = "AI"

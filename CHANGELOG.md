@@ -12,6 +12,9 @@ e as versões seguem [SemVer](https://semver.org/lang/pt-BR/).
 - Música de fundo e modo foco.
 
 ### Adicionado
+- O Worker registra uma linha anônima por interpretação (tipo, número de cartas, baralho, idioma,
+  país, resultado, modelo e tempo), para contar as tiragens no Workers Logs. A pergunta, as cartas, a
+  resposta e o IP não entram no registro; a política de privacidade explica isso nos quatro idiomas.
 - **Inglês, espanhol e francês.** O site abre no idioma do navegador (português, inglês, espanhol ou
   francês; os demais caem no inglês), e o menu ganhou um seletor de idioma. Estão traduzidos a
   interface, os significados das 78 cartas de Tarot e das 36 do Baralho Cigano, as tiragens, o Sim ou

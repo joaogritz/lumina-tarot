@@ -57,6 +57,8 @@ Ao consultar uma tiragem ou o Sim ou Não, a aplicação gera uma interpretaçã
 
 A interface não menciona a IA; a [política de privacidade](public/privacidade.html), publicada em `/privacidade.html` e linkada no rodapé e na janela da interpretação, explica que a pergunta e as cartas são enviadas ao Worker e processadas pelo Workers AI, sem outras empresas.
 
+Para contar as tiragens, o Worker escreve uma linha anônima por interpretação no log (`event: "reading"`, com tipo, número de cartas, baralho, idioma, país, resultado, modelo e tempo), sem a pergunta, as cartas, a resposta ou o IP. Com o **Workers Logs** ligado (lumina-oracle → Settings → Observability, ou `[observability]` no `wrangler.toml`), o painel da Cloudflare permite filtrar e agrupar essas linhas, por exemplo tiragens por país ou por idioma.
+
 O endereço padrão do Worker fica em [`src/config.js`](src/config.js). Para usar seu próprio serviço, copie [`.env.example`](.env.example) para `.env.local` na raiz do projeto e ajuste o endereço:
 
 ```dotenv
