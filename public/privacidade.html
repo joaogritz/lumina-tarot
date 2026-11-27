@@ -35,7 +35,7 @@
 <main>
   <div class="top"><a class="back" href="./">← Voltar ao Lumina</a><nav class="langs" aria-label="Idiomas"><a href="./privacidade.html" lang="pt-BR">Português</a> · <a href="./privacy.html" lang="en">English</a> · <a href="./privacidad.html" lang="es">Español</a> · <a href="./confidentialite.html" lang="fr">Français</a></nav></div>
   <h1>Privacidade</h1>
-  <p class="updated">Última atualização: 13 de novembro de 2026</p>
+  <p class="updated">Última atualização: 27 de novembro de 2026</p>
 
   <p>O Lumina Tarot é um projeto pessoal e de código aberto. Ele não tem contas, não usa cookies de rastreamento e não tem ferramentas de análise ou anúncios. Esta página explica quais dados passam pelo site, para onde vão e como controlá-los.</p>
 
@@ -61,6 +61,7 @@
     <li>o idioma do site, para que a resposta venha nele.</li>
   </ul>
   <p>Esses dados vão ao nosso servidor de interpretação, hospedado na <strong>Cloudflare</strong> (Cloudflare Workers), que gera o texto com o <strong>Cloudflare Workers AI</strong>, na própria rede da Cloudflare, usando modelos de linguagem abertos. Nenhuma outra empresa recebe a consulta. O servidor não grava a pergunta nem a resposta, e a Cloudflare processa os dados conforme a própria política.</p>
+  <p>Para saber quantas leituras são feitas, o servidor registra uma linha anônima por interpretação: o tipo (tiragem ou Sim ou Não), o número de cartas, o baralho, o idioma, o país de onde veio a consulta (informado pela Cloudflare), se deu certo e quanto tempo levou. Esse registro não inclui a pergunta, as cartas, a resposta nem o endereço IP, e fica nos logs da Cloudflare por poucos dias.</p>
   <p><strong>Evite incluir nomes completos, documentos, endereços ou detalhes de saúde nas perguntas.</strong></p>
   <p>A pergunta é opcional: se o campo ficar vazio, apenas as cartas e a tiragem são enviadas. Se o serviço estiver indisponível, o site avisa e oferece tentar de novo; as cartas continuam na mesa. Perguntas sobre temas sensíveis, como autolesão, recebem uma resposta de acolhimento montada no próprio aparelho, sem enviar nada.</p>
 

@@ -326,6 +326,22 @@ export default {
     // Unknown or missing languages fall back to Portuguese.
     const locale = typeof data.locale === 'string' && Object.hasOwn(LANGUAGES, data.locale) ? data.locale : 'pt';
     const prompt = `${SYSTEM}\n\n${instruction}${languageInstructions(locale, isYesNo)}`;
+
+    // One anonymous line per reading, read in Workers Logs: kind, number of cards, deck, language,
+    // country, outcome and timing. Never the question, the cards, the answer or the IP address.
+    const startedAt = Date.now();
+    const logReading = (outcome, model = null, streamed = false) => console.log(JSON.stringify({
+      event: 'reading',
+      mode: isYesNo ? 'yes_no' : 'spread',
+      cards: cards.length,
+      deck: cards[0]?.arcana === 'Lenormand' ? 'lenormand' : 'tarot',
+      locale,
+      country: typeof request.cf?.country === 'string' ? request.cf.country : null,
+      outcome,
+      model,
+      streamed,
+      ms: Date.now() - startedAt,
+    }));
     const consultation = JSON.stringify({ question: data.userQuestion || '', spread, cards });
     const messages = [
       { role: 'system', content: prompt },
@@ -435,16 +451,21 @@ export default {
         try {
           const [first, ...rest] = aiChain;
           const streamed = await streamFirst(first.model);
-          if (streamed.ok) { await send({ t: 'done', model: first.model }); return; }
+          if (streamed.ok) { await send({ t: 'done', model: first.model }); logReading('ok', first.model, true); return; }
           if (streamed.sent) await send({ t: 'reset' });
           const result = await generate(rest);
           if (result) {
             await send({ t: 'delta', v: result.text });
             await send({ t: 'done', model: result.model });
-          } else await send({ t: 'error' });
+            logReading('ok', result.model, true);
+          } else {
+            await send({ t: 'error' });
+            logReading('unavailable', null, true);
+          }
         } catch (e) {
           // The client went away mid-stream; nothing left to deliver.
           console.error('Stream aborted:', e?.message);
+          logReading('aborted', null, true);
         } finally {
           writer.close().catch(() => {});
         }
@@ -457,7 +478,11 @@ export default {
     }
 
     const result = await generate(aiChain);
-    if (!result) return respond(502, { error: 'Serviço temporariamente indisponível.' });
+    if (!result) {
+      logReading('unavailable');
+      return respond(502, { error: 'Serviço temporariamente indisponível.' });
+    }
+    logReading('ok', result.model);
     return respond(200, { text: result.text, modelUsed: result.model });
   },
 };
